@@ -1,0 +1,23 @@
+{
+    "name": "basttyy/fx-data-server",
+    "description": "fx historical data server",
+    "type": "project",
+    "require": {
+        "ratchet/rfc6455": "dev-master",
+        "vlucas/phpdotenv": "5.5.x-dev",
+        "monolog/monolog": "3.x-dev"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Basttyy\\FxDataServer\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Abdulbasit",
+            "email": "basttyy@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev"
+}
