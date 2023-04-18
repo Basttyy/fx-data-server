@@ -3,6 +3,7 @@
 # Script to download Forex historical data and convert into CSV format.
 # Example usage:
 #   ./fx-data-download.py -p EURUSD -y 2013,2014
+#in windows:  python fx-data-download.py -p EURUSD -y 2023 -m all -d all -c -C
 
 import sys
 import os
@@ -428,7 +429,7 @@ if __name__ == "__main__":
         action="store",
         dest="dest",
         help="Directory to download files.",
-        default="download/dukascopy",
+        default="download",
     )
     parser.add_argument(
         "-c",
@@ -482,7 +483,7 @@ if __name__ == "__main__":
         "--clean",
         action="store_true",
         dest="clean",
-        help="Determine if .bi5 files should be deleted or kept (true for delete)"
+        help="Determine if .bi5 files should be deleted or kept (true for delete)",
         default="true"
     )
     args = parser.parse_args()
