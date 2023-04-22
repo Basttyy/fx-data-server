@@ -3,9 +3,9 @@
     "description": "fx historical data server",
     "type": "project",
     "require": {
-        "ratchet/rfc6455": "dev-master",
-        "vlucas/phpdotenv": "5.5.x-dev",
-        "monolog/monolog": "3.x-dev"
+        "monolog/monolog": "^3.3",
+        "vlucas/phpdotenv": "^5.5",
+        "cboden/ratchet": "^0.4.4"
     },
     "license": "MIT",
     "autoload": {
@@ -19,5 +19,5 @@
             "email": "basttyy@gmail.com"
         }
     ],
-    "minimum-stability": "dev"
+    "minimum-stability": "beta"
 }
