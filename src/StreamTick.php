@@ -50,7 +50,7 @@ class StreamTick
             $time = $data['time'];
             $lasttime = $lasttime === 0 ? $data['lasttime'] : $lasttime;
             $datetime = $datetime->setTimestamp($lasttime);
-            $file_path = "download/{$data['sym']}/{$datetime->format('YYYY/MM')}/{$datetime->format('YYYY/MM/DD')}--{$datetime->format('HH')}h_ticks.csv";
+            $file_path = "download/{$data['sym']}/{$datetime->format('Y/m')}/{$datetime->format('Y/m/d')}--{$datetime->format('H')}h_ticks.csv";
 
             if (!$csv_string = file_get_contents($file_path)) {
                 echo "unable to get file: ".$file_path.PHP_EOL;
@@ -60,7 +60,7 @@ class StreamTick
             $lines = explode("\n", $csv_string);
             while (1) {
                 $csv_data = str_getcsv($lines[$line]);
-                $datetime = $datetime->createFromFormat("YYYY.MM.DD HH:mm:ss.SSS", $csv_data[0]);
+                $datetime = $datetime->createFromFormat("Y-m-d H:i:s.u", $csv_data[0]);
                 $unixtime = $datetime->getTimestamp();
 
                 if ($unixtime <= $lasttime) {
