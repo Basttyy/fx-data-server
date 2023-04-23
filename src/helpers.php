@@ -78,7 +78,7 @@ function processCandles(array $files, int $from, int $timeframe)
             //     consoleLog('info', "unable to read csv line");
             //     return $csv_row;
             // }
-            $datetime = $datetime->createFromFormat("Y.m.d H:i:s.u", $csv_row[0]);
+            $datetime = $datetime->createFromFormat("Y.m.d H:i:s", $csv_row[0]);
             // echo $datetime->getTimestamp().PHP_EOL;
             // echo $datetime->format("Y.m.d H:i:s.u").PHP_EOL;
             $minutes = $datetime->getTimestamp()/60;
@@ -104,7 +104,7 @@ function processCandles(array $files, int $from, int $timeframe)
                     $canpush = false;
                     array_push($datalist, (object)$data);
                 }
-                $datetime = $datetime->createFromFormat("Y.m.d H:i:s.u", $csv_row[0]);
+                $datetime = $datetime->createFromFormat("Y.m.d H:i:s", $csv_row[0]);
                 $timestamp = $datetime->getTimestamp();
                 $firsttime = $timestamp/60;
                 $open = (float) $csv_row[1];

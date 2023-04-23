@@ -13,6 +13,7 @@ import time
 import urllib.request
 import socket
 from urllib.error import HTTPError, ContentTooShortError
+import ciso8601
 
 try:
     import lzma
@@ -389,16 +390,26 @@ class Dukascopy:
             row = unpack(">iiiff", row)
 
             # Calculating & formatting column values
-            minute = row[0] / 1000 // 60
-            second = row[0] / 1000 - minute * 60
-            timestamp = "%d.%02d.%02d %02d:%02d:%06.3f" % (
+            # minute = row[0] / 1000 // 60
+            # second = row[0] / 1000 - minute * 60
+            # timestamp = "%d.%02d.%02d %02d:%02d:%06.3f" % (
+            #     self.year,
+            #     self.month,
+            #     self.day,
+            #     self.hour,
+            #     minute,
+            #     second,
+            # )
+            timestring = "%d-%02d-%02d %02d:%02d:%06.3f" % (
                 self.year,
                 self.month,
                 self.day,
                 self.hour,
-                minute,
-                second,
+                00,
+                00,
             )
+            timestamp = time.mktime(ciso8601.parse_datetime(timestring).timetuple())
+            timestamp += row[0] / 1000
             askPrice = row[1] / point
             bidPrice = row[2] / point
             bidVolume = "%.2f" % (row[4])
