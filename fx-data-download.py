@@ -272,7 +272,7 @@ class Dukascopy:
         self.month = month
         self.day = day
         self.hour = hour
-        self.url = self.url_tpl % (pair, int(year), month, day, hour)
+        self.url = self.url_tpl % (pair, int(year), month -1, day, hour)
         self.path = "%s/%04d/%02d/%04d-%02d-%02d--%02dh_ticks.bi5" % (
             dest,
             year,
@@ -495,7 +495,7 @@ if __name__ == "__main__":
     hours = range(0, 23 + 1) if args.hours == "all" else intlist(args.hours.split(","))
     days = range(1, 31) if args.days == "all" else intlist(args.days.split(","))
     months = (
-        range(0, 12) if args.months == "all" else intlist(args.months.split(","))
+        range(0, 12 + 1) if args.months == "all" else intlist(args.months.split(","))
     )
     years = (
         range(1997, curr_year + 1)
@@ -521,6 +521,8 @@ if __name__ == "__main__":
                                     unix > all_currencies.get(pair)
                                     and unix < time.time()
                                 ):
+                                    # if args.months != "all":
+                                    #     month -= 1
                                     ds = Dukascopy(
                                         pair,
                                         year,
