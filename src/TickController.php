@@ -69,28 +69,27 @@ $getTimeframeCandles = function (string $ticker, int $from, int $nums, int $time
     return true;
 };
 
-$searchTicker = function (string $query)
+$searchTicker = function (string $query = "")
 {
-
     $symbols = [
         (object) [
             'exchange' => '',
             'market' => 'fx',
             'name' => 'Euro against US Dollar',
-            'shortName' => 'EU',
+            'shortName' => 'EURUSD',
             'ticker' => 'EURUSD',
             'priceCurrency' => 'usd',
             'type' => 'ADRC',
         ],
-        // (object) [
-        //     'exchange' => '',
-        //     'market' => 'fx',
-        //     'name' => 'Great Britain Pound against US Dollar',
-        //     'shortName' => 'GBPUSD',
-        //     'ticker' => 'GBPUSD',
-        //     'priceCurrency' => 'usd',
-        //     'type' => 'ADRC',
-        // ],
+        (object) [
+            'exchange' => '',
+            'market' => 'fx',
+            'name' => 'Great Britain Pound against US Dollar',
+            'shortName' => 'GBPUSD',
+            'ticker' => 'GBPUSD',
+            'priceCurrency' => 'usd',
+            'type' => 'ADRC',
+        ],
         // (object) [
         //     'exchange' => '',
         //     'market' => 'fx',
@@ -109,7 +108,26 @@ $searchTicker = function (string $query)
         //     'priceCurrency' => 'cad',
         //     'type' => 'ADRC',
         // ],
+        (object) [
+            'exchange' => '',
+            'market' => 'fx',
+            'name' => 'Goldspot vs United State Dollar',
+            'shortName' => 'XAUUSD',
+            'ticker' => 'XAUUSD',
+            'priceCurrency' => 'usd',
+            'type' => 'ADRC',
+        ],
     ];
+    header("Content-type: application/json");
+    if ($query < "") {
+        http_response_code(200);
+        echo json_encode([
+            "message" => "all tickers list",
+            "count" => count($symbols),
+            "results" => $symbols
+        ]);
+    }
+
     $query = strtolower($query);
 
     $data = array_filter($symbols, function ($symbol) use ($query) {
@@ -130,7 +148,6 @@ $searchTicker = function (string $query)
 
         // return $status;
     });
-    header("Content-type: application/json");
     if ($data < 0) {
         http_response_code(404);
         echo json_encode([
@@ -141,7 +158,7 @@ $searchTicker = function (string $query)
         echo json_encode([
             "message" => "search results retrieved success",
             "count" => count($data),
-            "data" => $data
+            "results" => $data
         ]);
     }
     return true;

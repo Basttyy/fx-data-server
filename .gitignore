@@ -1,3 +1,4 @@
 # Ignores binary files.
 /download/
 /vendor/
+/minute_data/

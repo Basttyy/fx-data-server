@@ -1,11 +1,12 @@
 <?php
 require_once __DIR__.'/router.php';
-require_once __DIR__.'/src/controller.php';
+require_once __DIR__.'/src/TickController.php';
+require_once __DIR__.'/src/MinuteController.php';
 // Copyright Monwoo 2017, service@monwoo.com
 // Enabling CORS in bultin dev to test locally with multiples servers
 // used to replace lack of .htaccess support inside php builting webserver.
 // call with :
-// php -S localhost:20334 -t . server.php
+// php -S localhost:20334 -t . server.php  php -S 192.168.0.127:20334 -t . server.php
 $CORS_ORIGIN_ALLOWED = "http://127.0.0.1:5173";  // or '*' for all
 // header("Access-Control-Allow-Origin: $CORS_ORIGIN_ALLOWED");
 
@@ -30,6 +31,7 @@ if (preg_match('/\.(?:png|jpg|jpeg|gif)$/', $_SERVER["REQUEST_URI"])) {
     get('/download/ticker/$ticker/from/$from/nums/$nums/faster/$faster', $downloadTickData);
     get('/candles/ticker/$ticker/from/$fro/nums/$num/timeframe/$timefram', $getTimeframeCandles);
     get('/tickers/query/$query', $searchTicker);
+    get('/tickers/query', $searchTicker);
 } else {
     consoleLog('info', "Not catched by routing, Transparent serving for : "
     . $_SERVER["REQUEST_URI"]);

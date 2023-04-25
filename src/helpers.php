@@ -61,7 +61,7 @@ function processCandles(array $files, int $from, int $timeframe)
     }
     //$wh = fopen($result, 'w+');
 
-    $datetime = new DateTime();
+    $datetime = 0;
     $datalist = array();
     $firsttime = 0; $minutes = 0; $canpush = false;
     $timestamp = 0; $open = 0; $close = 0; $high = 0; $low = 0; $turnover = 0; $volume = 0;
@@ -71,6 +71,7 @@ function processCandles(array $files, int $from, int $timeframe)
             //consoleLog('info', "unable to open file");
             return $fh;
         }
+        
         // while (!feof($fh)) {
         while (($csv_row = fgetcsv($fh, 60, ',')) !== false) {
             //date_time,bid,ask,volume,turnover
@@ -78,13 +79,12 @@ function processCandles(array $files, int $from, int $timeframe)
             //     consoleLog('info', "unable to read csv line");
             //     return $csv_row;
             // }
-            $datetime = $datetime->createFromFormat("Y.m.d H:i:s", $csv_row[0]);
+            // $datetime = $datetime->createFromFormat("Y.m.d H:i:s", $csv_row[0]);
             // echo $datetime->getTimestamp().PHP_EOL;
             // echo $datetime->format("Y.m.d H:i:s.u").PHP_EOL;
-            $minutes = $datetime->getTimestamp()/60;
-            $difference = $minutes - $firsttime;
-            // echo("csvtime: $csv_row[0] ---- Minutes: $minutes ---- firsttime: $firsttime ---- difference: $difference ---- timeframe: $timeframe").PHP_EOL;
-            // echo PHP_EOL;
+            $datetime = (float)$csv_row[0];
+            $minutes = $datetime/60;
+            
             if ($firsttime === 0 || ($minutes - $firsttime) >= $timeframe) {
                 // consoleLog("info", "firsttime or timeframe full");
                 if ($canpush) {
@@ -104,8 +104,8 @@ function processCandles(array $files, int $from, int $timeframe)
                     $canpush = false;
                     array_push($datalist, (object)$data);
                 }
-                $datetime = $datetime->createFromFormat("Y.m.d H:i:s", $csv_row[0]);
-                $timestamp = $datetime->getTimestamp();
+                $datetime = $csv_row[0];
+                $timestamp = $datetime;
                 $firsttime = $timestamp/60;
                 $open = (float) $csv_row[1];
                 $close = (float) $csv_row[1];

@@ -1,6 +1,9 @@
 <?php
 namespace Basttyy\FxDataServer;
 
+use Closure;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
 use React\EventLoop\LoopInterface;
@@ -18,6 +21,20 @@ class WebSocketServer implements MessageComponentInterface {
         $this->routes = array();
     }
 
+    // this can be useful for implementing httpserver
+    public function __invoke(RequestInterface $request, ResponseInterface $response)
+    {
+        echo "got here".PHP_EOL;
+        $path = $request->getUri()->getPath();
+        if ($path === '/hello') {
+            $response->getBody()->write('Hello, World');
+            return $response;
+        } else {
+            $response->getBody()->write('Is Not Found');
+            return $response->withStatus(404);
+        }
+    }
+
     public function onOpen(ConnectionInterface $conn) {
         // Store the new connection in $clients
         $this->clients->attach($conn);
@@ -27,7 +44,6 @@ class WebSocketServer implements MessageComponentInterface {
     public function onMessage(ConnectionInterface $from, $msg) {
         // Decode the JSON message
         $data = json_decode($msg, true);
-        print_r($data);
 
         // Check if the message is a valid JSON object
         if (is_array($data)) {
@@ -38,7 +54,11 @@ class WebSocketServer implements MessageComponentInterface {
                 if (isset($this->routes[$route])) {
                     // Call the route handler
                     $handler = $this->routes[$route];
-                    $this->$handler($from, $data);
+                    if (is_callable($handler)) {
+                        $handler($from, $data);
+                    } else {
+                        consoleLog('error', "the handler is not a valid callable");
+                    }
                 } else {
                     echo "Unknown route: {$route}\n";
                 }
@@ -52,6 +72,7 @@ class WebSocketServer implements MessageComponentInterface {
 
     public function onClose(ConnectionInterface $conn) {
         // Remove the connection from $clients
+        $this->loop->cancelTimer($this->getTicker($conn));
         $this->clients->detach($conn);
         echo "Connection closed! ({$conn->resourceId})\n";
     }
@@ -63,13 +84,14 @@ class WebSocketServer implements MessageComponentInterface {
 
     public function getTicker(ConnectionInterface $key): TimerInterface|null
     {
-        return $this->clients->offsetGet($key)['ticker'];
+        $data = (array)$this->clients->offsetGet($key);
+        return $data['ticker'];
     }
 
-    public function setTicker(ConnectionInterface $key, TimerInterface|null $data)
+    public function setTicker(ConnectionInterface $key, TimerInterface|null $timer)
     {
-        $data = $this->clients->offsetGet($key);
-        $data['ticker'] = $data;
+        $data = (array)$this->clients->offsetGet($key);
+        $data['ticker'] = $timer;
         $this->clients->offsetSet($key, $data);
     }
 
@@ -88,12 +110,12 @@ class WebSocketServer implements MessageComponentInterface {
     public function ticktack()
     {
         echo "ticktack called".PHP_EOL;
-        $this->loop->addPeriodicTimer(10, function () {
+        $this->loop->addPeriodicTimer(0.1, function () {
             echo "we are logging something".PHP_EOL;
         });
     }
 
-    public function addRoute($route, $handler) {
+    public function addRoute(string $route, callable $handler) {
         $this->routes[$route] = $handler;
     }
 }
