@@ -5,7 +5,9 @@
     "require": {
         "monolog/monolog": "^3.3",
         "vlucas/phpdotenv": "^5.5",
-        "cboden/ratchet": "^0.4.4"
+        "cboden/ratchet": "^0.4.4",
+        "ratchet/pawl": "^0.4.1",
+        "nesbot/carbon": "^2.66"
     },
     "license": "MIT",
     "autoload": {
