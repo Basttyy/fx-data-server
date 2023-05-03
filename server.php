@@ -30,6 +30,7 @@ if (preg_match('/\.(?:png|jpg|jpeg|gif)$/', $_SERVER["REQUEST_URI"])) {
     //register controllers
     get('/download/ticker/$ticker/from/$from/nums/$nums/faster/$faster', $downloadTickData);
     get('/candles/ticker/$ticker/from/$fro/nums/$num/timeframe/$timefram', $getTimeframeCandles);
+    get('/download/min/ticker/$ticker/from/$from/incr/$incr/nums/$nums', $downloadMinuteData);
     get('/tickers/query/$query', $searchTicker);
     get('/tickers/query', $searchTicker);
 } else {
