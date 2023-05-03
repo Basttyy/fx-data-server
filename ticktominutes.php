@@ -8,6 +8,11 @@ $tickers = explode(',', strtoupper($argv[1]));
 $years = explode(',', $argv[2]);
 
 $datetime = new Carbon();
+///FRIDAY 1min candles count is 1320
+///SUNDAY 1min candles count is 120
+///SATURDAY 1min candles count is 0
+///OTHERS 1min candles count is 1440
+///FRIDAY and SUNDAY forms one day
 
 // echo "$ticker : $year";
 // exit(0);
@@ -23,20 +28,22 @@ foreach ($tickers as $ticker) {
                     continue;
                     // return $files;
                 }
-                $path = __DIR__."/minute_data/$ticker/$year/$month/";
+                $mn = $month < 10 ? "0$month" : "$month";
+                $dy = $day < 10 ? "0$day" : "$day";
+                $path = __DIR__."/minute_data/$ticker/$year/$mn/";
         
                 if (!is_dir($path)) {
                     mkdir($path, 0777, true);
                 }
-                $path = $path."$year-$month-{$day}_data.csv";
+                $path = $path."$year-$mn-{$dy}_data.csv";
                 generateMinuteData($files, $path, 1);
-                sleep(1);
+                //sleep(1);
             }
-            consoleLog("info", "done with month: $month");
-            sleep(1);
+            consoleLog("info", "done with month: $mn");
+            //sleep(1);
         }
         consoleLog("info", "done with year: $year");
-        sleep(2);
+        //sleep(2);
     }
 }
 
@@ -93,7 +100,8 @@ function generateMinuteData(array $files, string $result_path, int $timeframe, b
             if (($csv_row = fgetcsv($fh, 60, ',')) === false) {
                 $timestamp = $timestamp*1000;
                 // consoleLog("info", "end of file detected");
-                fwrite($f_result, "$timestamp,$open,$close,$high,$low,$volume\n");
+                fputcsv($f_result, [$timestamp, $open, $close, $high, $low, $volume]);
+                // fwrite($f_result, "$timestamp,$open,$close,$high,$low,$volume\n");
                 $timestamp = 0; $datetime = 0; $firsttime = 0; $minutes = 0; $canpush = false;
                 $open = 0; $close = 0; $high = 0; $low = 0; $turnover = 0; $volume = 0; $multiplier = 0;
 
@@ -107,14 +115,15 @@ function generateMinuteData(array $files, string $result_path, int $timeframe, b
                 if ($canpush) {
                     $timestamp = $timestamp*1000;
                     $canpush = false;
-                    fwrite($f_result, "$timestamp,$open,$close,$high,$low,$volume\n");
+                    fputcsv($f_result, [$timestamp, $open, $close, $high, $low, $volume]);
+                    // fwrite($f_result, "$timestamp,$open,$close,$high,$low,$volume\n");
                     $timestamp = $timestamp/1000;
                 }
                 $timestamp = $datetime;
                 if ($firsttime === 0) {
-                    $firsttime = (float)(strstr((string)$minutes, '.', true))+1;
+                    $firsttime = $minutes+1;
                 } else {
-                    $firsttime = $firsttime + $timeframe;
+                    $firsttime += $timeframe;
                 }
                 $canpush = true;
                 $open = (float) $csv_row[$price_line];
@@ -133,7 +142,7 @@ function generateMinuteData(array $files, string $result_path, int $timeframe, b
         }
         fclose($fh);
         unset($fh);
-        sleep(2);
+        //sleep(2);
     }
     fclose($f_result);
     unset($f_result);

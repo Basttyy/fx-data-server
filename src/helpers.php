@@ -1,10 +1,13 @@
 <?php
+require_once __DIR__."\\..\\vendor\\autoload.php";
+
+use Carbon\Carbon;
 
 function consoleLog($level, $msg) {
     file_put_contents("php://stdout", "[" . $level . "] " . $msg . "\n");
 }
 
-function joinCsvFast(array $files, string $result, bool $use_memory): bool|string
+function joinCsvFast(array $files, string $result, bool $use_memory): bool|int
 {
     $data = "";
     foreach ($files as $file) {
@@ -172,6 +175,38 @@ function getFilesList(string $ticker, int $from, int $nums): bool|array
         }
         array_unshift($files, $file_path);
         $datetime = $datetime->sub(new DateInterval('PT1H'));
+        $i++;
+    }
+    if (count($files))
+        return $files;
+    return false;
+}
+
+function getMinutesFilesList(string $ticker, int &$from, int $increment, int $nums): bool|array
+{
+    // consoleLog("info", "the vars are $ticker:  $from:   $nums");
+    // return true;
+    $datetime = new Carbon();
+    // $datetime->setTimestamp($from);
+    $datetime = $datetime->setTimestamp($from);
+    $from = 0;
+    $files = array(); $i = 0;
+    while ($i < $nums) {
+        if ($datetime->greaterThan(Carbon::now()) || $datetime->lessThan(Carbon::createFromFormat('Y/m/d', '2016/01/01'))) {
+            return false;
+        }
+        $file_path = "{$_SERVER['DOCUMENT_ROOT']}/minute_data/$ticker/{$datetime->format('Y/m')}/{$datetime->format('Y-m-d')}_data.csv";
+        str_replace('/', "\\", $file_path);
+        consoleLog(0, $file_path.PHP_EOL);
+        if (!file_exists($file_path)) {
+            $datetime = $increment === 1 ? $datetime->addDay() : $datetime->subDay();
+            consoleLog('info', "File not found Error for : " . $file_path);
+            continue;
+        }
+        if ($from === 0)
+            $from = $datetime->getTimestamp();
+        array_unshift($files, $file_path);
+        $datetime = $increment === 1 ? $datetime->addDay() : $datetime->subDay();
         $i++;
     }
     if (count($files))
