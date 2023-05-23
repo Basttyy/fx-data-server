@@ -21,5 +21,21 @@
             "email": "basttyy@gmail.com"
         }
     ],
-    "minimum-stability": "beta"
+    "minimum-stability": "beta",
+    "scripts": {
+        "dev": [
+            "Composer\\Config::disableProcessTimeout",
+            "./node_modules/.bin/nodemon --exec php -S 192.168.0.153:20334 -t . server.php"
+        ],
+        "queue-dev": [
+            "Composer\\Config::disableProcessTimeout",
+            "./node_modules/.bin/nodemon --config nodemon_console.json ./src/Console/JobRunner.php"
+        ],
+        "queue-work": "php ./src/Console/JobRunner.php",
+        "start": "php server.php 127.0.0.1:23458",
+        "add-migration": "./vendor/bin/phinx create",
+        "add-seed": "./vendor/bin/phinx seed:create",
+        "migrate": "./vendor/bin/phinx migrate",
+        "seed": "./vendor/bin/phinx seed:run"
+    }
 }
