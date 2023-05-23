@@ -19,12 +19,12 @@ function applyCorsHeaders($origin) {
     header('Access-Control-Allow-Headers: Content-Type, Accept');
 }
 
-if (preg_match('/\.(?:png|jpg|jpeg|gif)$/', $_SERVER["REQUEST_URI"])) {
-    consoleLog('info', "Transparent routing for : " . $_SERVER["REQUEST_URI"]);
-    http_response_code(400);
-    header("Content-type: application/json");
-    echo json_encode(["message" => "Bad Request data"]);
-} else if (preg_match('/^.*$/i', $_SERVER["REQUEST_URI"])) {
+// if (preg_match('/\.(?:png|jpg|jpeg|gif)$/', $_SERVER["REQUEST_URI"])) {
+//     consoleLog('info', "Transparent routing for : " . $_SERVER["REQUEST_URI"]);
+//     http_response_code(400);
+//     header("Content-type: application/json");
+//     echo json_encode(["message" => "Bad Request data"]);
+if (preg_match('/^.*$/i', $_SERVER["REQUEST_URI"])) {
     applyCorsHeaders($CORS_ORIGIN_ALLOWED);
 
     //register controllers
