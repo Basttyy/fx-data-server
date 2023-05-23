@@ -3,8 +3,10 @@ require_once __DIR__."\\..\\vendor\\autoload.php";
 
 use Carbon\Carbon;
 
-function consoleLog($level, $msg) {
-    file_put_contents("php://stdout", "[" . $level . "] " . $msg . "\n");
+if (function_exists("consoleLog")) {
+    function consoleLog($level, $msg) {
+        file_put_contents("php://stdout", "[" . $level . "] " . $msg . "\n");
+    }
 }
 
 function joinCsvFast(array $files, string $result, bool $use_memory): bool|int

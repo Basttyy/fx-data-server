@@ -1,4 +1,5 @@
 # Ignores binary files.
 /download/
 /vendor/
+/node_modules/
 /minute_data/
