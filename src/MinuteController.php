@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__."/../config.php";
-require_once __DIR__."/helpers.php";
+require_once __DIR__."\/libs\/helpers.php";
 
 $downloadMinuteData = function (string $ticker, int $from, int $incr, int $nums)
 {
