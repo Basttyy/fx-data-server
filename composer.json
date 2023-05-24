@@ -3,11 +3,12 @@
     "description": "fx historical data server",
     "type": "project",
     "require": {
-        "monolog/monolog": "^3.3",
         "vlucas/phpdotenv": "^5.5",
         "cboden/ratchet": "^0.4.4",
         "ratchet/pawl": "^0.4.1",
-        "nesbot/carbon": "^2.66"
+        "nesbot/carbon": "^2.66",
+        "robmorgan/phinx": "^0.13.4",
+        "monolog/monolog": "^3.3"
     },
     "license": "MIT",
     "autoload": {
