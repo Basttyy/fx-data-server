@@ -15,6 +15,18 @@ class RoleSeeder extends AbstractSeed
      */
     public function run(): void
     {
+        $data = [
+            [
+                'name' => 'admin',
+                'previleges' => ''
+            ],
+            [
+                'name' => 'user',
+                'previleges' => '.'
+            ]
+        ];
 
+        $roles = $this->table('roles');
+        $roles->insert($data)->saveData();
     }
 }
