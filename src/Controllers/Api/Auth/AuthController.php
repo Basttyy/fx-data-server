@@ -13,15 +13,17 @@ use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\User;
 use Exception;
 
-final class LoginController
+final class AuthController
 {
     //@param \App\Auth\JwtAuthenticator
     private $authenticator;
 
     private $user;
+    private $method;
 
-    public function __construct()
+    public function __construct($method = 'login')
     {
+        $this->method = $method;
         $this->user = new User();
         $encoder = new JwtEncoder(env('APP_KEY'));
         $role = new Role();
@@ -29,7 +31,32 @@ final class LoginController
         // $authMiddleware = new Guard($authenticator);
     }
 
-    public function __invoke($method = 'login')
+    public function __invoke()
+    {
+        switch ($this->method) {
+            case 'login':
+                $resp = $this->login();
+                break;
+            case 'forgot_pass':
+                $resp = $this->forgotPassword();
+                break;
+            case 'change_pass':
+                $resp = $this->changePassword();
+                break;
+            case 'reset_pass':
+                $resp = $this->resetPassword();
+                break;
+            case 'refresh_token':
+                $resp = $this->refreshToken();
+                break;
+            default:
+                $resp = JsonResponse::serverError('bad method call');
+        }
+
+        return $resp;
+    }
+
+    private function login ()
     {
         try {
             // Check if the request has a body
@@ -53,7 +80,6 @@ final class LoginController
                 if (!$user = $this->user->findByEmail($body['email'])) {
                     throw new NotFoundException("user does not exist");
                 }
-                // echo(serialize($user));
 
                 if (!$user instanceof User) {
                     throw new NotFoundException("user does not exist");
@@ -78,6 +104,51 @@ final class LoginController
             }
         } catch (Exception $e) {
             return JsonResponse::serverError("something happened try again " . $e->getTraceAsString());
+        }
+    }
+
+    private function forgotPassword()
+    {
+
+    }
+
+    private function resetPassword()
+    {
+
+    }
+
+    private function changePassword()
+    {
+
+    }
+
+    private function refreshToken()
+    {
+        // $keys =  array_keys($request->getHeaders());
+        // $headers =  Arr::flatten($request->getHeaders());
+        // $headers =  array_combine($keys, $headers);
+
+        // if ($validated = Validator::validate($headers, [
+        //     'firebase_token' => 'required|string'
+        // ])) {
+        //     return JsonResponse::badRequest('errors in request', $validated);
+        // }
+        // if ($validated = Validator::validate($_SERVER, [
+        //     'refresh_token' => 'required|string'
+        // ])) {
+        //     return JsonResponse::badRequest('errors in request', $validated);
+        // }
+        try {
+            if (!$token = $this->authenticator->validate()) {
+                return JsonResponse::unauthorized("invalid auth token");
+            }
+            return JsonResponse::ok("refresh token success", [
+                'auth_token' => $token
+            ]);
+        } catch (QueryException $e) {
+            return JsonResponse::serverError("something happened try again");
+        } catch (Exception $e) {
+            return JsonResponse::serverError("something happened try again");
         }
     }
 }

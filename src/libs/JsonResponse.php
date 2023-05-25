@@ -21,13 +21,13 @@ class JsonResponse
         http_response_code($status_code);
         header("Content-type: application/json");
         echo $body;
-        consoleLog(0, $body);
+        // consoleLog(0, $body);
     }
 
     public static function ok($message = "", $data = null): bool
     {
         try {
-            consoleLog(0, "called json ok method");
+            // consoleLog(0, "called json ok method");
             new self(self::STATUS_OK, ['message' => $message, 'data' => $data]);
             return true;
         } catch (Exception $ex) {
@@ -101,7 +101,7 @@ class JsonResponse
     //     try {
     //         return self::json($body)->withStatus($statusCode);
     //     } catch (Exception $ex) {
-            consoleLog(0, $ex->getMessage());
+            //consoleLog(0, $ex->getMessage());
     //     }
 
     // }

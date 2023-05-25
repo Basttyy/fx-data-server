@@ -83,6 +83,7 @@ final class JwtAuthenticator
         if (is_null($payload = $this->encoder->decode($jwt))) {
             return false;
         }
+        
         $user = $this->user->fill((array)$payload->data);
 
         return $user;
@@ -110,12 +111,13 @@ final class JwtAuthenticator
 
     private function extractToken(): ?string
     {
-        $auth_header = $_SERVER['AUTHORIZATION'];
+        // print_r($_SERVER);
+        $auth_header = $_SERVER['HTTP_AUTHORIZATION'];
         if (empty($auth_header)) {
             return null;
         }
 
-        $auth_token = sanitize_data($auth_header[0]);
+        $auth_token = sanitize_data($auth_header);
         if (empty($auth_token)) {
             return null;
         }
@@ -158,7 +160,7 @@ final class JwtAuthenticator
                 "role_id" => $user->role_id,
             ]
         ], $this->key);
-        echo ("this is token ".$token);
+        //echo ("this is token ".$token);
         return $token;
     }
 }
