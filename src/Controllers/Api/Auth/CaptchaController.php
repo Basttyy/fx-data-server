@@ -1,0 +1,126 @@
+<?php
+namespace Basttyy\FxDataServer\Controllers\Api\Auth;
+// require_once __DIR__."\\..\\..\\..\\libs\\helpers.php";
+
+use Basttyy\FxDataServer\Auth\JwtAuthenticator;
+use Basttyy\FxDataServer\Auth\JwtEncoder;
+use Basttyy\FxDataServer\Exceptions\NotFoundException;
+use Basttyy\FxDataServer\Exceptions\QueryException;
+use Basttyy\FxDataServer\libs\Validator;
+use Basttyy\FxDataServer\libs\JsonResponse;
+use Basttyy\FxDataServer\Models\Role;
+use Basttyy\FxDataServer\Models\User;
+use Exception;
+use Gregwar\Captcha\CaptchaBuilder;
+use Gregwar\Captcha\PhraseBuilder;
+
+final class CaptchaController
+{
+    private $method;
+
+    public function __construct($method = 'generate')
+    {
+        $this->method = $method;
+        // $authMiddleware = new Guard($authenticator);
+    }
+
+    public function __invoke()
+    {
+        switch ($this->method) {
+            case 'generate':
+                $resp = $this->generate();
+                break;
+            case 'validate':
+                $resp = $this->comparePhrase();
+                break;
+            case 'change_pass':
+                $resp = $this->changePassword();
+                break;
+            case 'reset_pass':
+                $resp = $this->resetPassword();
+                break;
+            case 'refresh_token':
+                $resp = $this->refreshToken();
+                break;
+            default:
+                $resp = JsonResponse::serverError('bad method call');
+        }
+
+        return $resp;
+    }
+
+    private function generate ()
+    {
+        try {
+            $captcha = new CaptchaBuilder;
+            $_SESSION['captcha-phrase'] = $captcha->getPhrase();
+            $captcha->build(256, 64);
+            header('Content-Type: image/jpeg');
+            $captcha->output();
+
+            return true;
+        } catch (Exception $e) {
+            return JsonResponse::serverError("something happened try again " . $e->getTraceAsString());
+        }
+    }
+
+    private function comparePhrase()
+    {
+        $inputJSON = file_get_contents('php://input');
+
+        $body = sanitize_data(json_decode($inputJSON, true));
+
+        if ($validated = Validator::validate($body, [
+            'captcha-phrase' => 'required|string'
+        ])) {
+            return JsonResponse::badRequest('errors in request', $validated);
+        }
+        if (isset($_SESSION['captcha-phrase']) && PhraseBuilder::comparePhrases($_SESSION['captcha-phrase'], $body['captcha-phrase'])) {
+            return JsonResponse::ok("captcha is valid", ['status' => 'validated']);
+        } else {
+            echo JsonResponse::badRequest("captcha is not valid", ['status' => 'failed']);
+        }
+    }
+
+    private function resetPassword()
+    {
+
+    }
+
+    private function changePassword()
+    {
+
+    }
+
+    private function refreshToken()
+    {
+        // $keys =  array_keys($request->getHeaders());
+        // $headers =  Arr::flatten($request->getHeaders());
+        // $headers =  array_combine($keys, $headers);
+
+        // if ($validated = Validator::validate($headers, [
+        //     'firebase_token' => 'required|string'
+        // ])) {
+        //     return JsonResponse::badRequest('errors in request', $validated);
+        // }
+        // if ($validated = Validator::validate($_SERVER, [
+        //     'refresh_token' => 'required|string'
+        // ])) {
+        //     return JsonResponse::badRequest('errors in request', $validated);
+        // }
+        try {
+            if (!$token = $this->authenticator->validate()) {
+                return JsonResponse::unauthorized("invalid auth token");
+            }
+            return JsonResponse::ok("refresh token success", [
+                'auth_token' => $token
+            ]);
+        } catch (QueryException $e) {
+            return JsonResponse::serverError("something happened try again");
+        } catch (Exception $e) {
+            return JsonResponse::serverError("something happened try again");
+        }
+    }
+}
+
+?>
