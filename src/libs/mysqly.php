@@ -512,7 +512,7 @@ class mysqly {
   
   /* Cache storage */
   
-  public static function write($event, $data) {
+  public static function writejob($event, $data) {
     try {
       static::insert('_queue', ['event' => $event, 'data' => json_encode($data)]);
     }
@@ -524,7 +524,24 @@ class mysqly {
     }
   }
   
-  public static function read($event) {
+  public static function readjob($event) {
+    try {
+      static::exec('START TRANSACTION');
+      
+      $row = static::fetch('SELECT * FROM _queue WHERE event = :event ORDER BY id ASC LIMIT 1 FOR UPDATE SKIP LOCKED', [':event' => $event])[0];
+      if ( $row ) {
+        static::remove('_queue', ['id' => $row['id']]);
+        $return = json_decode($row['data'], 1);
+      }
+      
+      static::exec('COMMIT');
+      
+      return $return;
+    }
+    catch ( PDOException $e ) {}
+  }
+    
+  public static function popjob($event) {
     try {
       static::exec('START TRANSACTION');
       
