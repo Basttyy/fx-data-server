@@ -8,7 +8,11 @@
         "ratchet/pawl": "^0.4.1",
         "nesbot/carbon": "^2.66",
         "robmorgan/phinx": "^0.13.4",
-        "monolog/monolog": "^3.3"
+        "monolog/monolog": "^3.3",
+        "hybridauth/hybridauth": "^3.9",
+        "gregwar/captcha": "^1.2",
+        "pragmarx/google2fa": "^8.0",
+        "firebase/php-jwt": "^6.5"
     },
     "license": "MIT",
     "autoload": {
@@ -26,7 +30,7 @@
     "scripts": {
         "dev": [
             "Composer\\Config::disableProcessTimeout",
-            "./node_modules/.bin/nodemon --exec php -S 192.168.0.153:20334 -t . server.php"
+            "php -S 192.168.0.127:20334 -t . server.php"
         ],
         "queue-dev": [
             "Composer\\Config::disableProcessTimeout",
