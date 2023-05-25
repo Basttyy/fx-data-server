@@ -33,15 +33,6 @@ final class CaptchaController
             case 'validate':
                 $resp = $this->comparePhrase();
                 break;
-            case 'change_pass':
-                $resp = $this->changePassword();
-                break;
-            case 'reset_pass':
-                $resp = $this->resetPassword();
-                break;
-            case 'refresh_token':
-                $resp = $this->refreshToken();
-                break;
             default:
                 $resp = JsonResponse::serverError('bad method call');
         }
@@ -79,46 +70,6 @@ final class CaptchaController
             return JsonResponse::ok("captcha is valid", ['status' => 'validated']);
         } else {
             echo JsonResponse::badRequest("captcha is not valid", ['status' => 'failed']);
-        }
-    }
-
-    private function resetPassword()
-    {
-
-    }
-
-    private function changePassword()
-    {
-
-    }
-
-    private function refreshToken()
-    {
-        // $keys =  array_keys($request->getHeaders());
-        // $headers =  Arr::flatten($request->getHeaders());
-        // $headers =  array_combine($keys, $headers);
-
-        // if ($validated = Validator::validate($headers, [
-        //     'firebase_token' => 'required|string'
-        // ])) {
-        //     return JsonResponse::badRequest('errors in request', $validated);
-        // }
-        // if ($validated = Validator::validate($_SERVER, [
-        //     'refresh_token' => 'required|string'
-        // ])) {
-        //     return JsonResponse::badRequest('errors in request', $validated);
-        // }
-        try {
-            if (!$token = $this->authenticator->validate()) {
-                return JsonResponse::unauthorized("invalid auth token");
-            }
-            return JsonResponse::ok("refresh token success", [
-                'auth_token' => $token
-            ]);
-        } catch (QueryException $e) {
-            return JsonResponse::serverError("something happened try again");
-        } catch (Exception $e) {
-            return JsonResponse::serverError("something happened try again");
         }
     }
 }
