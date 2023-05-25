@@ -1,0 +1,166 @@
+<?php
+
+namespace Basttyy\FxDataServer\Auth;
+
+use Basttyy\FxDataServer\libs\Arr;
+use Basttyy\FxDataServer\Models\Role;
+use Basttyy\FxDataServer\Models\User;
+use Exception;
+use Psr\Http\Message\ServerRequestInterface;
+use React\Promise\PromiseInterface;
+use Kreait\Firebase\Factory;
+use Kreait\Firebase\Exception\Auth\FailedToVerifyToken;
+use Kreait\Firebase\Exception\Auth\UserNotFound;
+use React\Promise\Promise;
+use Firebase\Auth\Token\Exception\InvalidToken;
+use Firebase\Auth\Token\Exception\ExpiredToken;
+use Firebase\JWT\ExpiredException;
+use Kreait\Firebase\Exception\Auth\InvalidCustomToken;
+use Lcobucci\JWT\UnencryptedToken;
+
+use function React\Async\await;
+use function React\Promise\reject;
+use function React\Promise\resolve;
+
+final class JwtAuthenticator
+{
+    private const HEADER_VALUE_PATTERN = "/Bearer\s+(.*)$/i";
+
+    private $encoder;
+    private $user;
+    private $role;
+
+    // variables used for jwt
+    private $key;
+    private $iss;
+    private $aud;
+
+    public function __construct(JwtEncoder $encoder, User $user, Role $role)
+    {
+        $this->key = env('JWT_KEY');
+        $this->iss = env('JWT_ISS');
+        $this->aud = env('JWT_AUD');
+        $this->encoder = $encoder;
+        $this->user = $user;
+        $this->role = $role;
+    }
+
+    /**
+     * Verify the user role against an (array|string) of role(s)
+     * 
+     * @param User $user
+     * @param array|string $_role
+     * @param bool $return_bool
+     * 
+     * @return bool|User
+     */
+    public function verifyRole($user, $_role, $return_bool = true)
+    {
+        if (!is_array($_role)) {
+            $_role = [$_role];
+        }
+        if (!$role = $this->role->orderBy()->findBy('id', $user->role_id)) {
+            return false;
+        }
+        if (Arr::exists($_role, $role[0]['name'], true)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * validate function
+     *
+     * @return bool|User
+     */
+    public function validate()
+    {
+        $jwt = $this->extractToken();
+        if (empty($jwt)) {
+            return false;
+        }
+
+        if (is_null($payload = $this->encoder->decode($jwt))) {
+            return false;
+        }
+        
+        $user = $this->user->fill((array)$payload->data);
+
+        return $user;
+    }
+
+    /**
+     * validate function for firebase
+     *
+     * @param string $social_token
+     * @return bool|string
+     */
+    public function validateSocial($social_token)
+    {
+        $jwt = $this->extractToken();
+        if (empty($jwt)) {
+            return false;
+        }
+        if (is_null($payload = $this->encoder->decode($jwt))) {
+            return false;
+        }
+
+        $user = $this->user->fill((array)$payload->data);
+        return $this->authenticate($user, $social_token);
+    }
+
+    private function extractToken(): ?string
+    {
+        // print_r($_SERVER);
+        $auth_header = $_SERVER['HTTP_AUTHORIZATION'];
+        if (empty($auth_header)) {
+            return null;
+        }
+
+        $auth_token = sanitize_data($auth_header);
+        if (empty($auth_token)) {
+            return null;
+        }
+
+        if (preg_match(self::HEADER_VALUE_PATTERN, $auth_token, $matches)) {
+            return $matches[1];
+        }
+
+        return null;
+    }
+
+    /**
+     * uses firebase token to authenticate and generate a user's token
+     *
+     * @param User $user
+     * @param string $password_or_token
+     * @return string|bool
+     */
+    public function authenticate(User $user, string $password_or_token)
+    {
+        if (!password_verify($password_or_token, $user->password)) {
+            return false;
+        }
+
+        $issued_at = time();
+        $expiration_time = $issued_at + (60 * 60);      //valid for one hour
+        $not_before = $issued_at - 5;
+
+        $token = $this->encoder->encode([
+            "iss" => $this->iss,
+            "aud" => $this->aud,
+            "iat" => $issued_at,
+            "nbf" => $not_before,
+            "exp" => $expiration_time,
+            'data' => [
+                "id" => $user->id,
+                "firstname" => $user->firstname,
+                "lastname" => $user->lastname,
+                "email" => $user->email,
+                "role_id" => $user->role_id,
+            ]
+        ], $this->key);
+        //echo ("this is token ".$token);
+        return $token;
+    }
+}
