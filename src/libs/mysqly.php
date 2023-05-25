@@ -49,6 +49,13 @@ class mysqly {
     }
   }
   
+  /**
+   * Bind values and return the values
+   * 
+   * @param array $data
+   * @param array &$bind
+   * @return string
+   */
   private static function values($data, &$bind = []) {
     foreach ( $data as $name => $value ) {
       if ( strpos($name, '.') ) {
@@ -283,7 +290,14 @@ class mysqly {
   
   
   
-  /* Data insertion */
+  /**
+   * Data insertion
+   * 
+   * @param string $table
+   * @param array $data
+   * @param bool $ignore
+   * @return int
+   */
   
   public static function insert($table, $data, $ignore = false) {
     $bind = [];
@@ -300,6 +314,13 @@ class mysqly {
     return static::$db->lastInsertId();
   }
   
+  /**
+   * Insert to table or update value
+   * 
+   * @param string $table
+   * @param array $data
+   * @return void
+   */
   public static function insert_update($table, $data) {
     $bind = [];
     $values = static::values($data, $bind);
@@ -421,12 +442,25 @@ class mysqly {
   
   
   
-  /* Key-value set/get & storage */
+  /**
+   * Key-value storage table name
+   * 
+   * @param string $space
+   * @return string
+   */
   
   protected static function key_value_table($space) {
     return '_kv_' . $space;
   }
   
+  /**
+   * get a value from a db storage
+   * 
+   * @param string $key
+   * @param string $space
+   * 
+   * @return string|array|void
+   */
   public static function get($key, $space = 'default') {
     $table = static::key_value_table($space);
     
@@ -439,6 +473,15 @@ class mysqly {
     }
   }
   
+  /**
+   * set a value in a db storage
+   * 
+   * @param string $key
+   * @param string|array $value
+   * @param string $space
+   * 
+   * @return void
+   */
   public static function set($key, $value, $space = 'default') {
     $table = static::key_value_table($space);
     
@@ -452,7 +495,15 @@ class mysqly {
       }
     }
   }
-  
+    
+  /**
+   * unset a key-value in a db storage
+   * 
+   * @param string $key
+   * @param string $space
+   * 
+   * @return void
+   */
   public static function unset($key, $space = 'default') {
     $table = static::key_value_table($space);
     
@@ -461,9 +512,25 @@ class mysqly {
     }
     catch (PDOException $e) {}
   }
-  
-  
-  
+
+  /**
+   * clear an entire storage the db storage
+   * 
+   * @param string $key
+   * @param string $space
+   * 
+   * @return void
+   */
+  public static function clear($space = 'default') {
+    $table = static::key_value_table($space);
+    $sql = "DROP TABLE `{$table}`";
+
+    try {
+      static::exec($sql);
+    }
+    catch (PDOException $e) {}
+  }
+ 
   /* Cache storage */
 
   public static function cache($key, $populate = null, $ttl = 60) {
@@ -512,7 +579,7 @@ class mysqly {
   
   /* Cache storage */
   
-  public static function write($event, $data) {
+  public static function writejob($event, $data) {
     try {
       static::insert('_queue', ['event' => $event, 'data' => json_encode($data)]);
     }
@@ -524,7 +591,24 @@ class mysqly {
     }
   }
   
-  public static function read($event) {
+  public static function readjob($event) {
+    try {
+      static::exec('START TRANSACTION');
+      
+      $row = static::fetch('SELECT * FROM _queue WHERE event = :event ORDER BY id ASC LIMIT 1 FOR UPDATE SKIP LOCKED', [':event' => $event])[0];
+      if ( $row ) {
+        static::remove('_queue', ['id' => $row['id']]);
+        $return = json_decode($row['data'], 1);
+      }
+      
+      static::exec('COMMIT');
+      
+      return $return;
+    }
+    catch ( PDOException $e ) {}
+  }
+    
+  public static function popjob($event) {
     try {
       static::exec('START TRANSACTION');
       
@@ -586,7 +670,15 @@ class mysqly {
     static::exec("CREATE TABLE `{$table}` ({$create}) Engine = INNODB");
     static::insert($table, $insert, $ignore);
   }
-  
+  /**
+   * handle insert update exception
+   * 
+   * @param PDOException $exception
+   * @param string $table
+   * @param array $insert
+   * 
+   * @return void
+   */
   protected static function handle_insert_update_exception($exception, $table, $insert) {
     if ( !static::$auto_create ||
          ( (strpos($exception->getMessage(), "doesn't exist") === false) &&

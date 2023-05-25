@@ -30,7 +30,7 @@
     "scripts": {
         "dev": [
             "Composer\\Config::disableProcessTimeout",
-            "php -S 192.168.0.127:20334 -t . server.php"
+            "php -S 192.168.0.153:20334 -t . server.php"
         ],
         "queue-dev": [
             "Composer\\Config::disableProcessTimeout",
