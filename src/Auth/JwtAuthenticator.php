@@ -48,41 +48,34 @@ final class JwtAuthenticator
     /**
      * Verify the user role against an (array|string) of role(s)
      * 
-     * @param User $request
+     * @param User $user
      * @param array|string $_role
      * @param bool $return_bool
      * 
-     * @return PromiseInterface<bool|User>
+     * @return bool|User
      */
     public function verifyRole($user, $_role, $return_bool = true)
     {
         if (!is_array($_role)) {
             $_role = [$_role];
         }
-        $role = $this->role->where('id', $user->role_id)->first()->then(
-            function ($role) use ($_role) {
-                //print_r($role);
-                if (Arr::exists($_role, $role['name'], true)) {
-                    return true;
-                }
-                return false;
-            },
-            function ($err) {
-                return $err;
-            }
-        );
-        return $role;
+        if (!$role = $this->role->orderBy()->findBy('id', $user->role_id)) {
+            return false;
+        }
+        if (Arr::exists($_role, $role[0]['name'], true)) {
+            return true;
+        }
+        return false;
     }
 
     /**
      * validate function
      *
-     * @param ServerRequestInterface $request
      * @return bool|User
      */
-    public function validate($request)
+    public function validate()
     {
-        $jwt = $this->extractToken($request);
+        $jwt = $this->extractToken();
         if (empty($jwt)) {
             return false;
         }
@@ -98,34 +91,26 @@ final class JwtAuthenticator
     /**
      * validate function for firebase
      *
-     * @param ServerRequestInterface $request
-     * @param string $firebase_token
-     * @return PromiseInterface<bool|string>
+     * @param string $social_token
+     * @return bool|string
      */
-    public function validateFirebase($request, $firebase_token)
+    public function validateSocial($social_token)
     {
-        $jwt = $this->extractToken($request);
+        $jwt = $this->extractToken();
         if (empty($jwt)) {
-            return resolve(false);
+            return false;
         }
         if (is_null($payload = $this->encoder->decode($jwt))) {
-            return resolve(false);
+            return false;
         }
 
         $user = $this->user->fill((array)$payload->data);
-        return $this->authenticate($user, $firebase_token)->then(
-            function ($token){
-                return $token;
-            },
-            function ($ex){
-                return $ex;
-            }
-        );    
+        return $this->authenticate($user, $social_token);
     }
 
-    private function extractToken(ServerRequestInterface $request): ?string
+    private function extractToken(): ?string
     {
-        $auth_header = $request->getHeader('Authorization');
+        $auth_header = $_SERVER['AUTHORIZATION'];
         if (empty($auth_header)) {
             return null;
         }
@@ -146,51 +131,34 @@ final class JwtAuthenticator
      * uses firebase token to authenticate and generate a user's token
      *
      * @param User $user
-     * @param string $firebase_token
-     * @return PromiseInterface<Exception|string>
+     * @param string $password_or_token
+     * @return string|bool
      */
-    public function authenticate(User $user, string $firebase_token)
+    public function authenticate(User $user, string $password_or_token)
     {
-        return new Promise(function ($resolve, $reject) use ($user, $firebase_token) {
-            $factory = (new Factory)->withServiceAccount(env("FIREBASE_CREDENTIALS"));
-            $firebaseAuth = $factory->createAuth();
+        if (!password_verify($password_or_token, $user->password)) {
+            return false;
+        }
 
-            try {
-                $verifiedIdToken = $firebaseAuth->verifyIdToken($firebase_token, true);
-            } catch (InvalidCustomToken | ExpiredException $e) {
-                $resolve($e);
-                return;
-            }
+        $issued_at = time();
+        $expiration_time = $issued_at + (60 * 60);      //valid for one hour
+        $not_before = $issued_at - 5;
 
-            $uid = $verifiedIdToken->claims()->get('sub');
-
-            try {
-                $firebaseAuth->getUser($uid);
-            } catch (UserNotFound $e) {
-                $resolve($e);
-                return;
-            }
-
-            $issued_at = time();
-            $expiration_time = $issued_at + (60 * 60);      //valid for one hour
-            $not_before = $issued_at - 5;
-
-            $token = $this->encoder->encode([
-                "iss" => $this->iss,
-                "aud" => $this->aud,
-                "iat" => $issued_at,
-                "nbf" => $not_before,
-                "exp" => $expiration_time,
-                'data' => [
-                    "id" => $user->id,
-                    "firstname" => $user->firstname,
-                    "lastname" => $user->lastname,
-                    "email" => $user->email,
-                    "role_id" => $user->role_id,
-                ]
-            ], $this->key);
-            echo ("this is token ".$token);
-            $resolve($token);
-        });
+        $token = $this->encoder->encode([
+            "iss" => $this->iss,
+            "aud" => $this->aud,
+            "iat" => $issued_at,
+            "nbf" => $not_before,
+            "exp" => $expiration_time,
+            'data' => [
+                "id" => $user->id,
+                "firstname" => $user->firstname,
+                "lastname" => $user->lastname,
+                "email" => $user->email,
+                "role_id" => $user->role_id,
+            ]
+        ], $this->key);
+        echo ("this is token ".$token);
+        return $token;
     }
 }

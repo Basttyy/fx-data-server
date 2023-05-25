@@ -20,7 +20,7 @@ final class User extends Model
     public $email;
     public $password;
     public $phone;
-    public $trading_level;
+    public $level;
     public $country;
     public $city;
     public $postal_code;
@@ -40,7 +40,7 @@ final class User extends Model
      */
     protected $fillable = [
         'id', 'uuid', 'firstname', 'lastname', 'username', 'email', 'password',
-        'phone', 'trading_level', 'country', 'city', 'postal_code', 'address',
+        'phone', 'level', 'country', 'city', 'postal_code', 'address',
         'role_id', 'access_token', 'status',
         'avatar', 'created_at', 'updated_at', 'deleted_at'
     ];

@@ -13,14 +13,13 @@ final class Guard
      * Try to validate a user
      * 
      * @param array|string $role
-     * @param ServerRequestInterface $request
      * @param JwtAuthenticator $authenticator
      * 
      * @return bool|User
      */
-    public static function tryToAuthenticate($request, $authenticator)
+    public static function tryToAuthenticate($authenticator)
     {
-        return $authenticator->validate($request);
+        return $authenticator->validate();
     }
 
     /**
@@ -30,7 +29,7 @@ final class Guard
      * @param User $user
      * @param JwtAuthenticator $authenticator
      * 
-     * @return PromiseInterface<bool|User>
+     * @return bool|User
      */
     public static function roleIs($role, $user, $authenticator)
     {
