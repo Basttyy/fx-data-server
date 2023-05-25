@@ -70,7 +70,14 @@ class mysqly {
   
   
   
-  /* General SQL query execution */
+  /**
+   * exec() General SQL query execution
+   * 
+   * @param string $sql
+   * @param array $bind
+   * 
+   * @return \PDOStatement|false $statement
+   */
   
   public static function exec($sql, $bind = []) {
     if ( !static::$db ) {
@@ -117,7 +124,13 @@ class mysqly {
   
   
   
-  /* Transactions */
+  /**
+   * transaction() wrap a query in a callback
+   * and run inside a transaction
+   * 
+   * @param Callable $callback
+   * @return void
+  */
   
   public static function transaction($callback) {
     static::exec('START TRANSACTION');
@@ -127,7 +140,15 @@ class mysqly {
   
   
   
-  /* Data retrieval */
+  /**
+   * fetch_cursor
+   * 
+   * @param string $sql_or_table
+   * @param array $bind_or_filter
+   * @param array|string $select_or_what
+   * 
+   * @return \PDOStatement|false
+   */
   
   public static function fetch_cursor($sql_or_table, $bind_or_filter = [], $select_what = '*') {
     if ( strpos($sql_or_table, ' ') || (strpos($sql_or_table, 'SELECT ') === 0) ) {
@@ -135,7 +156,8 @@ class mysqly {
       $bind = $bind_or_filter;
     }
     else {
-      $sql = "SELECT {$select_what} FROM {$sql_or_table}";
+      $select_str = is_array($select_what) ? implode(', ', $select_what) : $select_what;
+      $sql = "SELECT {$select_str} FROM {$sql_or_table}";
       $order = '';
       
       if ( $bind_or_filter ) {
@@ -165,6 +187,15 @@ class mysqly {
     return static::exec($sql, $bind);
   }
   
+  /**
+   * fetch() fetch one or mor row from a table
+   * 
+   * @param string $sql_or_table
+   * @param array $bind_or_filter
+   * @param array|string $select_what
+   * 
+   * @return array
+   */
   public static function fetch($sql_or_table, $bind_or_filter = [], $select_what = '*') {
     
     $statement = static::fetch_cursor($sql_or_table, $bind_or_filter, $select_what);

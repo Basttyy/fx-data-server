@@ -50,19 +50,16 @@ final class LoginController
             }
 
             try {
-                $user = $this->user->findByEmail($body['email']);;
-                if ($user instanceof Exception) {
-                    throw $user;
-                }
-
-                if (!$user) {
+                if (!$user = $this->user->findByEmail($body['email'])) {
                     throw new NotFoundException("user does not exist");
                 }
+                // echo(serialize($user));
 
                 if (!$user instanceof User) {
                     throw new NotFoundException("user does not exist");
                 }
-                if (!$token = $this->authenticator->authenticate($user, $body['password'])) {
+
+                if (!$token = $this->authenticator->authenticate($this->user, $body['password'])) {
                     return JsonResponse::unauthorized("invalid login details");
                 }
 

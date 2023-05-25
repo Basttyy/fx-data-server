@@ -31,7 +31,7 @@ class JsonResponse
             new self(self::STATUS_OK, ['message' => $message, 'data' => $data]);
             return true;
         } catch (Exception $ex) {
-            consoleLog(0, $ex->getMessage());
+            // consoleLog(0, $ex->getMessage());
         }
     }
 
@@ -41,7 +41,7 @@ class JsonResponse
             new self(self::STATUS_NO_CONTENT);
             return true;
         } catch (Exception $ex) {
-            consoleLog(0, $ex->getMessage());
+            // consoleLog(0, $ex->getMessage());
         }
     }
 
@@ -51,7 +51,7 @@ class JsonResponse
             new self(self::STATUS_CREATED, ['message' => $message, 'data' => $data]);
             return true;
         } catch (Exception $ex) {
-            consoleLog(0, $ex->getMessage());
+            // consoleLog(0, $ex->getMessage());
         }
     }
 
@@ -61,7 +61,7 @@ class JsonResponse
             new self(self::STATUS_BAD_REQUEST, ['message' => $message, 'error' => $error]);
             return true;
         } catch (Exception $ex) {
-            consoleLog(0, $ex->getMessage());
+            // consoleLog(0, $ex->getMessage());
         }
     }
 
@@ -71,7 +71,7 @@ class JsonResponse
             new self(self::STATUS_NOT_FOUND, ['message' => $error]);
             return true;
         } catch (Exception $ex) {
-            consoleLog(0, $ex->getMessage());
+            // consoleLog(0, $ex->getMessage());
         }
     }
 
@@ -81,7 +81,7 @@ class JsonResponse
             new self(self::STATUS_UNAUTHORIZED, ['message' => $message]);
             return true;
         } catch (Exception $ex) {
-            consoleLog(0, $ex->getMessage());
+            // consoleLog(0, $ex->getMessage());
         }
     }
 
@@ -91,7 +91,7 @@ class JsonResponse
             new self(self::STATUS_INTERNAL_SERVER_ERROR, ['message' => $message]);
             return true;
         } catch (Exception $ex) {
-            consoleLog(0, $ex->getMessage());
+            // consoleLog(0, $ex->getMessage());
         }
     }
 
@@ -101,7 +101,7 @@ class JsonResponse
     //     try {
     //         return self::json($body)->withStatus($statusCode);
     //     } catch (Exception $ex) {
-    //         consoleLog(0, $ex->getMessage());
+            consoleLog(0, $ex->getMessage());
     //     }
 
     // }

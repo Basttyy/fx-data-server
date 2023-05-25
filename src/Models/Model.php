@@ -6,6 +6,7 @@ require_once __DIR__."\\..\\libs\\helpers.php";
 use Basttyy\FxDataServer\libs\Arr;
 use Basttyy\FxDataServer\libs\mysqly;
 use Exception;
+use PDO;
 
 abstract class Model
 {    
@@ -77,6 +78,13 @@ abstract class Model
     protected $guarded = ['deleted_at'];
 
     /**
+     * Sets how the query should be ordered
+     * 
+     * @var string
+     */
+    protected $order = "";
+
+    /**
      * Indicates if the IDs are auto-incrementing.
      *
      * @var bool
@@ -135,13 +143,19 @@ abstract class Model
     public function __construct(object $child = null)
     {
         $this->child = $child;
-        mysqly::auth(env('DB_USER'), env('DB_PASSWORD'), env('DB_NAME'));
+        mysqly::auth(env('DB_USER'), env('DB_PASS'), env('DB_NAME'));
         $this->prepareModel();
     }
 
     protected function prepareModel()
     {
         // $this->builder->from = $this->table;
+    }
+
+    public function orderBy($column = "id", $direction = "ASC")
+    {
+        $this->order = "$column $direction";
+        return $this;
     }
 
     public function fill($values)
@@ -154,12 +168,22 @@ abstract class Model
         // if ($self == null || count($values) < 1) {
         //     return $self;
         // }
-
+        $arr = [
+            'name' => 'basttyy',
+            'age' => 31,
+            'level' => 'pro',
+        ];
+        print_r($values);
         foreach ($this->child->fillable as $item) {
+            consoleLog(0, " filling $item");
             if (Arr::exists($values, $item)) {
+                consoleLog(0, "$item exists in values array");
                 $this->child->{$item} = $values[$item];
+            } else {
+                consoleLog(0, "$item doesn't exist in values array");
             }
         }
+        // print_r($this->child);
         return $this->child;
     }
 
@@ -261,17 +285,27 @@ abstract class Model
      * Find a model by key and value
      * 
      * @param string $name
-     * @return PromiseInterface<array|bool>
+     * @return array|bool
      */
     public function findBy(string $key, string $value)
     {
+        $query_arr = [];
+
         if ($this->child->softdeletes) {
-            $this->builder->where('deleted_at', null);
+            $query_arr['deleted_at'] = null;
             //$this->builder->useSoftDelete = true;
         }
+        $query_arr[$key] = $value;
+        if ($this->order !== "")
+            $query_arr['order_by'] = $this->order;
+
         
-        $fields = \array_diff($this->fillable, $this->guarded);
-        return $this->builder->where($key, null, $value)->get($fields);
+        //$fields = \array_diff($this->fillable, $this->guarded);
+
+        if (!$model = mysqly::fetch($this->table, $query_arr, \array_diff($this->fillable, $this->guarded))) {
+            return false;
+        }
+        return $model;
     }
 
     
@@ -337,27 +371,27 @@ abstract class Model
      * Find a user by the email
      * 
      * @param string $email
-     * @return self|Exception|bool
+     * @return self|bool
      */
     public function findByEmail(string $email)
     {
         $query_arr = [];
 
         if ($this->child->softdeletes) {
-            $query_arr['deleted_at'] = null;
+            //$query_arr['deleted_at'] = null;
             //$this->builder->useSoftDelete = true;
         }
         $query_arr['email'] = $email;
 
-        if (!$user = mysqly::{$this->table}($query_arr, $this->fillable)) {
+        if (!$user = mysqly::fetch($this->table, $query_arr, $this->fillable)) {
             return false;
         }
         if (count( $user ) < 1) {
             return false;
         }
+        // print_r($user);
 
-        print_r($user);
-        return $this->fill($user);
+        return $this->fill($user[0]);
     }
 
     /**
