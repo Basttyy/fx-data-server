@@ -168,22 +168,12 @@ abstract class Model
         // if ($self == null || count($values) < 1) {
         //     return $self;
         // }
-        $arr = [
-            'name' => 'basttyy',
-            'age' => 31,
-            'level' => 'pro',
-        ];
-        print_r($values);
+
         foreach ($this->child->fillable as $item) {
-            consoleLog(0, " filling $item");
             if (Arr::exists($values, $item)) {
-                consoleLog(0, "$item exists in values array");
                 $this->child->{$item} = $values[$item];
-            } else {
-                consoleLog(0, "$item doesn't exist in values array");
             }
         }
-        // print_r($this->child);
         return $this->child;
     }
 
@@ -389,7 +379,6 @@ abstract class Model
         if (count( $user ) < 1) {
             return false;
         }
-        // print_r($user);
 
         return $this->fill($user[0]);
     }

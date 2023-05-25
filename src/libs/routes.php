@@ -2,18 +2,18 @@
 
 require_once __DIR__.'\\router.php';
 
-require_once __DIR__."\\..\\Controllers\\Api\\Auth\\LoginController.php";
+require_once __DIR__."\\..\\Controllers\\Api\\Auth\\AuthController.php";
 require_once __DIR__.'\\..\\TickController.php';
 require_once __DIR__.'\\..\\MinuteController.php';
 
-use Basttyy\FxDataServer\Controllers\Api\Auth\LoginController;
+use Basttyy\FxDataServer\Controllers\Api\Auth\AuthController;
 // ##################################################
 // ##################################################
 // ##################################################
 
 /// Auth routes
-post('/api/login', new LoginController());
-
+post('/api/login', new AuthController());
+get('/api/refresh-token', new AuthController('refresh_token'));
 
 get('/download/ticker/$ticker/from/$from/nums/$nums/faster/$faster', $downloadTickData);
 get('/candles/ticker/$ticker/from/$fro/nums/$num/timeframe/$timefram', $getTimeframeCandles);
