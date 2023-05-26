@@ -22,7 +22,8 @@ final class Users extends AbstractMigration
         $table = $this->table($this::TABLE_NAME);
         $table->addColumn('username', 'string', ['limit' => 30])
             ->addColumn('email', 'string', ['limit' => 100])
-            ->addColumn('uuid', 'string', ['null' => true,'after' => 'id', 'limit' => 36])
+            ->addColumn('verified', 'string', ['null' => true, 'limit' => 36])
+            ->addColumn('uuid', 'string', ['null' => true, 'limit' => 36])
             ->addColumn('password', 'string', ['null' => true])
             ->addColumn('phone', 'string', ['default' => ''])
             ->addColumn('firstname', 'string')
@@ -32,6 +33,8 @@ final class Users extends AbstractMigration
             ->addColumn('address', 'string', ['null' => true])
             ->addColumn('avatar', 'string', ['default' => "default_avatar.png"])
             ->addColumn('access_token', 'string', ['null' => true])
+            ->addColumn('twofa_secret', 'string', ['null' => true])
+            ->addColumn('email2fa_token', 'string', ['null' => true])
             ->addColumn('postal_code', 'biginteger', ['null' => true])
             ->addColumn('status', 'string', ['default' => 'inactive'])
             ->addColumn('level', 'integer', ['null' => true, 'default' => 1])

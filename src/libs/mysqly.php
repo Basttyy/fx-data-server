@@ -393,9 +393,10 @@ class mysqly {
     
     try {
       $statement = static::exec($sql, $bind);
+      return $statement->rowCount();
     }
     catch ( PDOException $e ) {
-      static::handle_update_exception($e, $table, $filter, $data);
+      return static::handle_update_exception($e, $table, $filter, $data);
     }
   }
   
@@ -710,6 +711,6 @@ class mysqly {
     $col = $m[1];
     
     static::exec("ALTER TABLE `{$table}` ADD `{$col}` TEXT");
-    static::update($table, $filder, $data);
+    return static::update($table, $filder, $data);
   }
 }

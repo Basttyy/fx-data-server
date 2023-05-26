@@ -204,7 +204,7 @@ abstract class Model
      * create a model from array values
      * @param array $values
      * 
-     * @return PromiseInterface<array|bool>
+     * @return array|bool
      */
     public function create(array $values)
     {
@@ -223,52 +223,42 @@ abstract class Model
      * 
      * @return self|bool
      */
-    public function find(int $id)
+    public function find(int $id = 0)
     {
         $id = $id > 0 ? $id : $this->child->id;
         $query_arr = [];
 
         if ($this->child->softdeletes) {
-            $query_arr['deleted_at'] = null;
+            //$query_arr['deleted_at'] = null;
             //$this->builder->useSoftDelete = true;
         }
         $query_arr['id'] = $id;
         
         //$fields = \array_diff($this->fillable, $this->guarded);
 
-        if (!$model = mysqly::{$this->table}($query_arr, $this->fillable)) {
+        if (!$model = mysqly::fetch($this->table, $query_arr, $this->fillable)) {
             return false;
         }
-        return $this->fill($model);
+        return $this->fill($model[0]);
     }
 
     /**
      * Find all elements of a model
      * 
-     * @return array|Exception
+     * @return array
      */
     public function all()
     {
-        
+        $query_arr = [];
+
         if ($this->child->softdeletes) {
-            $this->builder->where('deleted_at', null);
+            $query_arr['deleted_at'] = null;
             //$this->builder->useSoftDelete = true;
         }
 
         $fields = \array_diff($this->fillable, $this->guarded);
-        
-        $items = $this->builder->orderBy('id')->get($fields)->then(
-            function (Collection $items) {
-                return $items->toArray();
-            },
-            function (Exception $e) {
-                return $e;
-            }
-        );
 
-        //print_r($users);
-
-        return $items;
+        return mysqly::fetch($this->table);
     }
 
     /**
@@ -297,7 +287,6 @@ abstract class Model
         }
         return $model;
     }
-
     
     /**
      * Find a model by a set of keys and values
@@ -311,50 +300,52 @@ abstract class Model
     {
         //TODO: might need to change reject to resolve as yield seems not to handle reject.
         if (count($keys) !== count($values)) {
-            return \React\Promise\reject(false);
+            return false;
         }
 
+        $query_arr = [];
+
         if ($this->child->softdeletes) {
-            $this->builder->where('deleted_at', null);
+            //$query_arr['deleted_at'] = null;
             //$this->builder->useSoftDelete = true;
         }
 
         foreach ($keys as $pos => $key) {
+            $query_arr[$key] = $values[$pos];
             $this->builder->where($key, $values[$pos]);
         }
         
         $fields = \array_diff($this->fillable, $this->guarded);
-        return $this->builder->get($fields);
+        if (!$fields = mysqly::fetch($this->table, $query_arr)) {
+            return false;
+        }
+        return $fields;
     }
 
     /**
      * Find a user by the username
      * 
      * @param string $name
-     * @return PromiseInterface<self|bool>
+     * @return self|bool
      */
     public function findByUsername($name)
     {
-        
+        $query_arr = [];
+
         if ($this->child->softdeletes) {
-            $this->builder->where('deleted_at', null);
+            //$query_arr['deleted_at'] = null;
             //$this->builder->useSoftDelete = true;
         }
-        
-        //$fields = \array_diff($this->fillable, $this->guarded);
-        return $this->builder->where('name', '=', $name)->first($this->fillable)->then(
-                function ($user) {
-                    if (!$user)
-                        return false;
-                    if (count($user) < 1)
-                        return false;
-                    
-                    return $this->fill($user, $this);
-                },
-                function (Exception $ex) {
-                    return $ex;
-                }
-            );
+        $query_arr['username'] = $name;
+
+        if (!$user = mysqly::fetch($this->table, $query_arr, $this->fillable)) {
+            return false;
+        }
+        if (count( $user ) < 1) {
+            return false;
+        }
+
+        return $this->fill($user[0]);
     }
 
     /**
@@ -389,77 +380,62 @@ abstract class Model
      * @param array $values
      * @param int $id
      * @param bool $internal
-     * @return PromiseInterface<self|Exception|bool>
+     * @return self|bool
      */
     public function update(array $values, int $id=0, $internal = false)
     {
         $id = $id > 0 ? $id : $this->child->id;
-
-        echo "got to update".PHP_EOL;
         
+        $query_arr = [];
+
         if ($this->child->softdeletes && !$internal) {
-            $this->builder->where('deleted_at', null);
+            //$query_arr['deleted_at'] = null;
+            //$this->builder->useSoftDelete = true;
+        }
+        $query_arr['id'] = $id;
+
+        if (!$stat = mysqly::update($this->table, $query_arr, $values)) {
+            return false;
         }
 
-        return $this->builder->where('id', $id)->update($values)->then(
-            function ($status) use ($id) {
-                if (!(bool)$status) {
-                    return false;
-                }
-                return $this->builder->find($id, \array_diff($this->fillable, $this->guarded))->then(
-                    function ($item) {
-                        if (!(bool)$item) {
-                            return false;
-                        }
-                        return $this->fill($item);
-                    },
-                    function ($ex) {
-                        return $ex;
-                    }
-                );
-            },
-            function (Exception|false $e) {
-                return $e;
-            }
-        );
+        if (!$model = mysqly::fetch($this->table, $query_arr, $this->fillable)) {
+            return true;
+        }
+
+        return $this->fill($model[0]);
     }
 
     /**
      * update a model
      * 
      * @param int $id
-     * @return PromiseInterface<Exception|bool>
+     * @return bool
      */
     public function delete(int $id = 0)
     {
         $id = $id > 0 ? $id : $this->child->id;
         
+        $query_arr = [];
+
         if ($this->child->softdeletes) {
-            $this->builder->where('deleted_at', null);
+            //$query_arr['deleted_at'] = null;
             //$this->builder->useSoftDelete = true;
         }
+        $query_arr['id'] = $id;
 
-        return $this->builder->delete($id)->then(
-            function (int $val) {
-                return !$val ? false : true;
-            },
-            function (Exception $e) {
-                return $e;
-            }
-        );
+        return mysqly::remove($this->table, $query_arr);
     }
 
     /**
      * restore a soft deleted model
      * 
      * @param int $id
-     * @return PromiseInterface<self|Exception|bool>
+     * @return self|bool
      */
     public function restore(int $id = 0)
     {
-        //TODO: might need to change reject to resolve as yield seems not to handle reject. 
         if (!$this->child->softdeletes) {
-            return \React\Promise\reject(new Exception("this model does not support softdeleting"));
+            throw new Exception("this model does not support soft deleting");
         }
         $id = $id > 0 ? $id : $this->child->id;
 
