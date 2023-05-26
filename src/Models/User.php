@@ -17,6 +17,7 @@ final class User extends Model
     public $uuid;
     public $firstname;
     public $lastname;
+    public $username;
     public $email;
     public $password;
     public $phone;
@@ -27,6 +28,8 @@ final class User extends Model
     public $address;
     public $role_id;
     public $access_token;
+    public $twofa_secret;
+    public $email2fa_token;
     public $status;
     public $avatar;
     public $created_at;
@@ -41,7 +44,7 @@ final class User extends Model
     protected $fillable = [
         'id', 'uuid', 'firstname', 'lastname', 'username', 'email', 'password',
         'phone', 'level', 'country', 'city', 'postal_code', 'address',
-        'role_id', 'access_token', 'status',
+        'role_id', 'access_token', 'twofa_secret', 'email2fa_token', 'status',
         'avatar', 'created_at', 'updated_at', 'deleted_at'
     ];
 
@@ -51,7 +54,7 @@ final class User extends Model
      * @var array
      */
     protected $guarded = [
-        'uuid', 'password', 'deleted_at', 'role_id', 'access_token'
+        'password', 'deleted_at', 'role_id', 'access_token', 'twofa_secret', 'email2fa_token',
     ];
 
     /**
