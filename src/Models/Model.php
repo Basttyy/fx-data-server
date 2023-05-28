@@ -199,6 +199,11 @@ abstract class Model
 
         return $result;
     }
+
+    public function raw(string $sql, $bind)
+    {
+        return mysqly::exec($sql, $bind);
+    }
     
     /**
      * create a model from array values
@@ -229,7 +234,7 @@ abstract class Model
         $query_arr = [];
 
         if ($this->child->softdeletes) {
-            //$query_arr['deleted_at'] = null;
+            $query_arr['deleted_at'] = null;
             //$this->builder->useSoftDelete = true;
         }
         $query_arr['id'] = $id;
@@ -306,7 +311,7 @@ abstract class Model
         $query_arr = [];
 
         if ($this->child->softdeletes) {
-            //$query_arr['deleted_at'] = null;
+            $query_arr['deleted_at'] = null;
             //$this->builder->useSoftDelete = true;
         }
 
@@ -333,7 +338,7 @@ abstract class Model
         $query_arr = [];
 
         if ($this->child->softdeletes) {
-            //$query_arr['deleted_at'] = null;
+            $query_arr['deleted_at'] = null;
             //$this->builder->useSoftDelete = true;
         }
         $query_arr['username'] = $name;
@@ -359,7 +364,7 @@ abstract class Model
         $query_arr = [];
 
         if ($this->child->softdeletes) {
-            //$query_arr['deleted_at'] = null;
+            $query_arr['deleted_at'] = null;
             //$this->builder->useSoftDelete = true;
         }
         $query_arr['email'] = $email;
@@ -389,7 +394,7 @@ abstract class Model
         $query_arr = [];
 
         if ($this->child->softdeletes && !$internal) {
-            //$query_arr['deleted_at'] = null;
+            $query_arr['deleted_at'] = null;
             //$this->builder->useSoftDelete = true;
         }
         $query_arr['id'] = $id;
@@ -418,7 +423,7 @@ abstract class Model
         $query_arr = [];
 
         if ($this->child->softdeletes) {
-            //$query_arr['deleted_at'] = null;
+            $query_arr['deleted_at'] = null;
             //$this->builder->useSoftDelete = true;
         }
         $query_arr['id'] = $id;

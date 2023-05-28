@@ -35,6 +35,7 @@ final class Users extends AbstractMigration
             ->addColumn('access_token', 'string', ['null' => true])
             ->addColumn('twofa_secret', 'string', ['null' => true])
             ->addColumn('email2fa_token', 'string', ['null' => true])
+            ->addColumn('email2fa_max_age', 'integer', ['null' => true])
             ->addColumn('postal_code', 'biginteger', ['null' => true])
             ->addColumn('status', 'string', ['default' => 'inactive'])
             ->addColumn('level', 'integer', ['null' => true, 'default' => 1])
