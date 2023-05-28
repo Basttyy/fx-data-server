@@ -97,13 +97,13 @@ final class AuthController
                 if ($ex instanceof NotFoundException) {
                     return JsonResponse::unauthorized();
                 } else if ($ex instanceof QueryException) {
-                    return JsonResponse::serverError("something happened try again " . $ex->getMessage());
+                    return JsonResponse::serverError("something happened try again " . env('APP_ENV') === "local" ? $ex->getTraceAsString() : "");
                 }
 
-                return JsonResponse::serverError("something happened try again " . $ex->getMessage());
+                return JsonResponse::serverError("something happened try again " . env('APP_ENV') === "local" ? $ex->getMessage() : "");
             }
         } catch (Exception $e) {
-            return JsonResponse::serverError("something happened try again " . $e->getTraceAsString());
+            return JsonResponse::serverError("something happened try again " . env('APP_ENV') === "local" ? $e->getTraceAsString() : "");
         }
     }
 
@@ -146,9 +146,9 @@ final class AuthController
                 'auth_token' => $token
             ]);
         } catch (QueryException $e) {
-            return JsonResponse::serverError("something happened try again");
+            return JsonResponse::serverError("something happened try again" . env('APP_ENV') === "local" ? $e->getTraceAsString() : "");
         } catch (Exception $e) {
-            return JsonResponse::serverError("something happened try again");
+            return JsonResponse::serverError("something happened try again" . env('APP_ENV') === "local" ? $e->getTraceAsString() : "");
         }
     }
 }

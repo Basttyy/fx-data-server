@@ -71,6 +71,10 @@ class Validator {
                 $stat = !is_bool($paramval);
                 $resp = $stat ? "{$param} should be a boolean" : '';
                 break;
+            case 'boolean':
+                $stat = !is_bool($paramval);
+                $resp = $stat ? "{$param} should be a boolean" : '';
+                break;
             case 'float':
                 $stat = is_float($paramval) || is_numeric($paramval) && ((float) $paramval != (int) $paramval) || is_numeric($paramval) && stripos($paramval,'.');
                 $resp = !$stat ? "{$param} should be a float" : '';
