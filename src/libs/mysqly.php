@@ -31,7 +31,7 @@ class mysqly {
     return [$query ? (' WHERE ' . implode(' AND ', $query)) : '', $bind];
   }
   
-  private static function condition($k, $v, &$where, &$bind) {
+  private static function condition($k, $v, &$where, &$bind, $_operator = '=') {
     if ( is_array($v) ) {
       $in = [];
       
@@ -42,6 +42,9 @@ class mysqly {
       
       $in = implode(', ', $in);
       $where[] = "`{$k}` IN ($in)";
+    }
+    else if (str_contains($v, 'NULL')) {
+      $where[] = "`{$k}` $v";
     }
     else {
       $where[] = "`{$k}` = :{$k}";
@@ -157,7 +160,7 @@ class mysqly {
    * @return \PDOStatement|false
    */
   
-  public static function fetch_cursor($sql_or_table, $bind_or_filter = [], $select_what = '*') {
+  public static function fetch_cursor($sql_or_table, $bind_or_filter = [], $select_what = '*', $operators = []) {
     if ( strpos($sql_or_table, ' ') || (strpos($sql_or_table, 'SELECT ') === 0) ) {
       $sql = $sql_or_table;
       $bind = $bind_or_filter;
@@ -175,7 +178,7 @@ class mysqly {
               continue;
             }
             
-            static::condition($k, $v, $where, $bind);
+            static::condition($k, $v, $where, $bind, $operators);
           }
           
           if ( $where ) {
@@ -190,7 +193,6 @@ class mysqly {
       
       $sql .= $order;
     }
-    
     return static::exec($sql, $bind);
   }
   
@@ -203,9 +205,9 @@ class mysqly {
    * 
    * @return array
    */
-  public static function fetch($sql_or_table, $bind_or_filter = [], $select_what = '*') {
+  public static function fetch($sql_or_table, $bind_or_filter = [], $select_what = '*', $operators = []) {
     
-    $statement = static::fetch_cursor($sql_or_table, $bind_or_filter, $select_what);
+    $statement = static::fetch_cursor($sql_or_table, $bind_or_filter, $select_what, $operators);
     $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
 
     $list = [];
