@@ -51,7 +51,7 @@ final class CaptchaController
 
             return true;
         } catch (Exception $e) {
-            return JsonResponse::serverError("something happened try again " . $e->getTraceAsString());
+            return JsonResponse::serverError("something happened try again " . env('APP_ENV') === "local" ? $e->getTraceAsString() : "");
         }
     }
 
@@ -73,5 +73,3 @@ final class CaptchaController
         }
     }
 }
-
-?>

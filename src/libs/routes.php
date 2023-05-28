@@ -8,6 +8,7 @@ require_once __DIR__.'\\..\\MinuteController.php';
 
 use Basttyy\FxDataServer\Controllers\Api\Auth\AuthController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\CaptchaController;
+use Basttyy\FxDataServer\Controllers\Api\Auth\TwoFaController;
 
 // ##################################################
 // ##################################################
@@ -18,6 +19,8 @@ post('/api/login', new AuthController());
 get('/api/refresh-token', new AuthController('refresh_token'));
 get('/api/auth/captcha', new CaptchaController());
 post('/api/auth/captcha', new CaptchaController('validate'));
+get('/api/auth/twofa/$mode', new TwoFaController());
+post('/api/auth/twofa/$mode', new TwoFaController('validate'));
 
 get('/download/ticker/$ticker/from/$from/nums/$nums/faster/$faster', $downloadTickData);
 get('/candles/ticker/$ticker/from/$fro/nums/$num/timeframe/$timefram', $getTimeframeCandles);
