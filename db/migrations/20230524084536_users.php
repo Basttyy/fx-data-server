@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+use Basttyy\FxDataServer\Models\User;
 use Phinx\Migration\AbstractMigration;
 
 final class Users extends AbstractMigration
@@ -37,7 +38,7 @@ final class Users extends AbstractMigration
             ->addColumn('email2fa_token', 'string', ['null' => true])
             ->addColumn('email2fa_max_age', 'integer', ['null' => true])
             ->addColumn('postal_code', 'biginteger', ['null' => true])
-            ->addColumn('status', 'string', ['default' => 'inactive'])
+            ->addColumn('status', 'string', ['default' => User::UNVERIFIED])
             ->addColumn('level', 'integer', ['null' => true, 'default' => 1])
             ->addColumn('role_id', 'integer', ['null' => true, 'signed' => false])
             ->addForeignKey('role_id', 'roles', 'id', ['delete' => 'CASCADE', 'update' => 'NO_ACTION'])
