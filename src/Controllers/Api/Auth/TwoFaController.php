@@ -129,8 +129,8 @@ final class TwoFaController
                 }
             }
         } catch (Exception $e) {
-            $message = env('APP_ENV') === "local" ? $e->getMessage() . "   " . $e->getTraceAsString() : "";
-            consoleLog(0, $message);
+            if (env('APP_ENV') === "local")
+                consoleLog(0, $e->getMessage() . "   " . $e->getTraceAsString());
             return JsonResponse::serverError("something happened try again ");
         }
     }
