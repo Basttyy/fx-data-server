@@ -99,7 +99,8 @@ final class TwoFaController
             $body = sanitize_data(json_decode($inputJSON, true));
     
             if ($validated = Validator::validate($body, [
-                'code' => 'required|string'
+                'code' => 'required|string',
+                'is_email_verification' => 'sometimes|bool'
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
@@ -111,7 +112,9 @@ final class TwoFaController
             if ($user instanceof User) {
                 if ($mode == "email") {
                     if ($user->email2fa_token === $body['code'] && $user->email2fa_max_age > time()) { //TODO: verify token is not expired
-                        $user->update(['email2fa_token' => null]);
+                        $values = ['email2fa_token' => null, 'email2fa_max_age' => null];
+                        $values['status'] = isset($body['is_email_verification']) ? User::ACTIVE : $user->status;
+                        $user->update($values);
                         return JsonResponse::ok("code is valid", ['status' => 'validated']);
                     } else {
                          return JsonResponse::badRequest("code is not valid", ['status' => 'failed']);

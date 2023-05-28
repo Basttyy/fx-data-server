@@ -5,6 +5,7 @@ namespace Basttyy\FxDataServer\Models;
 final class User extends Model
 {
     const INACTIVE = "inactive";
+    const UNVERIFIED = "unverified";
     const ACTIVE = "active";
     protected $softdeletes = true;
 
