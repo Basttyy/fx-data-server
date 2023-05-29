@@ -43,7 +43,7 @@ class mysqly {
       $in = implode(', ', $in);
       $where[] = "`{$k}` IN ($in)";
     }
-    else if (str_contains($v, 'NULL')) {
+    else if (!is_null($v) && str_contains($v, 'NULL')) {
       $where[] = "`{$k}` $v";
     }
     else {
