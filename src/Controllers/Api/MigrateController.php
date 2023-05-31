@@ -24,7 +24,7 @@ final class MigrateController
             $phpIniPath = php_ini_loaded_file();
             $phpPath = dirname($phpIniPath) . DIRECTORY_SEPARATOR . 'php';
     
-            $resp = exec("$phpPath vendor/bin/phinx migrate > result.txt", $output, $result_code);
+            $resp = exec("$phpPath vendor/bin/phinx migrate", $output, $result_code);
     
             return JsonResponse::ok("command executed with following result", [
                 "output" => $output,
