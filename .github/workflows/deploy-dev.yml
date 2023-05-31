@@ -1,0 +1,66 @@
+name: Deploy Dev
+
+on:
+  push:
+    branches:
+      - dev
+
+
+jobs:
+  prepare-and-deploy:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout dev branch
+        uses: actions/checkout@v3
+      
+      - name: Validate composer.json and composer.lock
+        run: composer validate --strict
+
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+
+      
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Create .env file
+        uses: ozaytsev86/create-env-file@v1
+        with:
+          ENV_app_key: ${{ secrets.APP_KEY }}
+          ENV_app_env: staging
+          ENV_adapter: mysql
+          ENV_host: ${{ secrets.HOST }}
+          ENV_name: ${{ secrets.NAME }}
+          ENV_user: ${{ secrets.USER }}
+          ENV_pass: ${{ secrets.PASS }}
+          ENV_port: ${{ secrets.PORT }}
+          ENV_charset: utf8
+          ENV_db_pool: 3
+          ENV_admin_app_uri: ${{ secrets.ADMIN_APP_URI }}
+          ENV_user_app_uri: ${{ secrets.USER_APP_URI }}
+          ENV_server_app_uri: ${{ secrets.SERVER_APP_URI }}
+          ENV_jwt_key: ${{ secrets.JWT_KEY }}
+          ENV_jwt_iss: ${{ secrets.JWT_ISS }}
+          ENV_jwt_aud: ${{ secrets.JWT_AUD }}
+          ENV_test_user_name: ${{ secrets.TEST_USER_NAME }}
+          ENV_test_user: ${{ secrets.TEST_USER }}
+          ENV_test_pass: ${{ secrets.TEST_PASS }}
+
+      - name: Run Migrations and Seed DB
+        run: |
+          composer run-script migrate-prod
+
+      - name: Copy build result to project folder
+        run: |
+          sudo cp -r ./ ${{ secrets.PROJECT_PATH }}
+
+      - name: Restart Server App
+        run: |
+          sudo pm2 restart ${{ secrets.PROCESS_NAME }}
