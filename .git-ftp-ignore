@@ -5,8 +5,8 @@
 .git-ftp-include
 .gitlab-ci.yml
 
-.github/
-storage/
-download/
+/.github/
+/storage/
+/download/
 
 .env
