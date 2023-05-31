@@ -58,7 +58,7 @@ final class TwoFaController
             }
             if ($mode == "email") {
                 $code = implode([rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9)]);
-                if (!$user->update(['email2fa_token' => (string)$code, 'email2fa_max_age' => time() + env('EMAIL2FA_MAX_AGE')])) {  //TODO:: this token should be timeed and should expire
+                if (!$user->update(['email2fa_token' => (string)$code, 'email2fa_expire' => time() + env('email2fa_expire')])) {  //TODO:: this token should be timeed and should expire
                     return JsonResponse::serverError("unable to generate token");
                 }
                 //schdule job to send code to the user via email
@@ -111,8 +111,8 @@ final class TwoFaController
 
             if ($user instanceof User) {
                 if ($mode == "email") {
-                    if ($user->email2fa_token === $body['code'] && $user->email2fa_max_age > time()) { //TODO: verify token is not expired
-                        $values = ['email2fa_token' => null, 'email2fa_max_age' => null];
+                    if ($user->email2fa_token === $body['code'] && $user->email2fa_expire > time()) { //TODO: verify token is not expired
+                        $values = ['email2fa_token' => null, 'email2fa_expire' => null];
                         $values['status'] = isset($body['is_email_verification']) ? User::ACTIVE : $user->status;
                         $user->update($values);
                         return JsonResponse::ok("code is valid", ['status' => 'validated']);

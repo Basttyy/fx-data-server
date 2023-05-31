@@ -31,7 +31,7 @@ final class User extends Model
     public $access_token;
     public $twofa_secret;
     public $email2fa_token;
-    public $email2fa_max_age;
+    public $email2fa_expire;
     public $status;
     public $avatar;
     public $created_at;
@@ -47,7 +47,7 @@ final class User extends Model
         'id', 'uuid', 'firstname', 'lastname', 'username', 'email', 'password',
         'phone', 'level', 'country', 'city', 'postal_code', 'address',
         'role_id', 'access_token', 'twofa_secret', 'email2fa_token', 'status',
-        'avatar', 'created_at', 'updated_at', 'deleted_at', 'email2fa_max_age'
+        'avatar', 'created_at', 'updated_at', 'deleted_at', 'email2fa_expire'
     ];
 
     /**

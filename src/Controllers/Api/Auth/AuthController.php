@@ -101,7 +101,7 @@ final class AuthController
 
             return JsonResponse::ok("login successfull", [
                 'auth_token' => $token,
-                'data' => $this->user->toArray(true)
+                'data' => $this->user->toArray()
             ]);
         } catch (NotFoundException $ex) {
             if (env('APP_ENV') === "local")
@@ -146,12 +146,34 @@ final class AuthController
             // Retrieve the user's profile
             $userProfile = $adapter->getUserProfile();
             
-            if (!$user = $this->user->findByArray('email', $userProfile->email)) {
+            if (!$user = $this->user->findByArray(['email', 'uuid'], [$userProfile->email, $userProfile->identifier])) {
+                if (!$user = $this->user->create([
+                    'email' => $userProfile->email,
+                    'username' => $userProfile->email,
+                    'firstname' => $userProfile->firstName,
+                    'lastname' => $userProfile->lastName,
+                    'country' => $userProfile->country,
+                    'city' => $userProfile->city,
+                    'address' => $userProfile->address,
+                    'postal_code' => $userProfile->zip,
+                    'avatar' => is_null($userProfile->photoURL) ?: $userProfile->photoURL,
+                    'status' => is_null($userProfile->emailVerified) ?: User::ACTIVE,
+                    'uuid' => $userProfile->identifier,
+                    'phone' => $userProfile->phone
+                ])) {
+                    return JsonResponse::serverError("error creating user please try again");
+                }
 
+                return JsonResponse::created('user account has been created', [
+                    'auth_token' => "social_login",
+                    'data' => $user
+                ]);
             }
-    
-            // Inspect profile's public attributes
-            var_dump($userProfile);
+
+            return JsonResponse::ok("login successfull", [
+                'auth_token' => "social_login",
+                'data' => $user
+            ]);
     
             // Disconnect the adapter (log out)
             // $adapter->disconnect();
@@ -169,7 +191,7 @@ final class AuthController
         } catch (HttpRequestFailedException $e) {
             return JsonResponse::unauthorized("failed to call provider with credentials");
         } catch (Exception $ex) {
-            return JsonResponse::serverError("something happened try again");
+            return JsonResponse::serverError("something happened try again ".$ex->getMessage(). " ".$ex->getTraceAsString());
         }
     }
 
