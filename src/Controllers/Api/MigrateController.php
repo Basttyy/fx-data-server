@@ -24,12 +24,13 @@ final class MigrateController
             $phpIniPath = php_ini_loaded_file();
             $phpPath = dirname($phpIniPath) . DIRECTORY_SEPARATOR . 'php';
     
-            $resp = exec("$phpPath vendor/bin/phinx migrate", $output, $result_code);
+            $resp = exec("echo basttyy", $output, $result_code);
     
             return JsonResponse::ok("command executed with following result", [
                 "output" => $output,
                 "result_code" => $result_code,
-                "resp" => $resp
+                "resp" => $resp,
+                "path" => $phpPath
             ]);
         } catch (Exception $e) {
             return JsonResponse::serverError($e->getMessage());
