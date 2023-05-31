@@ -6,7 +6,3 @@
 .gitlab-ci.yml
 
 /.github/
-/storage/
-/download/
-
-.env
