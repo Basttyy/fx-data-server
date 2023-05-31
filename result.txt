@@ -1,0 +1,14 @@
+Phinx by CakePHP - https://phinx.org.
+
+using config file phinx.php
+using config parser php
+using migration paths 
+ - C:\Users\TradingIo\Documents\projects\fx-data-server\db\migrations
+using seed paths 
+ - C:\Users\TradingIo\Documents\projects\fx-data-server\db\seeds
+warning no environment specified, defaulting to: development
+using adapter mysql
+using database fx-data-server
+ordering by creation time
+
+All Done. Took 0.0291s
