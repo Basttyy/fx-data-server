@@ -8,6 +8,9 @@ final class Role extends Model
 {
     const INACTIVE = "inactive";
     const ACTIVE = "active";
+
+    const ADMIN = 1;
+    const USER = 2;
     protected $softdeletes = true;
 
     protected $table = 'roles';
@@ -37,7 +40,7 @@ final class Role extends Model
      * @var array
      */
     protected $guarded = [
-        'deleted_at', 'role_id', 'access_token'
+        'deleted_at', 'created_at', 'updated_at'
     ];
 
     /**
