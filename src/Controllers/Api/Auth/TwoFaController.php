@@ -1,6 +1,6 @@
 <?php
 namespace Basttyy\FxDataServer\Controllers\Api\Auth;
-// require_once __DIR__."\\..\\..\\..\\libs\\helpers.php";
+// require_once __DIR__."/../../../libs/helpers.php";
 
 use Basttyy\FxDataServer\Auth\Guard;
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;

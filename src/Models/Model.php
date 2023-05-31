@@ -1,7 +1,7 @@
 <?php
 
 namespace Basttyy\FxDataServer\Models;
-require_once __DIR__."\\..\\libs\\helpers.php";
+require_once __DIR__."/../libs/helpers.php";
 
 use Basttyy\FxDataServer\libs\Arr;
 use Basttyy\FxDataServer\libs\mysqly;

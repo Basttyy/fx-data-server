@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__."\\..\\..\\vendor\\autoload.php";
+require_once __DIR__."/../../vendor/autoload.php";
 
 use Carbon\Carbon;
 
@@ -162,7 +162,7 @@ function getFilesList(string $ticker, int $from, int $nums): bool|array
     $files = array(); $i = 0; $s = 0;
     while ($i < $nums) {
         $file_path = "{$_SERVER['DOCUMENT_ROOT']}/download/$ticker/{$datetime->format('Y/m')}/{$datetime->format('Y-m-d')}--{$datetime->format('H')}h_ticks.csv";
-        str_replace('/', "\\", $file_path);
+        // str_replace('/', "\\", $file_path);
         consoleLog(0, $file_path.PHP_EOL);
         if (!file_exists($file_path)) {
             $datetime = $datetime->sub(new DateInterval('PT1H'));
@@ -192,7 +192,7 @@ function getMinutesFilesList(string $ticker, int &$from, int $increment, int $nu
             return false;
         }
         $file_path = "{$_SERVER['DOCUMENT_ROOT']}/minute_data/$ticker/{$datetime->format('Y/m')}/{$datetime->format('Y-m-d')}_data.csv";
-        str_replace('/', "\\", $file_path);
+        // str_replace('/', "\\", $file_path);
         consoleLog(0, $file_path.PHP_EOL);
         if (!file_exists($file_path)) {
             $datetime = $increment === 1 ? $datetime->addDay() : $datetime->subDay();

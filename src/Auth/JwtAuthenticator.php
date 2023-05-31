@@ -5,22 +5,6 @@ namespace Basttyy\FxDataServer\Auth;
 use Basttyy\FxDataServer\libs\Arr;
 use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\User;
-use Exception;
-use Psr\Http\Message\ServerRequestInterface;
-use React\Promise\PromiseInterface;
-use Kreait\Firebase\Factory;
-use Kreait\Firebase\Exception\Auth\FailedToVerifyToken;
-use Kreait\Firebase\Exception\Auth\UserNotFound;
-use React\Promise\Promise;
-use Firebase\Auth\Token\Exception\InvalidToken;
-use Firebase\Auth\Token\Exception\ExpiredToken;
-use Firebase\JWT\ExpiredException;
-use Kreait\Firebase\Exception\Auth\InvalidCustomToken;
-use Lcobucci\JWT\UnencryptedToken;
-
-use function React\Async\await;
-use function React\Promise\reject;
-use function React\Promise\resolve;
 
 final class JwtAuthenticator
 {
