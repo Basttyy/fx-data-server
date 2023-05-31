@@ -9,13 +9,21 @@ require_once __DIR__.'\\..\\MinuteController.php';
 use Basttyy\FxDataServer\Controllers\Api\Auth\AuthController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\CaptchaController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\TwoFaController;
+use Basttyy\FxDataServer\libs\MysqlSessionHandler;
 
 // ##################################################
 // ##################################################
 // ##################################################
+
+session_destroy();
+if (session_status() !== PHP_SESSION_ACTIVE) {
+  session_set_save_handler(new MysqlSessionHandler, true);
+  session_start();
+}
 
 /// Auth routes
 post('/api/login', new AuthController());
+get('/api/login', new AuthController('login_oauth'));
 get('/api/refresh-token', new AuthController('refresh_token'));
 get('/api/auth/captcha', new CaptchaController());
 post('/api/auth/captcha', new CaptchaController('validate'));

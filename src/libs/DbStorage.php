@@ -7,8 +7,9 @@
 
 namespace Basttyy\FxDataServer\libs;
 
-use Basttyy\FxDataServer\libs\Interfaces\StorageInterface;
+// use Basttyy\FxDataServer\libs\Interfaces\StorageInterface;
 use Hybridauth\Exception\RuntimeException;
+use Hybridauth\Storage\StorageInterface;
 
 /**
  * Hybridauth storage manager
@@ -20,7 +21,7 @@ class DbStorage implements StorageInterface
      *
      * @var string
      */
-    protected $storeNamespace = 'SOCIALAUTH::STORAGE';
+    protected $storeNamespace = '';
 
     /**
      * Key prefix
@@ -46,9 +47,8 @@ class DbStorage implements StorageInterface
     {
         $key = $this->keyPrefix . strtolower($key);
 
-        if (!$value = mysqly::get($key, $this->storeNamespace)) {
-            return null;
-        }
+        $value = mysqly::get($key, $this->storeNamespace);
+
         if (isset($value)) {
             if (is_array($value) && array_key_exists('lateObject', $value)) {
                 $value = unserialize($value['lateObject']);

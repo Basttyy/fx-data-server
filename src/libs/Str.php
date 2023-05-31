@@ -1,6 +1,6 @@
 <?php
 
-namespace Basttyy\FxDataServer\libs\Helpers;
+namespace Basttyy\FxDataServer\libs;
 
 use Basttyy\FxDataServer\libs\Arr;
 use Basttyy\FxDataServer\libs\Traits\Macroable;
@@ -9,7 +9,6 @@ use Basttyy\FxDataServer\libs\Traits\Macroable;
 // use Ramsey\Uuid\Uuid;
 // use Ramsey\Uuid\UuidFactory;
 // use voku\helper\ASCII;
-
 
 class Str
 {
@@ -47,7 +46,7 @@ class Str
      * Get a new stringable object from the given string.
      *
      * @param  string  $string
-     * @return \App\Libraries\Helpers\Stringable
+     * @return \Basttyy\FxDataServer\libs\Stringable
      */
     public static function of($string)
     {

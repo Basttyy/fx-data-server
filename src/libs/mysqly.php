@@ -160,14 +160,14 @@ class mysqly {
    * @return \PDOStatement|false
    */
   
-  public static function fetch_cursor($sql_or_table, $bind_or_filter = [], $select_what = '*', $operators = []) {
+  public static function fetch_cursor($sql_or_table, $bind_or_filter = [], $select_what = '*', $operators = [], $or_and = "AND") {
     if ( strpos($sql_or_table, ' ') || (strpos($sql_or_table, 'SELECT ') === 0) ) {
       $sql = $sql_or_table;
       $bind = $bind_or_filter;
     }
     else {
       $select_str = is_array($select_what) ? implode(', ', $select_what) : $select_what;
-      $sql = "SELECT {$select_str} FROM {$sql_or_table}";
+      $sql = "SELECT {$select_str} FROM `{$sql_or_table}`";
       $order = '';
       
       if ( $bind_or_filter ) {
@@ -182,7 +182,7 @@ class mysqly {
           }
           
           if ( $where ) {
-            $sql .= ' WHERE ' . implode(' AND ', $where);
+            $sql .= ' WHERE ' . implode(" $or_and ", $where);
           }
         }
         else {
@@ -193,6 +193,7 @@ class mysqly {
       
       $sql .= $order;
     }
+    // echo $sql.PHP_EOL;
     return static::exec($sql, $bind);
   }
   
@@ -205,9 +206,9 @@ class mysqly {
    * 
    * @return array
    */
-  public static function fetch($sql_or_table, $bind_or_filter = [], $select_what = '*', $operators = []) {
+  public static function fetch($sql_or_table, $bind_or_filter = [], $select_what = '*', $operators = [], $or_and = "AND") {
     
-    $statement = static::fetch_cursor($sql_or_table, $bind_or_filter, $select_what, $operators);
+    $statement = static::fetch_cursor($sql_or_table, $bind_or_filter, $select_what, $operators, $or_and);
     $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
 
     $list = [];
@@ -223,25 +224,43 @@ class mysqly {
     
     return $list;
   }
+
+  /**
+   * fetchOr() fetch one or mor row from a table
+   * 
+   * @param string $sql_or_table
+   * @param array $bind_or_filter
+   * @param array|string $select_what
+   * 
+   * @return array
+   */
+  public static function fetchOr($sql_or_table, $bind_or_filter = [], $select_what = '*', $operators = [])
+  {
+    return static::fetch($sql_or_table, $bind_or_filter, $select_what, $operators, "OR");
+  }
   
-  public static function array($sql_or_table, $bind_or_filter = []) {
+  public static function array($sql_or_table, $bind_or_filter = [])
+  {
     $rows = static::fetch($sql_or_table, $bind_or_filter);
     foreach ( $rows as $row ) $list[] = array_shift($row);
     return $list;
   }
   
-  public static function key_vals($sql_or_table, $bind_or_filter = []) {
+  public static function key_vals($sql_or_table, $bind_or_filter = [])
+  {
     $rows = static::fetch($sql_or_table, $bind_or_filter);
     foreach ( $rows as $row ) $list[array_shift($row)] = array_shift($row);
     return $list;
   }
   
-  public static function count($sql_or_table, $bind_or_filter = []) {
+  public static function count($sql_or_table, $bind_or_filter = [])
+  {
     $rows = static::fetch($sql_or_table, $bind_or_filter, 'count(*)');
     return intval(array_shift(array_shift($rows)));
   }
   
-  public static function random($table, $filter = []) {
+  public static function random($table, $filter = [])
+  {
     list($where, $bind) = static::filter($filter);
     $sql = 'SELECT * FROM `' . $table . '` ' . $where . ' ORDER BY RAND() LIMIT 1';
     return static::fetch($sql, $bind)[0];
@@ -329,10 +348,10 @@ class mysqly {
     $sql = "INSERT INTO `{$table}` SET {$values} ON DUPLICATE KEY UPDATE {$values}";
     
     try {
-      static::exec($sql, $bind);
+      $statement = static::exec($sql, $bind);
     }
     catch ( PDOException $e ) {
-      static::handle_insert_update_exception($e, $table, $data);
+      $statement = static::handle_insert_update_exception($e, $table, $data);
     }
   }
   
@@ -402,9 +421,15 @@ class mysqly {
     }
   }
   
-  public static function remove($table, $filter) {
+  public static function remove($table, $filter): bool {
     list($where, $bind) = static::filter($filter);
-    static::exec("DELETE FROM `{$table}` " . $where, $bind);
+    if (!$statement = static::exec("DELETE FROM `{$table}` " . $where, $bind)) {
+      return false;
+    }
+    if (!$statement->rowCount() < 1) {
+      return false;
+    }
+    return true;
   }
   
   
@@ -453,7 +478,7 @@ class mysqly {
    */
   
   protected static function key_value_table($space) {
-    return '_kv_' . $space;
+    return '_kv_' . strtolower($space);
   }
   
   /**
@@ -468,10 +493,14 @@ class mysqly {
     $table = static::key_value_table($space);
     
     try {
-      $value = static::fetch($table, ['key' => $key], 'value')[0]['value'];
+      $values = static::fetch($table, ['key' => $key], 'value');
+
+      $value = empty($values) ? null : $values[0]['value'];
+
       return $value;
     }
     catch (PDOException $e) {
+      // echo $e->getMessage().PHP_EOL;
       return;
     }
   }
@@ -486,6 +515,7 @@ class mysqly {
    * @return void
    */
   public static function set($key, $value, $space = 'default') {
+    echo "called set";
     $table = static::key_value_table($space);
     
     try {
@@ -498,7 +528,7 @@ class mysqly {
       }
     }
   }
-    
+  
   /**
    * unset a key-value in a db storage
    * 
