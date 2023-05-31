@@ -9,6 +9,7 @@ require_once __DIR__.'/../MinuteController.php';
 use Basttyy\FxDataServer\Controllers\Api\Auth\AuthController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\CaptchaController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\TwoFaController;
+use Basttyy\FxDataServer\Controllers\Api\MigrateController;
 use Basttyy\FxDataServer\libs\MysqlSessionHandler;
 
 // ##################################################
@@ -29,6 +30,8 @@ get('/api/auth/captcha', new CaptchaController());
 post('/api/auth/captcha', new CaptchaController('validate'));
 get('/api/auth/twofa/$mode', new TwoFaController());
 post('/api/auth/twofa/$mode', new TwoFaController('validate'));
+
+get('/api/migrate', new MigrateController);
 
 get('/download/ticker/$ticker/from/$from/nums/$nums/faster/$faster', $downloadTickData);
 get('/candles/ticker/$ticker/from/$fro/nums/$num/timeframe/$timefram', $getTimeframeCandles);
