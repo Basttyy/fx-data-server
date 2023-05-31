@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__."\/libs\/data_helpers.php";
+require_once __DIR__."/libs/data_helpers.php";
 
 $downloadTickData = function (string $ticker, int $from, int $nums, bool $faster)
 {

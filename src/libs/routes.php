@@ -1,10 +1,10 @@
 <?php
 
-require_once __DIR__.'\\router.php';
+require_once __DIR__.'/router.php';
 
-require_once __DIR__."\\..\\Controllers\\Api\\Auth\\AuthController.php";
-require_once __DIR__.'\\..\\TickController.php';
-require_once __DIR__.'\\..\\MinuteController.php';
+require_once __DIR__."/../Controllers/Api/Auth/AuthController.php";
+require_once __DIR__.'/../TickController.php';
+require_once __DIR__.'/../MinuteController.php';
 
 use Basttyy\FxDataServer\Controllers\Api\Auth\AuthController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\CaptchaController;

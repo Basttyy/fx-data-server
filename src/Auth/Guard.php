@@ -2,10 +2,7 @@
 
 namespace Basttyy\FxDataServer\Auth;
 
-use Basttyy\FxDataServer\Libraries\Helpers\JsonResponse;
 use Basttyy\FxDataServer\Models\User;
-use Psr\Http\Message\ServerRequestInterface;
-use React\Promise\PromiseInterface;
 
 final class Guard
 {

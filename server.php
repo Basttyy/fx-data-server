@@ -31,7 +31,7 @@ if (preg_match('/^.*$/i', $_SERVER["REQUEST_URI"])) {
     applyCorsHeaders($CORS_ORIGIN_ALLOWED);
 
     //register controllers
-    require_once __DIR__.'\/src\/libs\/routes.php';
+    require_once __DIR__.'/src/libs/routes.php';
     consoleLog(0, "request came to server");
 } else {
     consoleLog('info', "Not catched by routing, Transparent serving for : "

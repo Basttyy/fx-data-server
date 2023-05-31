@@ -1,5 +1,5 @@
 <?php
-require __DIR__. "\/..\/..\/src\/libs\/helpers.php";
+require __DIR__. "/../../src/libs/helpers.php";
 
 use Dotenv\Dotenv;
 use Phinx\Seed\AbstractSeed;
