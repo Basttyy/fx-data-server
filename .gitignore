@@ -3,5 +3,6 @@
 /vendor/
 /node_modules/
 /minute_data/
+/storage/
 
 .env

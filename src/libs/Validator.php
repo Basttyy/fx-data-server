@@ -2,7 +2,7 @@
 
 namespace Basttyy\FxDataServer\libs;
 
-use Basttyy\FxDataServer\libs\Helpers\Str;
+use Basttyy\FxDataServer\libs\Str;
 
 class Validator {
     private static array $req_obj;

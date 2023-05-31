@@ -9,23 +9,7 @@ use Exception;
 use PDO;
 
 abstract class Model
-{    
-    //protected static $instance = null;
-    /**
-     * The connection name for the model.
-     *
-     * @var ConnectionInterface|null
-     */
-    //protected $db;
-
-    //protected static $instance = null;
-    /**
-     * The connection name for the model.
-     *
-     * @var LazyConnectionPool|null
-     */
-    protected $db;
-
+{
     /**
      * The query builder instance for the model
      * 
@@ -216,7 +200,7 @@ abstract class Model
         if (!$id = mysqly::insert($this->table, $values)) {
             return false;
         }
-        if (!$model = mysqly::{$this->table}(['id' => $id], \array_diff($this->fillable, $this->guarded))) {
+        if (!$model = mysqly::fetch($this->table, ['id' => $id], \array_diff($this->fillable, $this->guarded))) {
             return true;
         }
         return $model;
@@ -234,7 +218,7 @@ abstract class Model
         $query_arr = [];
 
         if ($this->child->softdeletes) {
-            $query_arr['deleted_at'] = null;
+            $query_arr['deleted_at'] = "IS NULL";
             //$this->builder->useSoftDelete = true;
         }
         $query_arr['id'] = $id;
@@ -257,7 +241,7 @@ abstract class Model
         $query_arr = [];
 
         if ($this->child->softdeletes) {
-            $query_arr['deleted_at'] = null;
+            $query_arr['deleted_at'] = "IS NULL";
             //$this->builder->useSoftDelete = true;
         }
 
@@ -277,7 +261,7 @@ abstract class Model
         $query_arr = [];
 
         if ($this->child->softdeletes) {
-            $query_arr['deleted_at'] = null;
+            $query_arr['deleted_at'] = "IS NULL";
             //$this->builder->useSoftDelete = true;
         }
         $query_arr[$key] = $value;
@@ -299,11 +283,10 @@ abstract class Model
      * @param array $keys
      * @param array $values
      * 
-     * @return PromiseInterface<array|bool>
+     * @return array|bool
      */
-    public function findByArray(array $keys, array $values)
+    public function findByArray(array $keys, array $values, $or_and = "AND")
     {
-        //TODO: might need to change reject to resolve as yield seems not to handle reject.
         if (count($keys) !== count($values)) {
             return false;
         }
@@ -311,17 +294,17 @@ abstract class Model
         $query_arr = [];
 
         if ($this->child->softdeletes) {
-            $query_arr['deleted_at'] = null;
+            $query_arr['deleted_at'] = "IS NULL";
             //$this->builder->useSoftDelete = true;
         }
 
         foreach ($keys as $pos => $key) {
             $query_arr[$key] = $values[$pos];
-            $this->builder->where($key, $values[$pos]);
+            // $this->builder->where($key, $values[$pos]);
         }
         
         $fields = \array_diff($this->fillable, $this->guarded);
-        if (!$fields = mysqly::fetch($this->table, $query_arr)) {
+        if (!$fields = $or_and === "AND" ? mysqly::fetch($this->table, $query_arr, $fields) : mysqly::fetchOr($this->table, $query_arr, $fields)) {
             return false;
         }
         return $fields;
@@ -338,7 +321,7 @@ abstract class Model
         $query_arr = [];
 
         if ($this->child->softdeletes) {
-            $query_arr['deleted_at'] = null;
+            $query_arr['deleted_at'] = "IS NULL";
             //$this->builder->useSoftDelete = true;
         }
         $query_arr['username'] = $name;
@@ -364,7 +347,7 @@ abstract class Model
         $query_arr = [];
 
         if ($this->child->softdeletes) {
-            $query_arr['deleted_at'] = null;
+            $query_arr['deleted_at'] = "IS NULL";
             //$this->builder->useSoftDelete = true;
         }
         $query_arr['email'] = $email;
@@ -394,7 +377,7 @@ abstract class Model
         $query_arr = [];
 
         if ($this->child->softdeletes && !$internal) {
-            $query_arr['deleted_at'] = null;
+            $query_arr['deleted_at'] = "IS NULL";
             //$this->builder->useSoftDelete = true;
         }
         $query_arr['id'] = $id;
@@ -423,7 +406,7 @@ abstract class Model
         $query_arr = [];
 
         if ($this->child->softdeletes) {
-            $query_arr['deleted_at'] = null;
+            $query_arr['deleted_at'] = "IS NULL";
             //$this->builder->useSoftDelete = true;
         }
         $query_arr['id'] = $id;
