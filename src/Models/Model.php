@@ -299,11 +299,10 @@ abstract class Model
      * @param array $keys
      * @param array $values
      * 
-     * @return PromiseInterface<array|bool>
+     * @return array|bool
      */
     public function findByArray(array $keys, array $values)
     {
-        //TODO: might need to change reject to resolve as yield seems not to handle reject.
         if (count($keys) !== count($values)) {
             return false;
         }
@@ -317,11 +316,11 @@ abstract class Model
 
         foreach ($keys as $pos => $key) {
             $query_arr[$key] = $values[$pos];
-            $this->builder->where($key, $values[$pos]);
+            // $this->builder->where($key, $values[$pos]);
         }
         
         $fields = \array_diff($this->fillable, $this->guarded);
-        if (!$fields = mysqly::fetch($this->table, $query_arr)) {
+        if (!$fields = mysqly::fetchOr($this->table, $query_arr)) {
             return false;
         }
         return $fields;
@@ -364,7 +363,7 @@ abstract class Model
         $query_arr = [];
 
         if ($this->child->softdeletes) {
-            $query_arr['deleted_at'] = null;
+            $query_arr['deleted_at'] = "IS NULL";
             //$this->builder->useSoftDelete = true;
         }
         $query_arr['email'] = $email;

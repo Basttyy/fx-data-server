@@ -1,7 +1,8 @@
 <?php
 
-namespace Basttyy\FxDataServer\libs\Helpers;
+namespace Basttyy\FxDataServer\libs;
 
+use Basttyy\FxDataServer\libs\Str;
 use Closure;
 use Basttyy\FxDataServer\libs\Traits\Macroable;
 

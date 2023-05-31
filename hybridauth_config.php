@@ -2,7 +2,7 @@
 
 return
 [
-    "callback" => env('OAUTH_CALLBACK'),
+    "callback" => env('SERVER_APP_URI').env('OAUTH_CALLBACK'),
     "providers" => [
         "Google" => [
             "enabled" => false,
