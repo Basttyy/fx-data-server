@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__."\/vendor\/autoload.php";
+require_once __DIR__."/vendor/autoload.php";
 
 use Dotenv\Dotenv;
 // Copyright Monwoo 2017, service@monwoo.com
