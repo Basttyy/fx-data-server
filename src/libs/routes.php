@@ -26,7 +26,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 /// frontend route
 get('/', function () {
   header('Content-Type: text/html', true, 200);
-  echo file_get_contents("");
+  echo file_get_contents($_SERVER["DOCUMENT_ROOT"]."/public/index.html");
 });
 
 /// Auth routes
