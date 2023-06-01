@@ -247,7 +247,10 @@ abstract class Model
 
         $fields = \array_diff($this->fillable, $this->guarded);
 
-        return mysqly::fetch($this->table);
+        if (!$fields = mysqly::fetch($this->table)) {
+            return false;
+        }
+        return $fields;
     }
 
     /**
