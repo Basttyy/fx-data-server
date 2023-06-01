@@ -1,5 +1,6 @@
 <?php
 
+use Basttyy\FxDataServer\StreamMinute;
 use Basttyy\FxDataServer\StreamTick;
 use Ratchet\Server\IoServer;
 use Ratchet\Http\HttpServer;
@@ -29,11 +30,13 @@ $app->route('/', $handler, array('*'));
 
 //event handlers
 $stream_tick = new StreamTick($loop, $handler);
+$stream_minute = new StreamMinute($loop, $handler);
 
 $handler->setLoop($loop);
 // $handler->ticktack();
 
 $handler->addRoute('tick/stream', $stream_tick);
+$handler->addRoute('minute/stream', $stream_minute);
 
 $app->run();
 ?>

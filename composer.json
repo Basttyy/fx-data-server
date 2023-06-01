@@ -3,11 +3,16 @@
     "description": "fx historical data server",
     "type": "project",
     "require": {
-        "monolog/monolog": "^3.3",
         "vlucas/phpdotenv": "^5.5",
         "cboden/ratchet": "^0.4.4",
         "ratchet/pawl": "^0.4.1",
-        "nesbot/carbon": "^2.66"
+        "nesbot/carbon": "^2.66",
+        "robmorgan/phinx": "^0.13.4",
+        "hybridauth/hybridauth": "^3.9",
+        "gregwar/captcha": "^1.2",
+        "pragmarx/google2fa": "^8.0",
+        "firebase/php-jwt": "^6.5",
+        "monolog/monolog": "^2.9"
     },
     "license": "MIT",
     "autoload": {
@@ -21,5 +26,21 @@
             "email": "basttyy@gmail.com"
         }
     ],
-    "minimum-stability": "beta"
+    "minimum-stability": "beta",
+    "scripts": {
+        "dev": [
+            "Composer\\Config::disableProcessTimeout",
+            "php -S 192.168.0.153:20334 -t . server.php"
+        ],
+        "queue-dev": [
+            "Composer\\Config::disableProcessTimeout",
+            "./node_modules/.bin/nodemon --config nodemon_console.json ./src/Console/JobRunner.php"
+        ],
+        "queue-work": "php ./src/Console/JobRunner.php",
+        "start": "php server.php 127.0.0.1:23458",
+        "add-migration": "./vendor/bin/phinx create",
+        "add-seed": "./vendor/bin/phinx seed:create",
+        "migrate": "./vendor/bin/phinx migrate",
+        "seed": "./vendor/bin/phinx seed:run"
+    }
 }

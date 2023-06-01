@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__."/helpers.php";
+require_once __DIR__."/libs/data_helpers.php";
 
 $downloadTickData = function (string $ticker, int $from, int $nums, bool $faster)
 {
@@ -90,24 +90,6 @@ $searchTicker = function (string $query = "")
             'priceCurrency' => 'usd',
             'type' => 'ADRC',
         ],
-        // (object) [
-        //     'exchange' => '',
-        //     'market' => 'fx',
-        //     'name' => 'Great Britain Pound against Japanese Yen',
-        //     'shortName' => 'GBPJPY',
-        //     'ticker' => 'GBPJPY',
-        //     'priceCurrency' => 'jpy',
-        //     'type' => 'ADRC',
-        // ],
-        // (object) [
-        //     'exchange' => '',
-        //     'market' => 'fx',
-        //     'name' => 'US Dollar against Canadian Dollar',
-        //     'shortName' => 'USDCAD',
-        //     'ticker' => 'USDCAD',
-        //     'priceCurrency' => 'cad',
-        //     'type' => 'ADRC',
-        // ],
         (object) [
             'exchange' => '',
             'market' => 'fx',
@@ -137,16 +119,6 @@ $searchTicker = function (string $query = "")
         || str_contains(strtolower($symbol->ticker), $query)
         || str_contains(strtolower($symbol->priceCurrency), $query)
         || str_contains(strtolower($symbol->type), $query);
-
-        // $status = false;
-        // $status = $status || str_contains($symbol->exchange, $query);
-        // $status = $status || str_contains($symbol->market, $query);
-        // $status = $status || str_contains($symbol->name, $query);
-        // $status = $status || str_contains($symbol->ticker, $query);
-        // $status = $status || str_contains($symbol->priceCurrency, $query);
-        // $status = $status || str_contains($symbol->type, $query);
-
-        // return $status;
     });
     if ($data < 0) {
         http_response_code(404);
