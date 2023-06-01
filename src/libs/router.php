@@ -24,6 +24,10 @@ function route($route, $path_to_include){
     }
   }    
   if($route == "/404"){
+    if (is_callable($callback)) {
+      call_user_func($callback, []);
+      exit();
+    }
     include_once __DIR__."/$path_to_include";
     exit();
   }  

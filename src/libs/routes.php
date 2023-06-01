@@ -10,6 +10,7 @@ use Basttyy\FxDataServer\Controllers\Api\Auth\AuthController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\CaptchaController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\TwoFaController;
 use Basttyy\FxDataServer\Controllers\Api\MigrateController;
+use Basttyy\FxDataServer\Controllers\NotFoundController;
 use Basttyy\FxDataServer\libs\MysqlSessionHandler;
 
 // ##################################################
@@ -21,6 +22,12 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
   session_set_save_handler(new MysqlSessionHandler, true);
   session_start();
 }
+
+/// frontend route
+get('/', function () {
+  header('Content-Type: text/html', true, 200);
+  echo file_get_contents($_SERVER["DOCUMENT_ROOT"]."/public/index.html");
+});
 
 /// Auth routes
 post('/api/login', new AuthController());
@@ -38,6 +45,8 @@ get('/api/candles/ticker/$ticker/from/$fro/nums/$num/timeframe/$timefram', $getT
 get('/api/download/min/ticker/$ticker/from/$from/incr/$incr/nums/$nums', $downloadMinuteData);
 get('/api/tickers/query/$query', $searchTicker);
 get('/api/tickers/query', $searchTicker);
+
+any('/404', new NotFoundController);
 
 // Static GET
 // In the URL -> http://localhost
