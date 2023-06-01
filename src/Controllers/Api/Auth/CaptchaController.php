@@ -45,7 +45,7 @@ final class CaptchaController
         try {
             $captcha = new CaptchaBuilder;
             $_SESSION['captcha-phrase'] = $captcha->getPhrase();
-            $captcha->build(256, 64);
+            $captcha->build(128, 32);
             header('Content-Type: image/jpeg');
             $captcha->output();
 
