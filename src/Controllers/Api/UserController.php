@@ -128,7 +128,7 @@ final class UserController
 
             // echo "got to pass login";
             if (!$user = $this->user->create($body)) {
-                return JsonResponse::serverError("unable to create user")
+                return JsonResponse::serverError("unable to create user");
             }
 
             return JsonResponse::ok("user creation successfull", [
