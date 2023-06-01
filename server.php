@@ -8,7 +8,6 @@ use Dotenv\Dotenv;
 // used to replace lack of .htaccess support inside php builting webserver.
 // call with :
 // php -S localhost:20334 -t . server.php  php -S 192.168.0.127:20334 -t . server.php
-$CORS_ORIGIN_ALLOWED = "http://127.0.0.1:5173";  // or '*' for all
 // header("Access-Control-Allow-Origin: $CORS_ORIGIN_ALLOWED");
 
 function applyCorsHeaders($origin) {
@@ -28,7 +27,10 @@ $dotenv->required(['APP_KEY', 'APP_ENV', 'DB_USER', 'DB_HOST', 'DB_NAME', 'ADMIN
 //     header("Content-type: application/json");
 //     echo json_encode(["message" => "Bad Request data"]);
 if (preg_match('/^.*$/i', $_SERVER["REQUEST_URI"])) {
-    applyCorsHeaders($CORS_ORIGIN_ALLOWED);
+    $http_origin = $_SERVER['HTTP_ORIGIN'];
+    if ($http_origin === $_ENV['USER_APP_URI'] || $http_origin === $_ENV['ADMIN_APP_URI'] || $http_origin === $_ENV['SERVER_APP_URI']) {
+        applyCorsHeaders($http_origin);
+    }
 
     //register controllers
     require_once __DIR__.'/src/libs/routes.php';
