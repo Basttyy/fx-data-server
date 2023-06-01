@@ -33,11 +33,11 @@ post('/api/auth/twofa/$mode', new TwoFaController('validate'));
 
 get('/api/migrate', new MigrateController);
 
-get('/download/ticker/$ticker/from/$from/nums/$nums/faster/$faster', $downloadTickData);
-get('/candles/ticker/$ticker/from/$fro/nums/$num/timeframe/$timefram', $getTimeframeCandles);
-get('/download/min/ticker/$ticker/from/$from/incr/$incr/nums/$nums', $downloadMinuteData);
-get('/tickers/query/$query', $searchTicker);
-get('/tickers/query', $searchTicker);
+get('/api/download/ticker/$ticker/from/$from/nums/$nums/faster/$faster', $downloadTickData);
+get('/api/candles/ticker/$ticker/from/$fro/nums/$num/timeframe/$timefram', $getTimeframeCandles);
+get('/api/download/min/ticker/$ticker/from/$from/incr/$incr/nums/$nums', $downloadMinuteData);
+get('/api/tickers/query/$query', $searchTicker);
+get('/api/tickers/query', $searchTicker);
 
 // Static GET
 // In the URL -> http://localhost
