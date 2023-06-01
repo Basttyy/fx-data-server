@@ -38,6 +38,9 @@ post('/api/auth/captcha', new CaptchaController('validate'));
 get('/api/auth/twofa/$mode', new TwoFaController());
 post('/api/auth/twofa/$mode', new TwoFaController('validate'));
 
+/// User Routes
+
+
 get('/api/migrate', new MigrateController);
 
 get('/api/download/ticker/$ticker/from/$from/nums/$nums/faster/$faster', $downloadTickData);
