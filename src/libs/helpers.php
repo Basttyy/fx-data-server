@@ -36,17 +36,17 @@ if (! function_exists('sanitize_data')) {
     /**
      * Sanitize an array of data or string data
      * 
-     * @param array|string $data
-     * @return array|string
+     * @param array|string|int $data
+     * @return array|string|int
      */
-    function sanitize_data(iterable|string $data): array|string
+    function sanitize_data($data)
     {
         if (is_iterable($data)) {
             foreach ($data as $key => $dat) {
-                $data[$key] = htmlspecialchars(strip_tags($dat));
+                $data[$key] = is_int($dat) ? $dat : htmlspecialchars(strip_tags($dat));
             }
         } else {
-            $data = htmlspecialchars(strip_tags($data));
+            $data = is_int($data) ? $data : htmlspecialchars(strip_tags($data));
         }
 
         return $data;

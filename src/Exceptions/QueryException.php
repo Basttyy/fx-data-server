@@ -2,7 +2,7 @@
 
 namespace Basttyy\FxDataServer\Exceptions;
 
-use Basttyy\FxDataServer\libs\Helpers\Str;
+use Basttyy\FxDataServer\libs\Str;
 use PDOException;
 // use React\MySQL\Exception;
 use Throwable;

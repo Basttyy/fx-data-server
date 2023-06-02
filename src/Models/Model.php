@@ -195,12 +195,13 @@ abstract class Model
      * 
      * @return array|bool
      */
-    public function create(array $values)
+    public function create(array $values, $is_protected = true)
     {
         if (!$id = mysqly::insert($this->table, $values)) {
             return false;
         }
-        if (!$model = mysqly::fetch($this->table, ['id' => $id], \array_diff($this->fillable, $this->guarded))) {
+        $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
+        if (!$model = mysqly::fetch($this->table, ['id' => $id], $fields)) {
             return true;
         }
         return $model;
@@ -212,7 +213,7 @@ abstract class Model
      * 
      * @return self|bool
      */
-    public function find(int $id = 0)
+    public function find(int $id = 0, $is_protected = true)
     {
         $id = $id > 0 ? $id : $this->child->id;
         $query_arr = [];
@@ -223,9 +224,9 @@ abstract class Model
         }
         $query_arr['id'] = $id;
         
-        //$fields = \array_diff($this->fillable, $this->guarded);
+        $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
 
-        if (!$model = mysqly::fetch($this->table, $query_arr, $this->fillable)) {
+        if (!$model = mysqly::fetch($this->table, $query_arr, $fields)) {
             return false;
         }
         return $this->fill($model[0]);
@@ -236,7 +237,7 @@ abstract class Model
      * 
      * @return array
      */
-    public function all()
+    public function all($is_protected = true)
     {
         $query_arr = [];
 
@@ -245,9 +246,9 @@ abstract class Model
             //$this->builder->useSoftDelete = true;
         }
 
-        $fields = \array_diff($this->fillable, $this->guarded);
+        $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
 
-        if (!$fields = mysqly::fetch($this->table)) {
+        if (!$fields = mysqly::fetch($this->table, $query_arr, $fields)) {
             return false;
         }
         return $fields;
@@ -256,10 +257,12 @@ abstract class Model
     /**
      * Find a model by key and value
      * 
-     * @param string $name
+     * @param string $key
+     * @param string $value
+     * @param bool $is_protected
      * @return array|bool
      */
-    public function findBy(string $key, string $value)
+    public function findBy($key, $value, $is_protected = true)
     {
         $query_arr = [];
 
@@ -272,9 +275,9 @@ abstract class Model
             $query_arr['order_by'] = $this->order;
 
         
-        //$fields = \array_diff($this->fillable, $this->guarded);
+        $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
 
-        if (!$model = mysqly::fetch($this->table, $query_arr, \array_diff($this->fillable, $this->guarded))) {
+        if (!$model = mysqly::fetch($this->table, $query_arr, $fields)) {
             return false;
         }
         return $model;
@@ -288,7 +291,7 @@ abstract class Model
      * 
      * @return array|bool
      */
-    public function findByArray(array $keys, array $values, $or_and = "AND")
+    public function findByArray(array $keys, array $values, $or_and = "AND", $is_protected = true)
     {
         if (count($keys) !== count($values)) {
             return false;
@@ -306,7 +309,7 @@ abstract class Model
             // $this->builder->where($key, $values[$pos]);
         }
         
-        $fields = \array_diff($this->fillable, $this->guarded);
+        $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
         if (!$fields = $or_and === "AND" ? mysqly::fetch($this->table, $query_arr, $fields) : mysqly::fetchOr($this->table, $query_arr, $fields)) {
             return false;
         }
@@ -319,7 +322,7 @@ abstract class Model
      * @param string $name
      * @return self|bool
      */
-    public function findByUsername($name)
+    public function findByUsername($name, $is_protected = true)
     {
         $query_arr = [];
 
@@ -329,7 +332,8 @@ abstract class Model
         }
         $query_arr['username'] = $name;
 
-        if (!$user = mysqly::fetch($this->table, $query_arr, $this->fillable)) {
+        $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
+        if (!$user = mysqly::fetch($this->table, $query_arr, $fields)) {
             return false;
         }
         if (count( $user ) < 1) {
@@ -345,7 +349,7 @@ abstract class Model
      * @param string $email
      * @return self|bool
      */
-    public function findByEmail(string $email)
+    public function findByEmail(string $email, $is_protected = true)
     {
         $query_arr = [];
 
@@ -355,7 +359,8 @@ abstract class Model
         }
         $query_arr['email'] = $email;
 
-        if (!$user = mysqly::fetch($this->table, $query_arr, $this->fillable)) {
+        $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
+        if (!$user = mysqly::fetch($this->table, $query_arr, $fields)) {
             return false;
         }
         if (count( $user ) < 1) {
@@ -373,7 +378,7 @@ abstract class Model
      * @param bool $internal
      * @return self|bool
      */
-    public function update(array $values, int $id=0, $internal = false)
+    public function update(array $values, int $id=0, $internal = false, $is_protected = true)
     {
         $id = $id > 0 ? $id : $this->child->id;
         
@@ -389,7 +394,8 @@ abstract class Model
             return false;
         }
 
-        if (!$model = mysqly::fetch($this->table, $query_arr, $this->fillable)) {
+        $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
+        if (!$model = mysqly::fetch($this->table, $query_arr, $fields)) {
             return true;
         }
 
@@ -430,7 +436,7 @@ abstract class Model
         }
         $id = $id > 0 ? $id : $this->child->id;
 
-        return $this->update(['deleted_at', null], $id, true);
+        //return $this->update(['deleted_at', null], $id, true);
     }
 
     public function where($column, $operator = null, $value = null, $boolean = 'and')
