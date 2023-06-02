@@ -10,6 +10,7 @@ use Basttyy\FxDataServer\Controllers\Api\Auth\AuthController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\CaptchaController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\TwoFaController;
 use Basttyy\FxDataServer\Controllers\Api\MigrateController;
+use Basttyy\FxDataServer\Controllers\Api\UserController;
 use Basttyy\FxDataServer\Controllers\NotFoundController;
 use Basttyy\FxDataServer\libs\MysqlSessionHandler;
 
@@ -39,7 +40,12 @@ get('/api/auth/twofa/$mode', new TwoFaController());
 post('/api/auth/twofa/$mode', new TwoFaController('validate'));
 
 /// User Routes
-
+get('/api/users/$id', new UserController());
+get('/api/users', new UserController('list'));
+get('/api/users/query/$query', new UserController('list'));
+post('/api/users', new UserController('create'));
+put('/api/users/$id', new UserController('update'));
+delete('/api/users/$id', new UserController('delete'));
 
 get('/api/migrate', new MigrateController);
 

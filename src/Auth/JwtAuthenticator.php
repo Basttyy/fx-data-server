@@ -96,6 +96,8 @@ final class JwtAuthenticator
     private function extractToken(): ?string
     {
         // print_r($_SERVER);
+        if (!isset($_SERVER['HTTP_AUTHORIZATION']))
+            return null;
         $auth_header = $_SERVER['HTTP_AUTHORIZATION'];
         if (empty($auth_header)) {
             return null;
