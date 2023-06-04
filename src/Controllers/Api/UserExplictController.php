@@ -17,18 +17,17 @@ final class UserExplicitController
     private $user;
     private $authenticator;
 
-    public function __construct($method = "")
+    public function __construct()
     {
-        $this->method = $method;
         $this->user = new User();
         $encoder = new JwtEncoder(env('APP_KEY'));
         $role = new Role();
         $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
     }
 
-    public function __invoke(string $id = null)
+    public function __invoke(string $method = "")
     {
-        switch ($this->method) {
+        switch ($method) {
             case "request_pass_reset":
                 $resp = $this->requestPasswordReset();
                 break;
@@ -39,7 +38,7 @@ final class UserExplicitController
                 $resp = $this->changePassword();
                 break;
             case "change_role":
-                $resp = $this->changeRole($id);
+                $resp = $this->changeRole();
                 break;
             case "request_email_change":
                 $resp = $this->requestEmailChange();
@@ -207,7 +206,7 @@ final class UserExplicitController
         }
     }
 
-    private function changeRole(string $id)
+    private function changeRole()
     {
         try {
             // Check if the request has a body
@@ -220,8 +219,6 @@ final class UserExplicitController
                 return JsonResponse::unauthorized();
             }
 
-            $id = sanitize_data($id);
-
             if (!$this->authenticator->verifyRole($user, 'admin')) {
                 return JsonResponse::unauthorized("you can't update this user role");
             }
@@ -231,13 +228,14 @@ final class UserExplicitController
             $body = sanitize_data(json_decode($inputJSON, true));
 
             if ($validated = Validator::validate($body, [
+                'id' => 'required|string',
                 'role_id' => 'required|string'
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
             // echo "got to pass login";
-            if (!$user = $this->user->update(Arr::only($body, 'role_id'), (int)$id)) {
+            if (!$user = $this->user->update(Arr::only($body, 'role_id'), (int)$body['id'])) {
                 return JsonResponse::serverError("unable to update user role");
             }
 
