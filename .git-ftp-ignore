@@ -6,4 +6,3 @@
 .gitlab-ci.yml
 
 .github/*
-storage/*
