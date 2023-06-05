@@ -1,6 +1,12 @@
 # fx-data-server
 fx historical data feed
 
+
+the queue worker is meant to work with CRON Jobs
+start a cron job with the script path (5 min interval for example)
+cron_command "server_home/src/console/jobrunner.php"
+cron_command "server_home/src/console/burriedjobrunner.php"
+
 # Gregwar/Captcha should be changed as follows
 
 src/Gregwar/Captcha/CaptchaBuilder.php

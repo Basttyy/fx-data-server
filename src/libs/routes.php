@@ -17,10 +17,12 @@ use Basttyy\FxDataServer\libs\MysqlSessionHandler;
 // ##################################################
 // ##################################################
 
-session_destroy();
-if (session_status() !== PHP_SESSION_ACTIVE) {
-  session_set_save_handler(new MysqlSessionHandler, true);
-  session_start();
+if (strtolower($_SERVER['REQUEST_METHOD']) !== "options") {
+  session_destroy();
+  if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_set_save_handler(new MysqlSessionHandler, true);
+    session_start();
+  }
 }
 
 /// frontend route
@@ -46,7 +48,7 @@ get('/api/download/min/ticker/$ticker/from/$from/incr/$incr/nums/$nums', $downlo
 get('/api/tickers/query/$query', $searchTicker);
 get('/api/tickers/query', $searchTicker);
 
-// any('/404', new NotFoundController);
+any('/404', new NotFoundController);
 
 // Static GET
 // In the URL -> http://localhost
