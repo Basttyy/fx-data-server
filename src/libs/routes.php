@@ -46,7 +46,7 @@ get('/api/download/min/ticker/$ticker/from/$from/incr/$incr/nums/$nums', $downlo
 get('/api/tickers/query/$query', $searchTicker);
 get('/api/tickers/query', $searchTicker);
 
-any('/404', new NotFoundController);
+// any('/404', new NotFoundController);
 
 // Static GET
 // In the URL -> http://localhost
