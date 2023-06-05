@@ -38,14 +38,14 @@ final class AuthController
         // $authMiddleware = new Guard($authenticator);
     }
 
-    public function __invoke(string $provider = "")
+    public function __invoke()
     {
         switch ($this->method) {
             case 'login':
                 $resp = $this->login();
                 break;
             case 'login_oauth':
-                $resp = $this->loginOauth($provider);
+                $resp = $this->loginOauth();
                 break;
             case 'forgot_pass':
                 $resp = $this->forgotPassword();
