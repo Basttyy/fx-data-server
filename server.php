@@ -29,7 +29,7 @@ $dotenv->required(['APP_KEY', 'APP_ENV', 'DB_USER', 'DB_HOST', 'DB_NAME', 'ADMIN
 
 $http_origin = $_SERVER["HTTP_ORIGIN"] ?? "";
 if ($http_origin === $_ENV['USER_APP_URI'] || $http_origin === $_ENV['ADMIN_APP_URI'] || $http_origin === $_ENV['SERVER_APP_URI']) {
-    file_put_contents("php://stdout", "[" . 0 . "] " . "cors header applied: $http_origin" . "\n");
+    // file_put_contents("php://stdout", "[" . 0 . "] " . "cors header applied: $http_origin" . "\n");
     applyCorsHeaders($http_origin);
 }
 
@@ -55,7 +55,7 @@ if (preg_match('/\.(?:js|css|svg|ico|woff2|ttf|webp|pdf|png|jpg|jpeg|gif)$/', $_
 if (preg_match('/^.*$/i', $_SERVER["REQUEST_URI"])) {
     //register controllers
     require_once __DIR__.'/src/libs/routes.php';
-    consoleLog(0, "request came to server");
+    // consoleLog(0, "request came to server");
 } else {
     consoleLog('info', "Not catched by routing, Transparent serving for : "
     . $_SERVER["REQUEST_URI"]);
