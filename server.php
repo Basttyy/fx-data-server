@@ -7,7 +7,7 @@ use Dotenv\Dotenv;
 // Enabling CORS in bultin dev to test locally with multiples servers
 // used to replace lack of .htaccess support inside php builting webserver.
 // call with :
-// php -S localhost:20334 -t . server.php  php -S 192.168.0.127:20334 -t . server.php
+// php -S localhost:20334 -t . server.php  php -S 192.168.0.127:5533 -t . server.php
 // header("Access-Control-Allow-Origin: $CORS_ORIGIN_ALLOWED");
 
 function applyCorsHeaders($origin) {
