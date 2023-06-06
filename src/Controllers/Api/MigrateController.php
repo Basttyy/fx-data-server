@@ -23,7 +23,6 @@ final class MigrateController
                 'status' => 'getStatus',
                 'migrate' => 'getMigrate',
                 'rollback' => 'getRollback',
-                'seed' => 'getSeed',
             ];
             $command = $_GET['command'] ?? null;
 
