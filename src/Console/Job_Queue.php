@@ -245,7 +245,7 @@ class Job_Queue {
 	/**
 	 * Gets the next available job and reserves it. Sorted by delay and priority
 	 *
-	 * @return mixed 
+	 * @return array 
 	 */
 	public function getNextJobAndReserve() {
 		$this->runPreChecks();
@@ -379,6 +379,39 @@ class Job_Queue {
 				$this->connection->bury($job);
 			break;
 		}
+	}
+
+	
+	/**
+	 * Fail a job (to failed job table)
+	 *
+	 * @param mixed $job
+	 * @return int
+	 */
+	public function failJob($job): void {
+		$this->runPreChecks();
+		switch($this->queue_type) {
+			case self::QUEUE_TYPE_MYSQL:
+			case self::QUEUE_TYPE_SQLITE:
+				$table_name = $this->getSqlTableName()[1];
+				$field_value = $this->isMysqlQueueType() && $this->options['mysql']['use_compression'] === true ? 'COMPRESS(?)' : '?';
+				$added_dt = gmdate('Y-m-d H:i:s');
+				$statement = $this->connection->prepare("INSERT INTO {$table_name} (pipeline, payload, added_dt, attempts) VALUES (?, {$field_value}, ?, ?)");
+				$statement->execute([
+					$this->pipeline,
+					$job['payload'],
+					$added_dt,
+					$job['tries']
+				]);
+				
+				$id = intval($this->connection->lastInsertId());
+			break;
+
+			case self::QUEUE_TYPE_BEANSTALKD:
+				$this->connection->bury($job);
+			break;
+		}
+		return $id;
 	}
 
 	/**
@@ -533,17 +566,10 @@ class Job_Queue {
                             'pipeline' TEXT NOT NULL,
                             'payload' TEXT NOT NULL,
                             'added_dt' TEXT NOT NULL, -- COMMENT 'In UTC'
-                            'send_dt' TEXT NOT NULL, -- COMMENT 'In UTC'
-                            'priority' INTEGER NOT NULL,
-                            'is_reserved' INTEGER NOT NULL,
-                            'reserved_dt' TEXT NULL, -- COMMENT 'In UTC'
-                            'is_buried' INTEGER NOT NULL,
-                            'buried_dt' TEXT NULL, -- COMMENT 'In UTC'
-                            'time_to_retry_dt' TEXT NOT NULL,
                             'attempts' tinyint(4) UNSIGNED NOT NULL
                         );");
                         
-                        $this->connection->exec("CREATE INDEX pipeline_send_dt_is_buried_is_reserved ON {$table_name} ('pipeline', 'send_dt', 'is_buried', 'is_reserved'");
+                        //$this->connection->exec("CREATE INDEX pipeline ON {$table_name} ('pipeline', 'send_dt', 'is_buried', 'is_reserved'");
                     }
                 }
             }
