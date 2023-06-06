@@ -1,0 +1,40 @@
+{% extends layout.html %}
+
+{% block title %}{{ $title }}{% endblock %}
+
+{% block bg-img-content %}
+<tr>
+    <td>
+        <img style="width: 100%;" src="https://firebasestorage.googleapis.com/v0/b/tradingio.appspot.com/o/app%20images%2Fforgot_password.png?alt=media&token=b6466543-aed3-4535-919a-342f1ced91f3" />
+    </td>
+</tr>
+{% endblock %}
+
+{% block msg-content %}
+<tr>
+    <td style="padding: 0px 30px">
+        <h2 style="color: black; font-weight: 700; margin-bottom: 20px;">{{ $header }}</h2>
+        {% foreach($contents as $content): %}
+            <p style="margin-bottom: 10px;">{{ $content }}</p>
+        {% endforeach; %}
+    </td>
+</tr>
+{% endblock %}
+
+{% block links-content %}
+    {% foreach($links as $label => $link): %}
+        <tr>
+            <td style="padding: 0px 30px">
+                <a class="button" href="{{ $link }}">{{ $label }}</a>
+            </td>
+        </tr>
+    {% endforeach; %}
+
+    <tr>
+        <td style="padding: 0px 30px">
+            <p>Thanks <br>Tradingio Team.</p>
+        </td>
+    </tr>
+{% endblock %}
+
+{% include footer.html %}

@@ -12,7 +12,8 @@
         "gregwar/captcha": "^1.2",
         "pragmarx/google2fa": "^8.0",
         "firebase/php-jwt": "^6.5",
-        "monolog/monolog": "^2.9"
+        "monolog/monolog": "^2.9",
+        "phpmailer/phpmailer": "^6.8"
     },
     "license": "MIT",
     "autoload": {
