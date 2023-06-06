@@ -138,10 +138,10 @@ final class AuthController
     
             // Returns a boolean of whether the user is connected with Twitter
             if (!$isConnected = $adapter->isConnected()) {
-                consoleLog(0, "user is not connected to provider");
+                if (env('APP_ENV') === 'local') consoleLog(0, "user is not connected to provider");
                 return JsonResponse::unauthorized("unsuccessful social login attempt");
             }
-            consoleLog(0, "user is connected to provider");
+            if (env('APP_ENV') === 'local') consoleLog(0, "user is connected to provider");
         
             // Retrieve the user's profile
             $userProfile = $adapter->getUserProfile();
@@ -191,7 +191,7 @@ final class AuthController
         } catch (HttpRequestFailedException $e) {
             return JsonResponse::unauthorized("failed to call provider with credentials");
         } catch (Exception $ex) {
-            return JsonResponse::serverError("something happened try again ".$ex->getMessage(). " ".$ex->getTraceAsString());
+            return JsonResponse::serverError("something happened try again" . env('APP_ENV') === 'local' ? " " . $ex->getMessage(). " ".$ex->getTraceAsString() : "");
         }
     }
 

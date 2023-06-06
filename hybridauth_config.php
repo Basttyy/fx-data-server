@@ -2,7 +2,7 @@
 
 return
 [
-    "callback" => env('SERVER_APP_URI').env('OAUTH_CALLBACK'),
+    "callback" => str_contains(env('USER_APP_URI'), 'https:') ? env('USER_APP_URI').env('OAUTH_CALLBACK') : str_replace('http:', 'https:', env('USER_APP_URI')),
     "providers" => [
         "Google" => [
             "enabled" => false,
