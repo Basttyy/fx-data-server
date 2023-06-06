@@ -11,11 +11,11 @@ trait ShouldQueue
 
     private $priority = 1024;
 
-    private $job;
+    private array $job;
 
     private static Job_Queue $queue;
 
-    public function setJob($job): void
+    public function setJob(array $job): void
     {
         $this->job = $job;
     }
@@ -88,6 +88,12 @@ trait ShouldQueue
     {
         $this::$queue->addQueueConnection($connection);
         return $this;
+    }
+
+    private function fail()
+    {
+        $this::$queue->failJob($this->job);
+        return $this::$queue->deleteJob($this->job);
     }
 
     private function delete()
