@@ -4,40 +4,51 @@ namespace Basttyy\FxDataServer\libs\Mail;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 
-class VerifyEmail extends PHPMailer
+class BaseMailer extends PHPMailer
 {
     /**
      * BaseMailer constructor.
      *
      * @param bool|null $exceptions
+     * @param string $user
+     * @param string $pass
      * @param string    $body A default HTML message body
      */
-    public function __construct($exceptions, $body = '')
+    public function __construct($exceptions, $user, $pass, $body = '')
     {
+        $host = env('EMAIL_HOST');
+        $port = env('EMAIL_PORT');
         //Don't forget to do this or other things may not be set correctly!
         parent::__construct($exceptions);
         //Set a default 'From' address
-        $this->setFrom('joe@example.com', 'Joe User');
-        //Send via SMTP
         $this->isSMTP();
+        $this->Host = $host;
+        $this->Port = $port;
+        //Send via SMTP
+        $this->SMTPAuth = true;
+        $this->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
         //Equivalent to setting `Host`, `Port` and `SMTPSecure` all at once
-        $this->Host = 'tls://smtp.example.com:587';
+        // $this->Host = "tls://$host:$port";
+        $this->Password = $pass;
+        $this->Username = $user;
         //Set an HTML and plain-text body, import relative image references
         $this->msgHTML($body, './images/');
         //Show debug output
         $this->SMTPDebug = SMTP::DEBUG_SERVER;
+
         //Inject a new debug output handler
         $this->Debugoutput = static function ($str, $level) {
-            echo "Debug level $level; message: $str\n";
+            consoleLog($level, $str);
         };
     }
 
     //Extend the send function
     public function send()
     {
-        $this->Subject = '[Yay for me!] ' . $this->Subject;
+        $this->Subject = $this->Subject;
         $r = parent::send();
-        echo 'I sent a message with subject ' . $this->Subject;
+        if (env('APP_ENV') === 'local')
+            echo 'I sent a message with subject ' . $this->Subject.PHP_EOL;
 
         return $r;
     }

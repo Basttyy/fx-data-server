@@ -30,11 +30,11 @@ class VerifyEmail
             'sender_email' => "hello@backtestfx.com",  //$sender->email,
             'contents' => [
                 $name ? "Hello $name," : "Hy,",
-                "You or someone requested to verify this email account with us",
-                "If it wasn't you please simply disregard this email. If it was you, then <span style='font-weight: 700;'>use this code $code to verify your email or click the “Verify Now Button” below to Verify Your Account.</span>"
+                "It seems you lost your password or u wish to change it?",
+                "If it wasn't you please disregard this email and make sure you can still login to your account. If it was you, then <span style='font-weight: 700;'>use this code $code to Reset Your Password or click the “Reset Now Button” below to Reset your password.</span>"
             ],
             'links' => [
-                'Verify Email' => "https://backtestfx.com/account/verify?code=$code"
+                'Verify Email' => "https://backtestfx.com/account/ressetpass?code=$code"
             ]
         ], true);
 
