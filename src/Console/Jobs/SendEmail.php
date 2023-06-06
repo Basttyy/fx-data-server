@@ -30,7 +30,7 @@ class SendMail implements QueueInterface
         logger(storage_path()."logs\/console.log")->info("sending verification email to {$this->user['email']}");
 
         if ($this->job['tries'] > $this->max_attempts)
-            return $this->delete();
+            return $this->fail();
 
         if (!VerifyEmail::send($this->user['email'], $this->user['firstname'].' '.$this->user['lastname'], $this->subject, $this->user['email2fa_token']))
             return $this->bury(10);
