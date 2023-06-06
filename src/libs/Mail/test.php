@@ -12,4 +12,4 @@ $dotenv = strtolower(PHP_OS_FAMILY) === 'windows' ? Dotenv::createImmutable(__DI
 $dotenv->load();
 $dotenv->required(['APP_KEY', 'APP_ENV', 'DB_USER', 'DB_HOST', 'DB_NAME', 'ADMIN_APP_URI', 'USER_APP_URI', 'SERVER_APP_URI', 'FINGERPRINT_MAX_AGE', 'SECRET_TOKEN', 'SHA_TYPE'])->notEmpty();
     
-$mail = VerifyEmail::send('basttyy@gmail.com', 'Abdulbasit Mamman', 'Verify Your Email');
+$mail = VerifyEmail::send('basttyy@gmail.com', 'Abdulbasit Mamman', 'Verify Your Email', '204837');

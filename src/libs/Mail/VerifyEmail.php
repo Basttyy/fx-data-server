@@ -11,7 +11,7 @@ class VerifyEmail
 
     public function __construct(string $address, string $name, string $subject, string $html)
     {
-        self::$mail = new BaseMailer(true, env(['NOREPLY_EMAIL_USER']), env(['NOREPLY_EMAIL_PASSWORD']), $html);
+        self::$mail = new BaseMailer(true, env('NOREPLY_EMAIL_USER'), env('NOREPLY_EMAIL_PASSWORD'), $html);
 
         self::$mail->addAddress($address, $name);
         self::$mail->setFrom(env('NOREPLY_EMAIL_USER'), env('NOREPLY_EMAIL_NAME'));
@@ -31,7 +31,7 @@ class VerifyEmail
             'contents' => [
                 $name ? "Hello $name," : "Hy,",
                 "You or someone requested to verify this email account with us",
-                "If it wasn't you please simply disregard this email. If it was you, then <span style='font-weight: 700;'>use this code $code to verify your email or click the “Verify Now Button” below to Verify Your Account.</span>"
+                "If it wasn't you please simply disregard this email. If it was you, then <span style='font-weight: 400;'>use this code <strong>$code</strong> to verify your email or click the “Verify Email Button” below to Verify Your Account.</span>"
             ],
             'links' => [
                 'Verify Email' => "https://backtestfx.com/account/verify?code=$code"
