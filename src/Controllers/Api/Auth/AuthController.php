@@ -191,8 +191,8 @@ final class AuthController
         } catch (HttpRequestFailedException $e) {
             return JsonResponse::unauthorized("failed to call provider with credentials");
         } catch (Exception $ex) {
-            $message = "something happened try again" . env('APP_ENV') === 'local' ? " " . $ex->getMessage(). " ".$ex->getTraceAsString() : "";
-            return JsonResponse::serverError($message);
+            if (env('APP_ENV') === 'local') consoleLog(0, $ex->getMessage(). "   ".$ex->getTraceAsString());
+            return JsonResponse::serverError("something happened try again " . $ex->getMessage() . " ". $ex->getTraceAsString());
         }
     }
 
