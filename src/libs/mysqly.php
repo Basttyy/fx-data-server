@@ -194,7 +194,8 @@ class mysqly {
       $sql .= $order;
     }
     // echo $sql.PHP_EOL;
-    return static::exec($sql, $bind);
+    $res = isset($bind) ? static::exec($sql, $bind) : static::exec($sql);
+    return $res;
   }
   
   /**
@@ -426,7 +427,7 @@ class mysqly {
     if (!$statement = static::exec("DELETE FROM `{$table}` " . $where, $bind)) {
       return false;
     }
-    if (!$statement->rowCount() < 1) {
+    if ($statement->rowCount() < 1) {
       return false;
     }
     return true;

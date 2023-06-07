@@ -38,14 +38,14 @@ final class AuthController
         // $authMiddleware = new Guard($authenticator);
     }
 
-    public function __invoke(string $provider = "")
+    public function __invoke()
     {
         switch ($this->method) {
             case 'login':
                 $resp = $this->login();
                 break;
             case 'login_oauth':
-                $resp = $this->loginOauth($provider);
+                $resp = $this->loginOauth();
                 break;
             case 'forgot_pass':
                 $resp = $this->forgotPassword();
@@ -87,7 +87,7 @@ final class AuthController
             }
 
             // echo "got to pass login";
-            if (!$user = $this->user->findByEmail($body['email'])) {
+            if (!$user = $this->user->findByEmail($body['email'], false)) {
                 throw new NotFoundException("user does not exist");
             }
             // echo "user found by email";
@@ -138,10 +138,10 @@ final class AuthController
     
             // Returns a boolean of whether the user is connected with Twitter
             if (!$isConnected = $adapter->isConnected()) {
-                consoleLog(0, "user is not connected to provider");
+                if (env('APP_ENV') === 'local') consoleLog(0, "user is not connected to provider");
                 return JsonResponse::unauthorized("unsuccessful social login attempt");
             }
-            consoleLog(0, "user is connected to provider");
+            if (env('APP_ENV') === 'local') consoleLog(0, "user is connected to provider");
         
             // Retrieve the user's profile
             $userProfile = $adapter->getUserProfile();
@@ -191,7 +191,8 @@ final class AuthController
         } catch (HttpRequestFailedException $e) {
             return JsonResponse::unauthorized("failed to call provider with credentials");
         } catch (Exception $ex) {
-            return JsonResponse::serverError("something happened try again ".$ex->getMessage(). " ".$ex->getTraceAsString());
+            if (env('APP_ENV') === 'local') consoleLog(0, $ex->getMessage(). "   ".$ex->getTraceAsString());
+            return JsonResponse::serverError("something happened try again " . $ex->getMessage() . " ". $ex->getTraceAsString());
         }
     }
 
