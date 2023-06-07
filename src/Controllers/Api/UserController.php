@@ -134,7 +134,7 @@ final class UserController
             $body['password'] = password_hash($body['password'], PASSWORD_BCRYPT);
             $body['username'] = $body['username'] ?? $body['email'];
             $body['email2fa_token'] = implode([rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9)]);
-            $body['email2fa_expire'] = time() + env('email2fa_expire');
+            $body['email2fa_expire'] = time() + env('EMAIL2FA_MAX_AGE');
 
             if (!$user = $this->user->create($body)) {
                 return JsonResponse::serverError("unable to create user");

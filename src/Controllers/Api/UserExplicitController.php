@@ -40,6 +40,9 @@ final class UserExplicitController
             case "change_role":
                 $resp = $this->changeRole();
                 break;
+            case "verify_email":
+                $resp = $this->verifyEmail();
+                break;
             case "request_email_change":
                 $resp = $this->requestEmailChange();
                 break;
@@ -240,6 +243,56 @@ final class UserExplicitController
             }
 
             return JsonResponse::ok("user role updated successfully");
+        } catch (PDOException $e) {
+            if (env("APP_ENV") === "local")
+                $message = $e->getMessage();
+            else $message = "we encountered a problem";
+            
+            return JsonResponse::serverError($message);
+        } catch (Exception $e) {
+            $message = env("APP_ENV") === "local" ? $e->getMessage() : "we encountered a problem";
+            return JsonResponse::serverError("we got some error here".$message);
+        }
+    }
+    
+    private function verifyEmail()
+    {
+        try {
+            // Check if the request has a body
+            if ( $_SERVER['CONTENT_LENGTH'] <= env('CONTENT_LENGTH_MIN')) {
+                //return "body is required" response;
+                return JsonResponse::badRequest("bad request", "body is required");
+            }
+
+            if (!$this->authenticator->validate()) {
+                return JsonResponse::unauthorized("please login before attempting to verify email");
+            }
+            
+            $inputJSON = file_get_contents('php://input');
+
+            $body = sanitize_data(json_decode($inputJSON, true));
+
+            if ($validated = Validator::validate($body, [
+                'email2fa_token' => 'required|numeric'
+            ])) {
+                return JsonResponse::badRequest('errors in request', $validated);
+            }
+
+            if (!$this->user->find(is_protected: false)) {
+                return JsonResponse::badRequest("invalid user session data");
+            }
+
+            if ($this->user->email2fa_expire <= time()) {
+                $this->user->update(['email2fa_token' => null, 'email2fa_expire' => null]);
+                return JsonResponse::badRequest("invalid or expired token");
+            }
+            if ($this->user->email2fa_token !== $body['email2fa_token']) {
+                ///TODO: email2fa_token should have maximum tries
+                return JsonResponse::badRequest("invalid or expired token");
+            }
+            $this->user->update(['status' => User::ACTIVE, 'email2fa_token' => null, 'email2fa_expire' => null]);
+            
+            return JsonResponse::ok("email verified successfully");
         } catch (PDOException $e) {
             if (env("APP_ENV") === "local")
                 $message = $e->getMessage();
