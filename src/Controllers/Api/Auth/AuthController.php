@@ -87,7 +87,7 @@ final class AuthController
             }
 
             // echo "got to pass login";
-            if (!$user = $this->user->findByEmail($body['email'])) {
+            if (!$user = $this->user->findByEmail($body['email'], false)) {
                 throw new NotFoundException("user does not exist");
             }
             // echo "user found by email";

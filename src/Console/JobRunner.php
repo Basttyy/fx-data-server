@@ -46,9 +46,11 @@ while ($end_time > time()) {
     }
 
     $payload = $job['payload'];
+    // echo $payload.PHP_EOL;
 
     try {
         $job_obj = unserialize($payload);
+        var_dump($job_obj);
 
         if ($job_obj instanceof QueueInterface) {
             $job_obj->setJob($job);

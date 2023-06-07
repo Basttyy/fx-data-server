@@ -10,6 +10,8 @@ use Basttyy\FxDataServer\Controllers\Api\Auth\AuthController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\CaptchaController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\TwoFaController;
 use Basttyy\FxDataServer\Controllers\Api\MigrateController;
+use Basttyy\FxDataServer\Controllers\Api\UserController;
+use Basttyy\FxDataServer\Controllers\Api\UserExplicitController;
 use Basttyy\FxDataServer\Controllers\NotFoundController;
 use Basttyy\FxDataServer\libs\MysqlSessionHandler;
 
@@ -40,8 +42,20 @@ post('/api/auth/captcha', new CaptchaController('validate'));
 get('/api/auth/twofa/$mode', new TwoFaController());
 post('/api/auth/twofa/$mode', new TwoFaController('validate'));
 
+/// User Routes
+get('/api/users/$id', new UserController());
+get('/api/users', new UserController('list'));
+get('/api/users/query/$query', new UserController('list'));
+post('/api/users', new UserController('create'));
+put('/api/users/$id', new UserController('update'));
+delete('/api/users/$id', new UserController('delete'));
+/// User Special Routes
+post('/api/users/method/$method', new UserExplicitController());
+
+/// Admin Routes
 get('/api/migrate', new MigrateController);
 
+/// Historical Data Routes
 get('/api/download/ticker/$ticker/from/$from/nums/$nums/faster/$faster', $downloadTickData);
 get('/api/candles/ticker/$ticker/from/$fro/nums/$num/timeframe/$timefram', $getTimeframeCandles);
 get('/api/download/min/ticker/$ticker/from/$from/incr/$incr/nums/$nums', $downloadMinuteData);
