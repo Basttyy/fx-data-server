@@ -210,6 +210,7 @@ abstract class Model
     /**
      * Find a model by its id
      * @param int $id
+     * @param bool $is_protected
      * 
      * @return self|bool
      */

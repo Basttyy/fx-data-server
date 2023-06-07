@@ -56,7 +56,7 @@ final class User extends Model
      * @var array
      */
     protected $guarded = [
-        'password', 'deleted_at', 'role_id', 'access_token', 'twofa_secret', 'email2fa_token',
+        'password', 'deleted_at', 'role_id', 'access_token', 'twofa_secret', 'email2fa_token', 'email2fa_expire',
     ];
 
     /**
