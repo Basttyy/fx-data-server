@@ -81,16 +81,16 @@ final class UserExplicitController
             }
 
             if (!$user = $this->user->findByEmail($body['email'])) {
-                return JsonResponse::badRequest("email does not exist");
+                return JsonResponse::ok("if we have this email, password reset code should be sent to your email");
             }
 
             if ($user instanceof User) {
                 $code = implode([rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9)]);
-                if (!$user->update(['email2fa_token' => (string)$code, 'email2fa_expire' => time() + env('email2fa_expire')])) {  //TODO:: this token should be timeed and should expire
-                    return JsonResponse::serverError("unable to generate token");
+                if (!$user->update(['email2fa_token' => (string)$code, 'email2fa_expire' => time() + env('EMAIL2FA_MAX_AGE')])) {  //TODO:: this token should be timeed and should expire
+                    return JsonResponse::serverError("we encountered an error, please try again");
                 }
                 //schdule job to send code to the user via email
-                return JsonResponse::ok("code sent to user email");
+                return JsonResponse::ok("if we have this email, password reset code should be sent to your email");
             }
         } catch (PDOException $e) {
             if (env("APP_ENV") === "local")
@@ -334,7 +334,7 @@ final class UserExplicitController
 
             if ($user instanceof User) {
                 $code = implode([rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9)]);
-                if (!$user->update(['email2fa_token' => (string)$code, 'email2fa_expire' => time() + env('email2fa_expire')])) {  //TODO:: this token should be timeed and should expire
+                if (!$user->update(['email2fa_token' => (string)$code, 'email2fa_expire' => time() + env('EMAIL2FA_MAX_AGE')])) {  //TODO:: this token should be timeed and should expire
                     return JsonResponse::serverError("unable to generate token");
                 }
                 //schdule job to send code to the user via email
