@@ -4,18 +4,18 @@ namespace Basttyy\FxDataServer\Console\Jobs;
 use Basttyy\FxDataServer\Console\QueueInterface;
 use Basttyy\FxDataServer\Console\ShouldQueue;
 use Basttyy\FxDataServer\libs\Mail\VerifyEmail;
-use Basttyy\FxDataServer\Models\User;
 
-class SendMail implements QueueInterface
+class SendEmail implements QueueInterface
 {
     use ShouldQueue;
 
-    private $subject;
     private $user;
+    private $subject;
     private $max_attempts;
 
     public function __construct(array $user, string $subject = "Verify Your Email", $max_attempts = 3)
     {
+        $this->user = $user;
         $this->subject = $subject;
         $this->max_attempts = $max_attempts;
     }
@@ -34,5 +34,7 @@ class SendMail implements QueueInterface
 
         if (!VerifyEmail::send($this->user['email'], $this->user['firstname'].' '.$this->user['lastname'], $this->subject, $this->user['email2fa_token']))
             return $this->bury(10);
+
+        $this->delete();
     }
 }

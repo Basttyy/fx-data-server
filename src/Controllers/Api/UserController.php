@@ -3,7 +3,7 @@ namespace Basttyy\FxDataServer\Controllers\Api;
 
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
-use Basttyy\FxDataServer\Console\Jobs\SendMail;
+use Basttyy\FxDataServer\Console\Jobs\SendEmail;
 use Basttyy\FxDataServer\Exceptions\NotFoundException;
 use Basttyy\FxDataServer\libs\JsonResponse;
 use Basttyy\FxDataServer\libs\Validator;
@@ -133,14 +133,17 @@ final class UserController
 
             $body['password'] = password_hash($body['password'], PASSWORD_BCRYPT);
             $body['username'] = $body['username'] ?? $body['email'];
+            $body['email2fa_token'] = implode([rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9)]);
+            $body['email2fa_expire'] = time() + env('email2fa_expire');
+
             if (!$user = $this->user->create($body)) {
                 return JsonResponse::serverError("unable to create user");
             }
 
-            $mail_job = new SendMail($user);
+            $mail_job = new SendEmail(array_merge($user, ['email2fa_token' => $body['email2fa_token']]));
             $mail_job->init()->delay(5)->run();
 
-            return JsonResponse::ok("user creation successfull", $user);
+            return JsonResponse::ok("user creation successful", $user);
         } catch (PDOException $e) {
             if (env("APP_ENV") === "local")
                 $message = $e->getMessage();
