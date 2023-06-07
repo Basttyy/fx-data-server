@@ -37,6 +37,10 @@
             "Composer\\Config::disableProcessTimeout",
             "./node_modules/.bin/nodemon --config nodemon_console.json ./src/Console/JobRunner.php"
         ],
+        "queue-buried-dev": [
+            "Composer\\Config::disableProcessTimeout",
+            "./node_modules/.bin/nodemon --config nodemon_console.json ./src/Console/BurriedJobRunner.php"
+        ],
         "queue-work": "php ./src/Console/JobRunner.php",
         "start": "php server.php 127.0.0.1:23458",
         "add-migration": "./vendor/bin/phinx create",

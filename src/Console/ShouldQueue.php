@@ -40,8 +40,10 @@ trait ShouldQueue
             ]
         ]);
 
-        $db_name = env('NAME');
-        $pdo = new PDO("mysql:dbname=$db_name;host=127.0.0.1", env('USER'), env('PASS'));
+        $db_name = env('DB_NAME');
+        $db_host = env('DB_HOST');
+
+        $pdo = new PDO("mysql:dbname=$db_name;host=$db_host", env('DB_USER'), env('DB_PASS'));
         $me::$queue->addQueueConnection($pdo);
         $me::$queue->setPipeline('default');
         $me::$queue->selectPipeline('default');
@@ -57,8 +59,10 @@ trait ShouldQueue
                 'use_compression' => true
             ]
         ]);
-        $db_name = env('NAME');
-        $pdo = new PDO("mysql:dbname=$db_name;host=127.0.0.1", env('USER'), env('PASS'));
+        $db_name = env('DB_NAME');
+        $db_host = env('DB_HOST');
+
+        $pdo = new PDO("mysql:dbname=$db_name;host=$db_host", env('DB_USER'), env('DB_PASS'));
         $this::$queue->addQueueConnection($pdo);
         $this::$queue->setPipeline('default');
         $this::$queue->selectPipeline('default');

@@ -204,7 +204,7 @@ abstract class Model
         if (!$model = mysqly::fetch($this->table, ['id' => $id], $fields)) {
             return true;
         }
-        return $model;
+        return $model[0];
     }
 
     /**

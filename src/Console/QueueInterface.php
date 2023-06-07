@@ -24,9 +24,9 @@ interface QueueInterface
 
     public function delay(int $delay): self;
 
-    public function fail();
-    
-    public function delete(): void;
+    // public function fail();
+
+    // public function delete(): void;
 
     public function priority(int $prio): self;
 

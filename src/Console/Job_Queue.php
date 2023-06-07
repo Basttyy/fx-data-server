@@ -388,7 +388,7 @@ class Job_Queue {
 	 * @param mixed $job
 	 * @return int
 	 */
-	public function failJob($job): void {
+	public function failJob($job): int {
 		$this->runPreChecks();
 		switch($this->queue_type) {
 			case self::QUEUE_TYPE_MYSQL:
