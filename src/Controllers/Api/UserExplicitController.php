@@ -3,6 +3,7 @@ namespace Basttyy\FxDataServer\Controllers\Api;
 
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
+use Basttyy\FxDataServer\Console\Jobs\SendResetPassword;
 use Basttyy\FxDataServer\libs\Arr;
 use Basttyy\FxDataServer\libs\JsonResponse;
 use Basttyy\FxDataServer\libs\Validator;
@@ -89,7 +90,8 @@ final class UserExplicitController
                 if (!$user->update(['email2fa_token' => (string)$code, 'email2fa_expire' => time() + env('EMAIL2FA_MAX_AGE')])) {  //TODO:: this token should be timeed and should expire
                     return JsonResponse::serverError("we encountered an error, please try again");
                 }
-                //schdule job to send code to the user via email
+                $job = new SendResetPassword($user->toArray(false));
+                $job->init()->delay(5)->run();
                 return JsonResponse::ok("if we have this email, password reset code should be sent to your email");
             }
         } catch (PDOException $e) {
@@ -337,7 +339,7 @@ final class UserExplicitController
                 if (!$user->update(['email2fa_token' => (string)$code, 'email2fa_expire' => time() + env('EMAIL2FA_MAX_AGE')])) {  //TODO:: this token should be timeed and should expire
                     return JsonResponse::serverError("unable to generate token");
                 }
-                //schdule job to send code to the user via email
+                
                 return JsonResponse::ok("code sent to user email");
             }
         } catch (PDOException $e) {

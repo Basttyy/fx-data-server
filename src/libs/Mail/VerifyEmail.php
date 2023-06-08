@@ -27,7 +27,7 @@ class VerifyEmail
         $html = Templater::view('verify.html', 'src/libs/mail/html/', [
             'title' => "Email Verification",
             'header' => "Email Verification",
-            'sender_email' => "hello@backtestfx.com",  //$sender->email,
+            'sender_email' => env('NOREPLY_EMAIL_USER'),  //$sender->email,
             'contents' => [
                 $name ? "Hello $name," : "Hy,",
                 "You or someone requested to verify this email account with us",
