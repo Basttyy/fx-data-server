@@ -27,7 +27,7 @@ class SendVerifyEmail implements QueueInterface
      */
     public function handle()
     {
-        logger(storage_path()."logs\/console.log")->info("sending verification email to {$this->user['email']}");
+        logger(storage_path()."logs/console.log")->info("sending verification email to {$this->user['email']}");
 
         if ($this->job['tries'] > $this->max_attempts)
             return $this->fail();

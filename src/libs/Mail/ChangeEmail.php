@@ -24,27 +24,29 @@ class ChangeEmail
 
     public static function send(string $address, string $name, string $subject, string $code)
     {
-        $html = Templater::view('verify.html', 'src/libs/mail/html/', [
-            'title' => "Account Email Change",
-            'header' => "Account Email Change",
-            'sender_email' => env('NOREPLY_EMAIL_USER'),  //$sender->email,
-            'contents' => [
-                $name ? "Hello $name," : "Hy,",
-                "You or someone requested to change your email",
-                "If it wasn't you please simply disregard this email. If it was you, then <span style='font-weight: 400;'>use this code <strong>$code</strong> to approve your email change or click the “Change Email Button” below to Change Your Email.</span>"
-            ],
-            'links' => [
-                'Change Email' => "https://backtestfx.com/account/change_email?code=$code"
-            ]
-        ], true);
-
-        new self($address, $name, $subject, $html);
-
         try {
+            $html = Templater::view('verify.html', 'src/libs/mail/html/', [
+                'title' => "Account Email Change",
+                'header' => "Account Email Change",
+                'sender_email' => env('NOREPLY_EMAIL_USER'),  //$sender->email,
+                'contents' => [
+                    $name ? "Hello $name," : "Hy,",
+                    "You or someone requested to change your email",
+                    "If it wasn't you please simply disregard this email. If it was you, then <span style='font-weight: 400;'>use this code <strong>$code</strong> to approve your email change or click the “Change Email Button” below to Change Your Email.</span>"
+                ],
+                'links' => [
+                    'Change Email' => "https://backtestfx.com/account/change_email?code=$code"
+                ]
+            ], true);
+
+            new self($address, $name, $subject, $html);
+
             self::$mail->send();
             echo "email sent successfully".PHP_EOL;
+            logger(storage_path()."logs/console.log")->info("email sent successfully");
             return true;
         } catch (Exception $e) {
+            logger(storage_path()."logs/console.log")->error($e->getMessage(), $e->getTrace());
             echo 'Caught a ' . get_class($e) . ': ' . $e->getMessage().PHP_EOL;
             echo $e->getTraceAsString();
             return false;
