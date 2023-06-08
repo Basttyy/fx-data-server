@@ -34,9 +34,8 @@ $pdo = new PDO("$dbtype:dbname=$dbname;host=$dbhost", $dbuser, $dbpass);
 $job_Queue->addQueueConnection($pdo);
 $job_Queue->watchPipeline('default');
 
-$job = $job_Queue->getNextBuriedJob();
-
 while ($end_time > time()) {
+    $job = $job_Queue->getNextBuriedJob();
     if (empty($job)) {
         sleep(1);
         echo "buried job is empty".PHP_EOL;

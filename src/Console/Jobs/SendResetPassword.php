@@ -14,7 +14,7 @@ class SendResetPassword implements QueueInterface
     private $subject;
     private $max_attempts;
 
-    public function __construct(array $user, string $subject = "BacktestFx Account", $max_attempts = 3)
+    public function __construct(array $user, string $subject = "BacktestFx Account", $max_attempts = 2)
     {
         $this->user = $user;
         $this->subject = $subject;
@@ -29,7 +29,7 @@ class SendResetPassword implements QueueInterface
     public function handle()
     {
         try {
-            if ($this->job['tries'] > $this->max_attempts)
+            if ($this->job['tries'] >= $this->max_attempts)
             return $this->fail();
 
             if (!ResetPassword::send($this->user['email'], $this->user['firstname'].' '.$this->user['lastname'], $this->subject, $this->user['email2fa_token']))
