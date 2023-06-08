@@ -11,6 +11,7 @@ use Basttyy\FxDataServer\Exceptions\QueryException;
 use Basttyy\FxDataServer\libs\DbStorage;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\libs\JsonResponse;
+use Basttyy\FxDataServer\libs\Mail\VerifyEmail;
 use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\User;
 use Exception;
@@ -100,8 +101,7 @@ final class AuthController
                 return JsonResponse::unauthorized("invalid login details");
             }
             
-            $mail_job = new SendVerifyEmail(array_merge($this->user->toArray(), ['email2fa_token' => 156370]));
-            $mail_job->init()->delay(5)->run();
+            VerifyEmail::send($this->user['email'], $this->user['firstname'].' '.$this->user['lastname'], $this->subject, "274693");
 
             return JsonResponse::ok("login successfull", [
                 'auth_token' => $token,
