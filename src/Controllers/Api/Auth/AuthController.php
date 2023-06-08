@@ -165,13 +165,13 @@ final class AuthController
                 }
 
                 return JsonResponse::created('user account has been created', [
-                    'auth_token' => "social_login",
+                    'auth_token' => "social_login:". base64_encode($user['id']),
                     'data' => $user
                 ]);
             }
 
             return JsonResponse::ok("login successfull", [
-                'auth_token' => "social_login",
+                'auth_token' => "social_login:". base64_encode($user['id']),
                 'data' => $user
             ]);
     
