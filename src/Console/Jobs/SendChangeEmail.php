@@ -4,6 +4,7 @@ namespace Basttyy\FxDataServer\Console\Jobs;
 use Basttyy\FxDataServer\Console\QueueInterface;
 use Basttyy\FxDataServer\Console\ShouldQueue;
 use Basttyy\FxDataServer\libs\Mail\ChangeEmail;
+use Exception;
 
 class SendChangeEmail implements QueueInterface
 {
@@ -27,14 +28,20 @@ class SendChangeEmail implements QueueInterface
      */
     public function handle()
     {
-        logger(storage_path()."logs/console.log")->info("sending change code email to {$this->user['email']}");
+        try {
+            logger(storage_path()."logs/console.log")->info("sending change code email to {$this->user['email']}");
 
-        if ($this->job['tries'] > $this->max_attempts)
-            return $this->fail();
+            if ($this->job['tries'] > $this->max_attempts)
+                return $this->fail();
 
-        if (!ChangeEmail::send($this->user['email'], $this->user['firstname'].' '.$this->user['lastname'], $this->subject, $this->user['email2fa_token']))
-            return $this->bury(10);
+            if (!ChangeEmail::send($this->user['email'], $this->user['firstname'].' '.$this->user['lastname'], $this->subject, $this->user['email2fa_token']))
+                return $this->bury(10);
 
-        $this->delete();
+            $this->delete();
+        } catch (Exception $e) {
+            logger(storage_path()."logs/console.log")->error($e->getMessage(), $e->getTrace());
+            echo 'Caught a ' . get_class($e) . ': ' . $e->getMessage().PHP_EOL;
+            echo $e->getTraceAsString();
+        }
     }
 }

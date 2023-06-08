@@ -142,6 +142,12 @@ abstract class Model
         return $this;
     }
 
+    /**
+     * Fill a model with array of values
+     * @param int $id
+     * 
+     * @return self
+     */
     public function fill($values)
     {
         // if ($self == null) {
