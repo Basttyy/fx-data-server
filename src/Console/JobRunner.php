@@ -6,9 +6,6 @@ use Basttyy\FxDataServer\Console\QueueInterface;
 use Basttyy\FxDataServer\Console\Job_Queue;
 use Dotenv\Dotenv;
 
-$start_time = time();
-$end_time = $start_time + $chron_interval;
-
 $dotenv = Dotenv::createImmutable(__DIR__."/../../");
 $dotenv->safeLoad();
 
@@ -22,6 +19,9 @@ $dbpass = env('DB_PASS');
 $dbport = env('DB_PORT');
 $dbcharset = env('DB_CHARSET');
 $chron_interval = env('CHRON_INTERVAL');
+
+$start_time = time();
+$end_time = $start_time + $chron_interval;
 
 $job_Queue = new Job_Queue(Job_Queue::QUEUE_TYPE_MYSQL, [
     $dbtype => [
