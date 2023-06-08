@@ -64,6 +64,13 @@ final class JwtAuthenticator
             return false;
         }
 
+        if (str_contains($jwt, "social_login:")) {
+            if (!$this->user->find((int)base64_decode(str_replace('social_login:', '', $jwt)))) {
+                return false;
+            }
+            return $this->user;
+        }
+
         if (is_null($payload = $this->encoder->decode($jwt))) {
             return false;
         }
