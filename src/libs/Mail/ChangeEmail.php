@@ -5,7 +5,7 @@ use Basttyy\FxDataServer\libs\Templater;
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\SMTP;
 
-class ResetPassword
+class ChangeEmail
 {
     private static $mail;
 
@@ -26,29 +26,29 @@ class ResetPassword
     {
         try {
             $html = Templater::view('verify.html', 'src/libs/mail/html/', [
-                'title' => "Password Reset",
-                'header' => "Reset Your Password",
+                'title' => "Account Email Change",
+                'header' => "Account Email Change",
                 'sender_email' => env('NOREPLY_EMAIL_USER'),  //$sender->email,
                 'contents' => [
                     $name ? "Hello $name," : "Hy,",
-                    "You or someone requested to change the password of this account",
-                    "If it wasn't you please simply disregard this email and ensure not to give this code to anyone. If it was you, then <span style='font-weight: 400;'>use this code <strong>$code</strong> to change your password or click the “Change Password Button” below to Change Your Password.</span>"
+                    "You or someone requested to change your email",
+                    "If it wasn't you please simply disregard this email. If it was you, then <span style='font-weight: 400;'>use this code <strong>$code</strong> to approve your email change or click the “Change Email Button” below to Change Your Email.</span>"
                 ],
                 'links' => [
-                    'Change Password' => "https://backtestfx.com/account/change_pass?code=$code"
+                    'Change Email' => "https://backtestfx.com/account/change_email?code=$code"
                 ]
             ], true);
 
             new self($address, $name, $subject, $html);
 
             self::$mail->send();
-            if (env('APP_ENV') === "local") echo "email sent successfully".PHP_EOL;
+            echo "email sent successfully".PHP_EOL;
             logger(storage_path()."logs/console.log")->info("email sent successfully");
             return true;
         } catch (Exception $e) {
             logger(storage_path()."logs/console.log")->error($e->getMessage(), $e->getTrace());
-            if (env('APP_ENV') === "local") echo 'Caught a ' . get_class($e) . ': ' . $e->getMessage().PHP_EOL;
-            if (env('APP_ENV') === "local") echo $e->getTraceAsString();
+            echo 'Caught a ' . get_class($e) . ': ' . $e->getMessage().PHP_EOL;
+            echo $e->getTraceAsString();
             return false;
         }
     }

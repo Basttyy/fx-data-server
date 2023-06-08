@@ -3,7 +3,7 @@ namespace Basttyy\FxDataServer\Controllers\Api;
 
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
-use Basttyy\FxDataServer\Console\Jobs\SendEmail;
+use Basttyy\FxDataServer\Console\Jobs\SendVerifyEmail;
 use Basttyy\FxDataServer\Exceptions\NotFoundException;
 use Basttyy\FxDataServer\libs\JsonResponse;
 use Basttyy\FxDataServer\libs\Validator;
@@ -62,10 +62,9 @@ final class UserController
             }
             $is_admin = $this->authenticator->verifyRole($user, 'admin');
 
-            if (!$is_admin && $user->id !== $id) {
+            if ($is_admin === false && $user->id != $id) {
                 return JsonResponse::unauthorized("you can't view this user");
             }
-            throw new Exception("custom exception");
 
             if (!$user = $this->user->find((int)$id))
                 return JsonResponse::notFound("unable to retrieve user");
@@ -140,7 +139,7 @@ final class UserController
                 return JsonResponse::serverError("unable to create user");
             }
 
-            $mail_job = new SendEmail(array_merge($user, ['email2fa_token' => $body['email2fa_token']]));
+            $mail_job = new SendVerifyEmail(array_merge($user, ['email2fa_token' => $body['email2fa_token']]));
             $mail_job->init()->delay(5)->run();
 
             return JsonResponse::ok("user creation successful", $user);
