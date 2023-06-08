@@ -34,7 +34,7 @@ class BaseMailer extends PHPMailer
         //Set an HTML and plain-text body, import relative image references
         $this->msgHTML($body, './images/');
         //Show debug output
-        $this->SMTPDebug = SMTP::DEBUG_SERVER;
+        $this->SMTPDebug = env('APP_ENV') === 'local' ? SMTP::DEBUG_SERVER : SMTP::DEBUG_OFF;
 
         //Inject a new debug output handler
         $this->Debugoutput = static function ($str, $level) {
