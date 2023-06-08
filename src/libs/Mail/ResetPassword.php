@@ -24,27 +24,29 @@ class ResetPassword
 
     public static function send(string $address, string $name, string $subject, string $code)
     {
-        $html = Templater::view('verify.html', 'src/libs/mail/html/', [
-            'title' => "Password Reset",
-            'header' => "Reset Your Password",
-            'sender_email' => env('NOREPLY_EMAIL_USER'),  //$sender->email,
-            'contents' => [
-                $name ? "Hello $name," : "Hy,",
-                "You or someone requested to change the password of this account",
-                "If it wasn't you please simply disregard this email and ensure not to give this code to anyone. If it was you, then <span style='font-weight: 400;'>use this code <strong>$code</strong> to change your password or click the “Change Password Button” below to Change Your Password.</span>"
-            ],
-            'links' => [
-                'Change Password' => "https://backtestfx.com/account/change_pass?code=$code"
-            ]
-        ], true);
-
-        new self($address, $name, $subject, $html);
-
         try {
+            $html = Templater::view('verify.html', 'src/libs/mail/html/', [
+                'title' => "Password Reset",
+                'header' => "Reset Your Password",
+                'sender_email' => env('NOREPLY_EMAIL_USER'),  //$sender->email,
+                'contents' => [
+                    $name ? "Hello $name," : "Hy,",
+                    "You or someone requested to change the password of this account",
+                    "If it wasn't you please simply disregard this email and ensure not to give this code to anyone. If it was you, then <span style='font-weight: 400;'>use this code <strong>$code</strong> to change your password or click the “Change Password Button” below to Change Your Password.</span>"
+                ],
+                'links' => [
+                    'Change Password' => "https://backtestfx.com/account/change_pass?code=$code"
+                ]
+            ], true);
+
+            new self($address, $name, $subject, $html);
+
             self::$mail->send();
             if (env('APP_ENV') === "local") echo "email sent successfully".PHP_EOL;
+            logger(storage_path()."logs/console.log")->info("email sent successfully");
             return true;
         } catch (Exception $e) {
+            logger(storage_path()."logs/console.log")->error($e->getMessage(), $e->getTrace());
             if (env('APP_ENV') === "local") echo 'Caught a ' . get_class($e) . ': ' . $e->getMessage().PHP_EOL;
             if (env('APP_ENV') === "local") echo $e->getTraceAsString();
             return false;
