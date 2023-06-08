@@ -360,6 +360,8 @@ class Job_Queue {
 	 * Buries (hides) a job
 	 *
 	 * @param mixed $job
+	 * @param int $time_to_retry
+	 * 
 	 * @return void
 	 */
 	public function buryJob($job, int $time_to_retry): void {
