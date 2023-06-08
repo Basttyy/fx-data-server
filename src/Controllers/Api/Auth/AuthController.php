@@ -165,14 +165,14 @@ final class AuthController
                 }
 
                 return JsonResponse::created('user account has been created', [
-                    'auth_token' => "social_login:". base64_encode($user['id']),
-                    'data' => $user
+                    'auth_token' => "social_login:". base64_encode($user[0]['id']),
+                    'data' => $user[0]
                 ]);
             }
 
             return JsonResponse::ok("login successfull", [
-                'auth_token' => "social_login:". base64_encode($user['id']),
-                'data' => $user
+                'auth_token' => "social_login:". base64_encode($user[0]['id']),
+                'data' => $user[0]
             ]);
     
             // Disconnect the adapter (log out)
