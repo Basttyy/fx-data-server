@@ -5,7 +5,7 @@ use Basttyy\FxDataServer\Console\QueueInterface;
 use Basttyy\FxDataServer\Console\ShouldQueue;
 use Basttyy\FxDataServer\libs\Mail\VerifyEmail;
 
-class SendEmail implements QueueInterface
+class SendVerifyEmail implements QueueInterface
 {
     use ShouldQueue;
 
