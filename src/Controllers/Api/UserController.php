@@ -62,10 +62,9 @@ final class UserController
             }
             $is_admin = $this->authenticator->verifyRole($user, 'admin');
 
-            if (!$is_admin && $user->id !== $id) {
+            if ($is_admin === false && $user->id != $id) {
                 return JsonResponse::unauthorized("you can't view this user");
             }
-            throw new Exception("custom exception");
 
             if (!$user = $this->user->find((int)$id))
                 return JsonResponse::notFound("unable to retrieve user");
