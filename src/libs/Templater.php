@@ -6,7 +6,7 @@ use Exception;
 class Templater {
 
 	static $blocks = array();
-	static $cache_path = 'storage/cache/';
+	static $cache_path = storage_path(). 'cache/';
 	static $cache_enabled = FALSE;
     static $path;
 
