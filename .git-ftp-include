@@ -1,4 +1,4 @@
-!vendor/symfony/
+vendor/symfony/
 vendor/autoload.php
 public/
 storage/
