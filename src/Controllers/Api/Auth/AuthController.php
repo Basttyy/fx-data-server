@@ -116,6 +116,9 @@ final class AuthController
 
     private function loginOauth()
     {
+        if (strtolower($_SERVER['REQUEST_METHOD']) === "options") {
+            return JsonResponse::ok();
+        }
         try {
             if (isset($_GET['provider'])) {
                 $_SESSION['provider'] = $_GET['provider'];
@@ -137,7 +140,7 @@ final class AuthController
             $adapter = $hybridauth->authenticate($provider);
     
             // Returns a boolean of whether the user is connected with Twitter
-            if (!$isConnected = $adapter->isConnected()) {
+            if (!$adapter->isConnected()) {
                 if (env('APP_ENV') === 'local') consoleLog(0, "user is not connected to provider");
                 return JsonResponse::unauthorized("unsuccessful social login attempt");
             }
@@ -165,14 +168,14 @@ final class AuthController
                 }
 
                 return JsonResponse::created('user account has been created', [
-                    'auth_token' => "social_login:". base64_encode($user[0]['id']),
-                    'data' => $user[0]
+                    'auth_token' => "social_login:". base64_encode($user['id']),
+                    'data' => $user
                 ]);
             }
 
             return JsonResponse::ok("login successfull", [
                 'auth_token' => "social_login:". base64_encode($user[0]['id']),
-                'data' => $user[0]
+                'user' => $user[0]
             ]);
     
             // Disconnect the adapter (log out)
