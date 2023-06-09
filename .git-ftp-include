@@ -1,3 +1,4 @@
-!vendor/phpmailer/
+!vendor/composer/
+!vendor/autoload.php
 public/
 storage/
