@@ -1,4 +1,4 @@
-!vendor/composer/
-!vendor/autoload.php
+!vendor/symfony/
+vendor/autoload.php
 public/
 storage/
