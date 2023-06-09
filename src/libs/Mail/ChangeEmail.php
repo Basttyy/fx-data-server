@@ -25,7 +25,7 @@ class ChangeEmail
     public static function send(string $address, string $name, string $subject, string $code)
     {
         try {
-            $html = Templater::view('verify.html', 'src/libs/mail/html/', [
+            $html = Templater::view('verify.html', '/Mail/html/', [
                 'title' => "Account Email Change",
                 'header' => "Account Email Change",
                 'sender_email' => env('NOREPLY_EMAIL_USER'),  //$sender->email,
