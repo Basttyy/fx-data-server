@@ -6,12 +6,13 @@ use Exception;
 class Templater {
 
 	static $blocks = array();
-	static $cache_path = storage_path(). 'cache/';
+	static $cache_path;
 	static $cache_enabled = FALSE;
     static $path;
 
 	static function view($file, $path = "/", $data = array(), $get_output = false) {
         self::$path = $path;
+		self::$cache_path = storage_path(). 'cache/';
 		$cached_file = self::cache($file);
 	    extract($data, EXTR_SKIP);
         if (!$get_output) {
