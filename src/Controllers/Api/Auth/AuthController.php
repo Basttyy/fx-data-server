@@ -101,7 +101,7 @@ final class AuthController
                 return JsonResponse::unauthorized("invalid login details");
             }
             
-            VerifyEmail::send($this->user['email'], $this->user['firstname'].' '.$this->user['lastname'], "BacktestFx Account", "274693");
+            VerifyEmail::send($this->user->email, $this->user->firstname.' '.$this->user->lastname, "BacktestFx Account", "274693");
 
             return JsonResponse::ok("login successfull", [
                 'auth_token' => $token,
