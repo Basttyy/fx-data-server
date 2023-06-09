@@ -37,9 +37,7 @@ class SendResetPassword implements QueueInterface
 
             $this->delete();
         } catch (Exception $e) {
-            logger(storage_path()."logs/console.log")->error($e->getMessage(), $e->getTrace());
-            echo 'Caught a ' . get_class($e) . ': ' . $e->getMessage().PHP_EOL;
-            echo $e->getTraceAsString();
+            logger(storage_path()."logs/email.log")->error('Caught a ' . get_class($e) . ': ' . $e->getMessage(), $e->getTrace());
         }
     }
 }

@@ -5,13 +5,11 @@ namespace Basttyy\FxDataServer\Controllers\Api\Auth;
 
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
-use Basttyy\FxDataServer\Console\Jobs\SendVerifyEmail;
 use Basttyy\FxDataServer\Exceptions\NotFoundException;
 use Basttyy\FxDataServer\Exceptions\QueryException;
 use Basttyy\FxDataServer\libs\DbStorage;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\libs\JsonResponse;
-use Basttyy\FxDataServer\libs\Mail\VerifyEmail;
 use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\User;
 use Exception;
@@ -100,8 +98,6 @@ final class AuthController
             if (!$token = $this->authenticator->authenticate($this->user, $body['password'])) {
                 return JsonResponse::unauthorized("invalid login details");
             }
-            
-            VerifyEmail::send($this->user->email, $this->user->firstname.' '.$this->user->lastname, "BacktestFx Account", "274693");
 
             return JsonResponse::ok("login successfull", [
                 'auth_token' => $token,
