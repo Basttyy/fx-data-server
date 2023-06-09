@@ -11,7 +11,7 @@ class Templater {
     static $path;
 
 	static function view($file, $path = "/", $data = array(), $get_output = false) {
-        self::$path = $path;
+        self::$path = __DIR__. $path;
 		self::$cache_path = storage_path(). 'cache/';
 		$cached_file = self::cache($file);
 	    extract($data, EXTR_SKIP);
