@@ -137,7 +137,7 @@ final class AuthController
             $adapter = $hybridauth->authenticate($provider);
     
             // Returns a boolean of whether the user is connected with Twitter
-            if (!$isConnected = $adapter->isConnected()) {
+            if (!$adapter->isConnected()) {
                 if (env('APP_ENV') === 'local') consoleLog(0, "user is not connected to provider");
                 return JsonResponse::unauthorized("unsuccessful social login attempt");
             }
