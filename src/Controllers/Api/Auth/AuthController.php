@@ -116,6 +116,9 @@ final class AuthController
 
     private function loginOauth()
     {
+        if (strtolower($_SERVER['REQUEST_METHOD']) === "options") {
+            return JsonResponse::ok();
+        }
         try {
             if (isset($_GET['provider'])) {
                 $_SESSION['provider'] = $_GET['provider'];
@@ -165,14 +168,14 @@ final class AuthController
                 }
 
                 return JsonResponse::created('user account has been created', [
-                    'auth_token' => "social_login:". base64_encode($user[0]['id']),
-                    'data' => $user[0]
+                    'auth_token' => "social_login:". base64_encode($user['id']),
+                    'data' => $user
                 ]);
             }
 
             return JsonResponse::ok("login successfull", [
                 'auth_token' => "social_login:". base64_encode($user[0]['id']),
-                'data' => $user[0]
+                'user' => $user[0]
             ]);
     
             // Disconnect the adapter (log out)
