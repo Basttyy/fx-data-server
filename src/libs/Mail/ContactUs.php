@@ -39,13 +39,13 @@ class ContactUs
             new self($html, $data);
 
             self::$mail->send();
-            echo "email sent successfully".PHP_EOL;
-            logger(storage_path()."logs/console.log")->info("email sent successfully");
+            // echo "email sent successfully".PHP_EOL;
+            logger(storage_path()."logs/email.log")->info("email sent successfully");
             return true;
         } catch (Exception $e) {
-            logger(storage_path()."logs/console.log")->error($e->getMessage(), $e->getTrace());
-            echo 'Caught a ' . get_class($e) . ': ' . $e->getMessage().PHP_EOL;
-            echo $e->getTraceAsString();
+            logger(storage_path()."logs/email.log")->error($e->getMessage(), $e->getTrace());
+            // echo 'Caught a ' . get_class($e) . ': ' . $e->getMessage().PHP_EOL;
+            // echo $e->getTraceAsString();
             return false;
         }
     }
