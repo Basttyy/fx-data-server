@@ -24,7 +24,7 @@ class Templater {
             require $cached_file;
             $data = ob_get_clean();
 
-           // self::clearCache($cached_file);
+           self::clearCache($cached_file);
             return $data;
         }
 	}
