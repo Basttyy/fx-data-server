@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+use Basttyy\FxDataServer\Models\Plan;
 use Phinx\Migration\AbstractMigration;
 
 final class Plans extends AbstractMigration
@@ -23,6 +24,7 @@ final class Plans extends AbstractMigration
         $table->addColumn('name', 'string', ['limit' => 30])
             ->addColumn('description', 'string')
             ->addColumn('price', 'string')
+            ->addColumn('status', 'string', ['default' => Plan::ENABLED])
             ->addColumn('features', 'string')
             ->addColumn('deleted_at', 'timestamp', ['null' => true])
             ->addTimestamps()
