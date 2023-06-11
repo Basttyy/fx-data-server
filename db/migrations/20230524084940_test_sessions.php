@@ -5,6 +5,7 @@ use Phinx\Migration\AbstractMigration;
 
 final class TestSessions extends AbstractMigration
 {
+    const TABLE_NAME = 'test_sessions';
     /**
      * Change Method.
      *
@@ -18,6 +19,16 @@ final class TestSessions extends AbstractMigration
      */
     public function change(): void
     {
-
+        $table = $this->table($this::TABLE_NAME);
+        $table->addColumn('starting_bal', 'biginteger')
+            ->addColumn('strategy_id', 'integer', ['null' => true])
+            ->addColumn('pairs', 'string')
+            ->addColumn('start_date', 'timestamp')
+            ->addColumn('end_date', 'timestamp')
+            ->addColumn('current_date', 'timestamp')
+            ->addColumn('deleted_at', 'timestamp', ['null' => true])
+            ->addForeignKey('strategy_id', 'strategies', options: ['delete' => 'NO_ACTION', 'update' => 'NO_ACTION'])
+            ->addTimestamps()
+            ->create();
     }
 }
