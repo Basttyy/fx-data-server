@@ -22,8 +22,9 @@ final class Strategies extends AbstractMigration
         $table = $this->table($this::TABLE_NAME);
         $table->addColumn('name', 'string', ['limit' => 228])
             ->addColumn('description', 'string')
+            ->addColumn('logo', 'string', ['default' => ''])
             ->addColumn('user_id', 'integer', ['signed' => false])
-            ->addColumn('assets', 'string', [null => true])
+            ->addColumn('pairs', 'string', [null => true])
             ->addForeignKey('user_id', 'users', 'id', ['delete' => 'NO_ACTION', 'update', 'NO_ACTION'])
             ->addColumn('deleted_at', 'timestamp', ['null' => true])
             ->addTimestamps()

@@ -22,7 +22,10 @@ final class TestSessions extends AbstractMigration
         $table = $this->table($this::TABLE_NAME);
         $table->addColumn('starting_bal', 'biginteger')
             ->addColumn('strategy_id', 'integer', ['null' => true])
+            ->addColumn('chart_id', 'integer', ['null' => true])
             ->addColumn('pairs', 'string')
+            ->addColumn('chart', 'mediumblob', ['null' => true])  //chart data should be a compressed serialized array of three objects ['overlays', 'style', 'positions']
+            ->addColumn('chart_timestamp', 'string', ['null' => true])
             ->addColumn('start_date', 'timestamp')
             ->addColumn('end_date', 'timestamp')
             ->addColumn('current_date', 'timestamp')
