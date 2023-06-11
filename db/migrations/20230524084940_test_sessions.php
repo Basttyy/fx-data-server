@@ -20,7 +20,8 @@ final class TestSessions extends AbstractMigration
     public function change(): void
     {
         $table = $this->table($this::TABLE_NAME);
-        $table->addColumn('starting_bal', 'biginteger')
+        $table->addColumn('starting_bal', 'decimal')
+            ->addColumn('current_bal', 'decimal')
             ->addColumn('strategy_id', 'integer', ['null' => true])
             ->addColumn('chart_id', 'integer', ['null' => true])
             ->addColumn('pairs', 'string')
