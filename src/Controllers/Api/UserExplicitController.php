@@ -263,9 +263,9 @@ final class UserExplicitController
                 return JsonResponse::badRequest("bad request", "body is required");
             }
 
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized("please login before attempting to verify email");
-            }
+            // if (!$this->authenticator->validate()) {
+            //     return JsonResponse::unauthorized("please login before attempting to verify email");
+            // }
             
             $inputJSON = file_get_contents('php://input');
 
