@@ -23,7 +23,7 @@ final class Plans extends AbstractMigration
         $table = $this->table($this::TABLE_NAME);
         $table->addColumn('name', 'string', ['limit' => 30])
             ->addColumn('description', 'string')
-            ->addColumn('price', 'string')
+            ->addColumn('price', 'decimal')
             ->addColumn('status', 'string', ['default' => Plan::ENABLED])
             ->addColumn('features', 'string')
             ->addColumn('deleted_at', 'timestamp', ['null' => true])
