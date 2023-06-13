@@ -10,6 +10,7 @@ use Basttyy\FxDataServer\Controllers\Api\Auth\AuthController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\CaptchaController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\TwoFaController;
 use Basttyy\FxDataServer\Controllers\Api\MigrateController;
+use Basttyy\FxDataServer\Controllers\Api\PlanController;
 use Basttyy\FxDataServer\Controllers\Api\UserController;
 use Basttyy\FxDataServer\Controllers\Api\UserExplicitController;
 use Basttyy\FxDataServer\Controllers\NotFoundController;
@@ -51,6 +52,14 @@ put('/api/users/$id', new UserController('update'));
 delete('/api/users/$id', new UserController('delete'));
 /// User Special Routes
 post('/api/users/method/$method', new UserExplicitController());
+
+/// Plan Routes
+get('/api/plans/$id', new PlanController());
+get('/api/plans', new PlanController('list'));
+get('/api/plans/query/$query', new PlanController('list'));
+post('/api/plans', new PlanController('create'));
+put('/api/plans/$id', new PlanController('update'));
+delete('/api/plans/$id', new PlanController('delete'));
 
 /// Admin Routes
 get('/api/migrate', new MigrateController);
