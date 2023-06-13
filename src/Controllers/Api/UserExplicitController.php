@@ -263,22 +263,28 @@ final class UserExplicitController
                 return JsonResponse::badRequest("bad request", "body is required");
             }
 
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized("please login before attempting to verify email");
-            }
+            // if (!$this->authenticator->validate()) {
+            //     return JsonResponse::unauthorized("please login before attempting to verify email");
+            // }
             
             $inputJSON = file_get_contents('php://input');
 
             $body = sanitize_data(json_decode($inputJSON, true));
 
             if ($validated = Validator::validate($body, [
+                'email' => 'required|string',
                 'email2fa_token' => 'required|numeric'
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
-            if (!$this->user->find(is_protected: false)) {
-                return JsonResponse::badRequest("invalid user session data");
+            if (!$this->user->findByEmail($body['email'], false)) {
+                return JsonResponse::badRequest("invalid user data");
+            }
+
+            if (is_null($this->user->email2fa_expire) || is_null($this->user->email2fa_expire)) {
+                $this->user->update(['email2fa_token' => null, 'email2fa_expire' => null]);
+                return JsonResponse::badRequest("invalid or expired token");
             }
 
             if ($this->user->email2fa_expire <= time()) {
