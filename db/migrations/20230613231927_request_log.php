@@ -3,9 +3,9 @@ declare(strict_types=1);
 
 use Phinx\Migration\AbstractMigration;
 
-final class Strategies extends AbstractMigration
+final class RequestLog extends AbstractMigration
 {
-    const TABLE_NAME = 'strategies';
+    const TABLE_NAME = 'request_logs';
     /**
      * Change Method.
      *
@@ -20,13 +20,10 @@ final class Strategies extends AbstractMigration
     public function change(): void
     {
         $table = $this->table($this::TABLE_NAME);
-        $table->addColumn('name', 'string', ['limit' => 228])
-            ->addColumn('description', 'string')
-            ->addColumn('logo', 'string', ['null' => true])
-            ->addColumn('user_id', 'integer', ['signed' => false])
-            ->addColumn('pairs', 'string', ["null" => true])
-            ->addForeignKey('user_id', 'users', 'id', ['delete' => 'CASCADE', 'update' => 'NO_ACTION'])
-            ->addColumn('deleted_at', 'timestamp', ['null' => true])
+        $table->addColumn('ip', 'string')
+            ->addColumn('method', 'string')
+            ->addColumn('uripath', 'string')
+            ->addColumn('body', 'string', ['null' => true])
             ->addTimestamps()
             ->create();
     }

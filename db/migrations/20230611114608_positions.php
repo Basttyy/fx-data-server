@@ -21,7 +21,7 @@ final class Positions extends AbstractMigration
     public function change(): void
     {
         $table = $this->table($this::TABLE_NAME);
-        $table->addColumn('action', 'enum', ['values' => Position::BUY.Position::SELL])
+        $table->addColumn('action', 'enum', ['values' => Position::BUY. "," .Position::SELL])
             ->addColumn('entry', 'decimal')
             ->addColumn('exit', 'decimal')
             ->addColumn('stoploss', 'decimal')
@@ -30,7 +30,7 @@ final class Positions extends AbstractMigration
             ->addColumn('opentime', 'timestamp')
             ->addColumn('closetime', 'timestamp')
             ->addColumn('partials', 'blob')
-            ->addColumn('closetype', 'enum', ['values' => Position::MANUAL_CLOSE.Position::BE.Position::SL.Position::TP])
+            ->addColumn('closetype', 'enum', ['values' => Position::MANUAL_CLOSE. "," .Position::BE. "," .Position::SL. "," .Position::TP])
             ->addColumn('deleted_at', 'timestamp', ['default' => null])
             ->addTimestamps()
             ->create();
