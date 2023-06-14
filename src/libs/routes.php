@@ -10,7 +10,10 @@ use Basttyy\FxDataServer\Controllers\Api\Auth\AuthController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\CaptchaController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\TwoFaController;
 use Basttyy\FxDataServer\Controllers\Api\MigrateController;
+use Basttyy\FxDataServer\Controllers\Api\PairController;
 use Basttyy\FxDataServer\Controllers\Api\PlanController;
+use Basttyy\FxDataServer\Controllers\Api\StrategyController;
+use Basttyy\FxDataServer\Controllers\Api\TestSessionController;
 use Basttyy\FxDataServer\Controllers\Api\UserController;
 use Basttyy\FxDataServer\Controllers\Api\UserExplicitController;
 use Basttyy\FxDataServer\Controllers\NotFoundController;
@@ -60,6 +63,30 @@ get('/api/plans/query/$query', new PlanController('list'));
 post('/api/plans', new PlanController('create'));
 put('/api/plans/$id', new PlanController('update'));
 delete('/api/plans/$id', new PlanController('delete'));
+
+/// Strategy Routes
+get('/api/strategies/$id', new StrategyController());
+get('/api/strategies', new StrategyController('list'));
+get('/api/strategies/query/$query', new StrategyController('list'));
+post('/api/strategies', new StrategyController('create'));
+put('/api/strategies/$id', new StrategyController('update'));
+delete('/api/strategies/$id', new StrategyController('delete'));
+
+/// TestSessions Routes
+get('/api/test-sessions/$id', new TestSessionController());
+get('/api/test-sessions', new TestSessionController('list'));
+get('/api/test-sessions/query/$query', new TestSessionController('list'));
+post('/api/test-sessions', new TestSessionController('create'));
+put('/api/test-sessions/$id', new TestSessionController('update'));
+delete('/api/test-sessions/$id', new TestSessionController('delete'));
+
+/// Pairs Routes
+get('/api/pairs/$id', new PairController());
+get('/api/pairs', new PairController('list'));
+get('/api/pairs/query', new PairController('list'));
+post('/api/pairs', new PairController('create'));
+put('/api/pairs/$id', new PairController('update'));
+delete('/api/pairs/$id', new PairController('delete'));
 
 /// Admin Routes
 get('/api/migrate', new MigrateController);

@@ -1,24 +1,24 @@
 <?php
 namespace Basttyy\FxDataServer\Models;
 
-final class TestSession extends Model
+final class Pair extends Model
 {
+    const ENABLED = "enabled";
+    const DISABLED = "disabled";
+
     protected $softdeletes = true;
-    protected $table = 'test_sessions';
+    protected $table = 'pairs';
     protected $primaryKey = 'id';
 
     //oject properties
     public $id;
-    public $starting_bal;
-    public $current_bal;
-    public $strategy_id;
-    public $user_id;
-    public $pair;
-    public $chart;
-    public $chart_timestamp;
-    public $start_date;
-    public $end_date;
-    public $current_date;
+    public $name;
+    public $description;
+    public $decimal_places;
+    public $status;
+    public $dollar_per_pip;
+    public $history_start;
+    public $history_end;
     public $deleted_at;
     public $created_at;
     public $updated_at;
@@ -29,7 +29,7 @@ final class TestSession extends Model
      * @var array
      */
     protected $fillable = [
-        'id', 'starting_bal', 'current_bal', 'strategy_id', 'user_id', 'pair', 'chart', 'chart_timestamp', 'start_date', 'end_date', 'current_date', 'deleted_at', 'created_at', 'updated_at'
+        'id', 'name', 'description', 'decimal_places', 'status', 'dollar_per_pip', 'history_start', 'history_end', 'deleted_at', 'created_at', 'updated_at'
     ];
     
     /**
@@ -42,7 +42,7 @@ final class TestSession extends Model
     ];
 
     /**
-     * Create a new TestSession instance.
+     * Create a new plan instance.
      *
      * @return void
      */
