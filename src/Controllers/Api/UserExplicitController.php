@@ -4,6 +4,7 @@ namespace Basttyy\FxDataServer\Controllers\Api;
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\Console\Jobs\SendResetPassword;
+use Basttyy\FxDataServer\Console\Jobs\SendVerifyEmail;
 use Basttyy\FxDataServer\libs\Arr;
 use Basttyy\FxDataServer\libs\JsonResponse;
 use Basttyy\FxDataServer\libs\Validator;
@@ -40,6 +41,9 @@ final class UserExplicitController
                 break;
             case "change_role":
                 $resp = $this->changeRole();
+                break;
+            case "request_email_verify":
+                $resp = $this->requestEmailVerify();
                 break;
             case "verify_email":
                 $resp = $this->verifyEmail();
@@ -253,6 +257,37 @@ final class UserExplicitController
             return JsonResponse::serverError("we got some error here".$message);
         }
     }
+
+    
+
+    /// User should not have to request a code to change email.
+    private function requestEmailVerify()
+    {
+        try {
+            if (!$this->authenticator->validate()) {
+                return JsonResponse::unauthorized();
+            }
+
+            $code = implode([rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9)]);
+            if (!$this->user->update(['email2fa_token' => (string)$code, 'email2fa_expire' => time() + env('EMAIL2FA_MAX_AGE')])) {  //TODO:: this token should be timeed and should expire
+                return JsonResponse::serverError("unable to generate token");
+            }
+
+            $mail_job = new SendVerifyEmail(array_merge($this->user->toArray(), ['email2fa_token' => $code]));
+            $mail_job->init()->delay(5)->run();
+            
+            return JsonResponse::ok("code sent to user email");
+        } catch (PDOException $e) {
+            if (env("APP_ENV") === "local")
+                $message = $e->getMessage();
+            else $message = "we encountered a problem";
+            
+            return JsonResponse::serverError($message);
+        } catch (Exception $e) {
+            $message = env("APP_ENV") === "local" ? $e->getMessage() : "we encountered a problem";
+            return JsonResponse::serverError("we got some error here".$message);
+        }
+    }
     
     private function verifyEmail()
     {
@@ -309,7 +344,6 @@ final class UserExplicitController
             return JsonResponse::serverError("we got some error here".$message);
         }
     }
-
 
     /// User should not have to request a code to change email.
     private function requestEmailChange()
