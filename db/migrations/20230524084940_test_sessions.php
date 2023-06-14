@@ -23,15 +23,16 @@ final class TestSessions extends AbstractMigration
         $table->addColumn('starting_bal', 'decimal')
             ->addColumn('current_bal', 'decimal')
             ->addColumn('strategy_id', 'integer', ['null' => true, 'signed' => false])
-            ->addColumn('chart_id', 'integer', ['null' => true, 'signed' => false])
-            ->addColumn('pairs', 'string')
+            ->addColumn('user_id', 'integer', ['null' => true, 'signed' => false])
+            ->addColumn('pair', 'string')
             ->addColumn('chart', 'mediumblob', ['null' => true])  //chart data should be a compressed serialized array of three objects ['overlays', 'style', 'positions']
-            ->addColumn('chart_timestamp', 'string', ['null' => true])
+            ->addColumn('chart_timestamp', 'integer', ['null' => true])
             ->addColumn('start_date', 'timestamp')
             ->addColumn('end_date', 'timestamp')
             ->addColumn('current_date', 'timestamp')
             ->addColumn('deleted_at', 'timestamp', ['null' => true])
             ->addForeignKey('strategy_id', 'strategies', 'id', ['delete' => 'NO_ACTION', 'update' => 'NO_ACTION'])
+            ->addForeignKey('user_id', 'users', 'id', ['delete' => 'NO_ACTION', 'update' => 'NO_ACTION'])
             ->addTimestamps()
             ->create();
     }

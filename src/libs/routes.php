@@ -10,6 +10,7 @@ use Basttyy\FxDataServer\Controllers\Api\Auth\AuthController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\CaptchaController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\TwoFaController;
 use Basttyy\FxDataServer\Controllers\Api\MigrateController;
+use Basttyy\FxDataServer\Controllers\Api\PairController;
 use Basttyy\FxDataServer\Controllers\Api\PlanController;
 use Basttyy\FxDataServer\Controllers\Api\StrategyController;
 use Basttyy\FxDataServer\Controllers\Api\TestSessionController;
@@ -78,6 +79,14 @@ get('/api/test-sessions/query/$query', new TestSessionController('list'));
 post('/api/test-sessions', new TestSessionController('create'));
 put('/api/test-sessions/$id', new TestSessionController('update'));
 delete('/api/test-sessions/$id', new TestSessionController('delete'));
+
+/// Pairs Routes
+get('/api/pairs/$id', new PairController());
+get('/api/pairs', new PairController('list'));
+get('/api/pairs/query', new PairController('list'));
+post('/api/pairs', new PairController('create'));
+put('/api/pairs/$id', new PairController('update'));
+delete('/api/pairs/$id', new PairController('delete'));
 
 /// Admin Routes
 get('/api/migrate', new MigrateController);
