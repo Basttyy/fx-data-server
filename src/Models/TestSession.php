@@ -29,7 +29,7 @@ final class TestSession extends Model
      * @var array
      */
     protected $fillable = [
-        'id', 'starting_bal', 'current_bal', 'strategy_id', 'user_id', 'pairs', 'chart', 'chart_timestamp', 'start_data', 'end_date', 'current_date', 'deleted_at', 'created_at', 'updated_at'
+        'id', 'starting_bal', 'current_bal', 'strategy_id', 'user_id', 'pair', 'chart', 'chart_timestamp', 'start_date', 'end_date', 'current_date', 'deleted_at', 'created_at', 'updated_at'
     ];
     
     /**

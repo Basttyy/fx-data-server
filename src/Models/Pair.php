@@ -7,7 +7,7 @@ final class Pair extends Model
     const DISABLED = "disabled";
 
     protected $softdeletes = true;
-    protected $table = 'plans';
+    protected $table = 'pairs';
     protected $primaryKey = 'id';
 
     //oject properties
