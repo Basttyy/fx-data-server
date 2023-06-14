@@ -15,6 +15,7 @@ final class RequestLog extends Model
     //object properties
     public $id;
     public $ip;
+    public $origin;
     public $method;
     public $uripath;
     public $body;
@@ -27,7 +28,7 @@ final class RequestLog extends Model
      * @var array
      */
     protected $fillable = [
-        'id', 'ip', 'method', 'uripath', 'body', 'created_at', 'updated_at'
+        'id', 'ip', 'origin', 'method', 'uripath', 'body', 'created_at', 'updated_at'
     ];
 
     /**
