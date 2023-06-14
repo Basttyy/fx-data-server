@@ -12,6 +12,7 @@ use Basttyy\FxDataServer\Controllers\Api\Auth\TwoFaController;
 use Basttyy\FxDataServer\Controllers\Api\MigrateController;
 use Basttyy\FxDataServer\Controllers\Api\PairController;
 use Basttyy\FxDataServer\Controllers\Api\PlanController;
+use Basttyy\FxDataServer\Controllers\Api\RequestLogController;
 use Basttyy\FxDataServer\Controllers\Api\StrategyController;
 use Basttyy\FxDataServer\Controllers\Api\TestSessionController;
 use Basttyy\FxDataServer\Controllers\Api\UserController;
@@ -31,10 +32,13 @@ if (strtolower($_SERVER['REQUEST_METHOD']) !== "options") {
   }
 }
 
+call_user_func(new RequestLogController('create'));
+
 /// frontend route
 get('/', function () {
   header('Content-Type: text/html', true, 200);
   echo file_get_contents($_SERVER["DOCUMENT_ROOT"]."/public/index.html");
+  return true;
 });
 
 /// Auth routes
@@ -90,6 +94,8 @@ delete('/api/pairs/$id', new PairController('delete'));
 
 /// Admin Routes
 get('/api/migrate', new MigrateController);
+get('/api/admin/logs/$id', new RequestLogController());
+get('/api/admin/logs', new RequestLogController('list'));
 
 /// Historical Data Routes
 get('/api/download/ticker/$ticker/from/$from/nums/$nums/faster/$faster', $downloadTickData);

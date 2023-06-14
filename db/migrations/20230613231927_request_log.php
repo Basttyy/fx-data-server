@@ -21,9 +21,10 @@ final class RequestLog extends AbstractMigration
     {
         $table = $this->table($this::TABLE_NAME);
         $table->addColumn('ip', 'string')
+            ->addColumn('origin', 'string')
             ->addColumn('method', 'string')
             ->addColumn('uripath', 'string')
-            ->addColumn('body', 'string', ['null' => true])
+            ->addColumn('body', 'blob', ['null' => true])
             ->addTimestamps()
             ->create();
     }

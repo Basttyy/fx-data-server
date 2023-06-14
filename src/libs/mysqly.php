@@ -46,7 +46,7 @@ class mysqly {
     else if ($v !== null && str_contains((string)$v, 'NULL')) {
       $where[] = "`{$k}` $v";
     }
-    else if ($v !== null && str_contains((string)$v, 'now')) {
+    else if ($v !== null && is_string($v) && str_contains($v, 'now')) {
       $where[] = "`{$k}` = now()";
     }
     else {
@@ -72,7 +72,7 @@ class mysqly {
         $values[] = "`{$name}` = JSON_SET({$name}, '$.{$key}', :{$place_holder}) ";
         $bind[":{$place_holder}"] = $value;
       }
-      else if ($value !== null && str_contains((string)$value, 'now')) {
+      else if ($value !== null && is_string($value) && str_contains($value, 'now')) {
         $values[] = "`{$name}` = current_timestamp";
       }
       else {
