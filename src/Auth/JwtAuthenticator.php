@@ -67,7 +67,7 @@ final class JwtAuthenticator
         }
 
         if (str_contains($jwt, "social_login:")) {
-            $providers = ['facebook', 'twitter', 'google'];
+            $providers = ['facebook']; //, 'twitter', 'google'];
             $hybridauth = new Hybridauth("{$_SERVER['DOCUMENT_ROOT']}/hybridauth_config.php");  //, null, new DbStorage('SOCIALAUTH::STORAGE'));
 
             foreach ($providers as $provider) {

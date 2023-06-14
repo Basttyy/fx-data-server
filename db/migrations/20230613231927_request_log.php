@@ -3,9 +3,9 @@ declare(strict_types=1);
 
 use Phinx\Migration\AbstractMigration;
 
-final class FixIndexesOnUser extends AbstractMigration
+final class RequestLog extends AbstractMigration
 {
-    const TABLE_NAME = 'users';
+    const TABLE_NAME = 'request_logs';
     /**
      * Change Method.
      *
@@ -20,10 +20,11 @@ final class FixIndexesOnUser extends AbstractMigration
     public function change(): void
     {
         $table = $this->table($this::TABLE_NAME);
-        $table->removeIndex(['username', 'email', 'uuid'])
-            ->addIndex(['username'], ['unique' => true])
-            ->addIndex(['email'], ['unique' => true])
-            ->addIndex(['uuid'], ['unique' => true])
-            ->update();
+        $table->addColumn('ip', 'string')
+            ->addColumn('method', 'string')
+            ->addColumn('uripath', 'string')
+            ->addColumn('body', 'string', ['null' => true])
+            ->addTimestamps()
+            ->create();
     }
 }
