@@ -69,12 +69,12 @@ final class TestSessionController
             }
             $is_admin = $this->authenticator->verifyRole($user, 'admin');
 
-            if ($is_admin === false && $user->id != $id) {
-                return JsonResponse::unauthorized("you can't view this session");
-            }
-
             if (!$this->session->find((int)$id))
                 return JsonResponse::notFound("unable to retrieve session");
+                
+            if ($is_admin === false && $user->id != $this->session->user_id) {
+                return JsonResponse::unauthorized("you can't view this session");
+            }
 
             return JsonResponse::ok("session retrieved success", $this->strategy->toArray());
         } catch (PDOException $e) {
@@ -155,9 +155,9 @@ final class TestSessionController
             $body = sanitize_data(json_decode($inputJSON, true));
 
             if ($validated = Validator::validate($body, [
-                'starting_bal' => 'required|string',
-                'current_bal' => 'required|string',
-                'strategy_id' => 'required|string',
+                'starting_bal' => 'required|numeric',
+                'current_bal' => 'required|numeric',
+                'strategy_id' => 'required|int',
                 'pair' => 'required|string',
                 'start_date' => 'required|string',
                 'end_date' => 'required|string'
@@ -171,7 +171,7 @@ final class TestSessionController
 
             $body['user_id'] = $this->user->id;
 
-            if ($session = $this->session->create($body)) {
+            if (!$session = $this->session->create($body)) {
                 return JsonResponse::serverError("unable to create test session");
             }
 

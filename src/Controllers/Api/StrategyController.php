@@ -61,17 +61,17 @@ final class StrategyController
     {
         $id = sanitize_data($id);
         try {
-            if (!$user = $this->authenticator->validate()) {
+            if (!$this->authenticator->validate()) {
                 return JsonResponse::unauthorized();
             }
-            $is_admin = $this->authenticator->verifyRole($user, 'admin');
-
-            if ($is_admin === false && $user->id != $id) {
-                return JsonResponse::unauthorized("you can't view this strategy");
-            }
+            $is_admin = $this->authenticator->verifyRole($this->user, 'admin');
 
             if (!$this->strategy->find((int)$id))
                 return JsonResponse::notFound("unable to retrieve strategy");
+                
+            if ($is_admin === false && $this->strategy->user_id != $this->user->id) {
+                return JsonResponse::unauthorized("you can't view this strategy");
+            }
 
             return JsonResponse::ok("strategy retrieved success", $this->strategy->toArray());
         } catch (PDOException $e) {
@@ -162,7 +162,7 @@ final class StrategyController
 
             $body['user_id'] = $this->user->id;
 
-            if ($strategy = $this->strategy->create($body)) {
+            if (!$strategy = $this->strategy->create($body)) {
                 return JsonResponse::serverError("unable to create strategy");
             }
 
@@ -211,9 +211,8 @@ final class StrategyController
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
-            // echo "got to pass login";
             if (!$this->strategy->update($body, (int)$id)) {
-                return JsonResponse::serverError("unable to update strategy");
+                return JsonResponse::notFound("unable to update strategy");
             }
 
             return JsonResponse::ok("strategy updated successfull", $this->strategy->toArray());

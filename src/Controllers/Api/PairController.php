@@ -146,14 +146,14 @@ final class PairController
                 'description' => 'required|string',
                 'decimal_places' => 'required|int',
                 'status' => "sometimes|string|in:$status",
-                'dollar_per_pip' => 'required|int',
+                'dollar_per_pip' => 'required|float',
                 'history_start' => 'required|string',
                 'history_end' => 'required|string'
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
-            if ($pair = $this->pair->create($body)) {
+            if (!$pair = $this->pair->create($body)) {
                 return JsonResponse::serverError("unable to create pair");
             }
 
@@ -208,10 +208,10 @@ final class PairController
 
             // echo "got to pass login";
             if (!$this->pair->update($body, (int)$id)) {
-                return JsonResponse::serverError("unable to update pair");
+                return JsonResponse::notFound("unable to update pair");
             }
 
-            return JsonResponse::ok("pair updated successfull", $this->pair->toArray());
+            return JsonResponse::ok("pair updated successfully", $this->pair->toArray());
         } catch (PDOException $e) {
             if (env("APP_ENV") === "local")
                 $message = $e->getMessage();
