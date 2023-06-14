@@ -3,30 +3,28 @@ namespace Basttyy\FxDataServer\Controllers\Api;
 
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
+use Basttyy\FxDataServer\Console\Jobs\SendVerifyEmail;
 use Basttyy\FxDataServer\libs\JsonResponse;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\Models\Role;
-use Basttyy\FxDataServer\Models\Strategy;
-use Basttyy\FxDataServer\Models\TestSession;
+use Basttyy\FxDataServer\Models\Pair;
 use Basttyy\FxDataServer\Models\User;
 use Exception;
 use LogicException;
 use PDOException;
 
-final class TestSessionController
+final class PairController
 {
     private $method;
     private $user;
     private $authenticator;
-    private $strategy;
-    private $session;
+    private $pair;
 
     public function __construct($method = "show")
     {
         $this->method = $method;
         $this->user = new User();
-        $this->session = new TestSession();
-        $this->strategy = new Strategy();
+        $this->pair = new Pair();
         $encoder = new JwtEncoder(env('APP_KEY'));
         $role = new Role();
         $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
@@ -41,9 +39,8 @@ final class TestSessionController
             case 'list':
                 $resp = $this->list();
                 break;
-            case 'list_user':
-                $resp = $this->list_user($id);
-                break;
+            case 'query':
+                $resp = $this->query();
             case 'create':
                 $resp = $this->create();
                 break;
@@ -67,16 +64,11 @@ final class TestSessionController
             if (!$user = $this->authenticator->validate()) {
                 return JsonResponse::unauthorized();
             }
-            $is_admin = $this->authenticator->verifyRole($user, 'admin');
 
-            if ($is_admin === false && $user->id != $id) {
-                return JsonResponse::unauthorized("you can't view this session");
-            }
+            if (!$this->pair->find((int)$id))
+                return JsonResponse::notFound("unable to retrieve pair");
 
-            if (!$this->session->find((int)$id))
-                return JsonResponse::notFound("unable to retrieve session");
-
-            return JsonResponse::ok("session retrieved success", $this->strategy->toArray());
+            return JsonResponse::ok("pair retrieved success", $this->pair->toArray());
         } catch (PDOException $e) {
             return JsonResponse::serverError("we encountered a problem");
         } catch (LogicException $e) {
@@ -89,20 +81,10 @@ final class TestSessionController
     private function list()
     {
         try {
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
-            $is_admin = $this->authenticator->verifyRole($this->user, 'admin');
+            if (!$pairs = $this->pair->all())
+                return JsonResponse::notFound("unable to retrieve pairs");
 
-            if ($is_admin) {
-                $sessions = $this->session->all();
-            } else {
-                $sessions = $this->session->findBy("user_id", $this->user->id);
-            }
-            if (!$sessions)
-                return JsonResponse::notFound("unable to retrieve test sessions");
-
-            return JsonResponse::ok("test sessions retrieved success", $sessions);
+            return JsonResponse::ok("pairs retrieved success", $pairs);
         } catch (PDOException $e) {
             return JsonResponse::serverError("we encountered a problem");
         } catch (Exception $e) {
@@ -110,23 +92,27 @@ final class TestSessionController
         }
     }
 
-    private function list_user(string $id)
+    private function query()
     {
         try {
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+            $params = sanitize_data($_GET);
+            $status = Pair::DISABLED.', '.Pair::ENABLED;
 
-            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
-                return JsonResponse::unauthorized("you can't view this user's test sessions");
+            if ($validated = Validator::validate($params, [
+                'name' => 'sometimes|string',
+                'description' => 'sometimes|string',
+                'decimal_places' => 'sometimes|int',
+                'status' => "sometimes|string|in:$status",
+                'dollar_per_pip' => 'sometimes|int',
+                'history_start' => 'sometimes|string',
+                'history_end' => 'sometimes|string'
+            ])) {
+                return JsonResponse::badRequest('errors in request', $validated);
             }
-            $id = sanitize_data($id);
-            $sessions = $this->session->findBy("user_id", $id);
-            
-            if (!$sessions)
-                return JsonResponse::notFound("unable to retrieve test sessions");
+            if (!$pairs = $this->pair->findByArray(array_keys($params), array_values($params)))
+                return JsonResponse::notFound("unable to retrieve pairs");
 
-            return JsonResponse::ok("test sessions retrieved success", $sessions);
+            return JsonResponse::ok("pairs retrieved success", $pairs);
         } catch (PDOException $e) {
             return JsonResponse::serverError("we encountered a problem");
         } catch (Exception $e) {
@@ -146,41 +132,37 @@ final class TestSessionController
                 return JsonResponse::unauthorized();
             }
 
-            if (!$this->authenticator->verifyRole($this->user, 'user')) {
-                return JsonResponse::unauthorized("only users can create strategy");
+            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+                return JsonResponse::unauthorized("you don't have this permission");
             }
             
             $inputJSON = file_get_contents('php://input');
 
             $body = sanitize_data(json_decode($inputJSON, true));
+            $status = Pair::DISABLED.', '.Pair::ENABLED;
 
             if ($validated = Validator::validate($body, [
-                'starting_bal' => 'required|string',
-                'current_bal' => 'required|string',
-                'strategy_id' => 'required|string',
-                'pair' => 'required|string',
-                'start_date' => 'required|string',
-                'end_date' => 'required|string'
+                'name' => 'required|string',
+                'description' => 'required|string',
+                'decimal_places' => 'required|int',
+                'status' => "sometimes|string|in:$status",
+                'dollar_per_pip' => 'required|int',
+                'history_start' => 'required|string',
+                'history_end' => 'required|string'
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
-            if (isset($body['strategy_id']) && !$this->strategy->find($body['strategy_id'])) {
-                return JsonResponse::badRequest('this strategy does not exist');
+            if ($pair = $this->pair->create($body)) {
+                return JsonResponse::serverError("unable to create pair");
             }
 
-            $body['user_id'] = $this->user->id;
-
-            if ($session = $this->session->create($body)) {
-                return JsonResponse::serverError("unable to create test session");
-            }
-
-            return JsonResponse::ok("test session creation successful", $session);
+            return JsonResponse::ok("pair creation successful", $pair);
         } catch (PDOException $e) {
             if (env("APP_ENV") === "local")
                 $message = $e->getMessage();
             else if (str_contains($e->getMessage(), 'Duplicate entry'))
-                return JsonResponse::badRequest('test session already exist');
+                return JsonResponse::badRequest('pair already exist');
             else $message = "we encountered a problem";
             
             return JsonResponse::serverError($message);
@@ -202,37 +184,34 @@ final class TestSessionController
                 return JsonResponse::unauthorized();
             }
 
-            if (!$this->authenticator->verifyRole($this->user, 'user')) {
-                return JsonResponse::unauthorized("only users can create strategy");
+            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+                return JsonResponse::unauthorized("you don't have this permission");
             }
             
             $inputJSON = file_get_contents('php://input');
 
             $body = sanitize_data(json_decode($inputJSON, true));
             $id = sanitize_data($id);
+            $status = Pair::DISABLED.', '.Pair::ENABLED;
 
             if ($validated = Validator::validate($body, [
-                'starting_bal' => 'sometimes|string',
-                'current_bal' => 'sometimes|string',
-                'strategy_id' => 'sometimes|string',
-                'pair' => 'sometimes|string',
-                'chart' => 'sometimes|string',
-                'chart_timestamp' => 'sometimes|integer',
-                'start_date' => 'sometimes|string',
-                'end_date' => 'sometimes|string',
-                'current_date' => 'sometimes|string'
+                'name' => 'sometimes|string',
+                'description' => 'sometimes|string',
+                'decimal_places' => 'sometimes|int',
+                'status' => "sometimes|string|in:$status",
+                'dollar_per_pip' => 'sometimes|int',
+                'history_start' => 'sometimes|string',
+                'history_end' => 'sometimes|string'
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
-            if (isset($body['strategy_id']) && !$this->strategy->find($body['strategy_id'])) {
-                return JsonResponse::badRequest('this strategy does not exist');
+
+            // echo "got to pass login";
+            if (!$this->pair->update($body, (int)$id)) {
+                return JsonResponse::serverError("unable to update pair");
             }
 
-            if (!$this->session->update($body, (int)$id)) {
-                return JsonResponse::serverError("unable to update test session");
-            }
-
-            return JsonResponse::ok("test session updated successfully", $this->session->toArray());
+            return JsonResponse::ok("pair updated successfull", $this->pair->toArray());
         } catch (PDOException $e) {
             if (env("APP_ENV") === "local")
                 $message = $e->getMessage();
@@ -254,16 +233,16 @@ final class TestSessionController
                 return JsonResponse::unauthorized();
             }
 
-            if (!$this->authenticator->verifyRole($this->user, 'user')) {
-                return JsonResponse::unauthorized("only users can create session");
+            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+                return JsonResponse::unauthorized("you don't have this permission");
             }
             $id = sanitize_data($id);
 
-            if (!$this->session->delete((int)$id)) {
-                return JsonResponse::notFound("unable to delete test session or session not found");
+            if (!$this->pair->delete((int)$id)) {
+                return JsonResponse::notFound("unable to delete pair or pair not found");
             }
 
-            return JsonResponse::ok("test session deleted successfully");
+            return JsonResponse::ok("pair deleted successfully");
         } catch (PDOException $e) {
             if (env("APP_ENV") === "local")
                 $message = $e->getMessage();

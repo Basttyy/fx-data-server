@@ -397,7 +397,7 @@ abstract class Model
         }
         $query_arr['id'] = $id;
 
-        if (!$stat = mysqly::update($this->table, $query_arr, $values)) {
+        if (!mysqly::update($this->table, $query_arr, $values)) {
             return false;
         }
 
@@ -421,11 +421,14 @@ abstract class Model
         
         $query_arr = [];
 
+        $query_arr['id'] = $id;
         if ($this->child->softdeletes) {
             $query_arr['deleted_at'] = "IS NULL";
+            if (!mysqly::update($this->table, $query_arr, ['deleted_at' => time()]))
+                return false;
+            return true;
             //$this->builder->useSoftDelete = true;
         }
-        $query_arr['id'] = $id;
 
         return mysqly::remove($this->table, $query_arr);
     }
