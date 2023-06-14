@@ -118,7 +118,7 @@ class Validator {
         if (Str::contains($type, ":")) {
             $items = explode(':', $type);
 
-            print_r($items);
+            // print_r($items);
 
             switch ($items[0]) {
                 case 'max':
@@ -128,7 +128,7 @@ class Validator {
                     $resp = $paramval < (int)$items[1] ? "{$param} should not be less than {$items[1]}" : '';
                     break;
                 case 'in':
-                    echo $paramval.PHP_EOL;
+                    // echo $paramval.PHP_EOL;
                     $resp = !Arr::exists(explode(', ', $items[1]), $paramval, true) ? "{$param} should contain one of {$items[1]}" : '';
                     break;
                 case 'not_in':

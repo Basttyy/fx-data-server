@@ -4,7 +4,7 @@ namespace Basttyy\FxDataServer\Models;
 final class Strategy extends Model
 {
     protected $softdeletes = true;
-    protected $table = 'strategy';
+    protected $table = 'strategies';
     protected $primaryKey = 'id';
 
     //oject properties

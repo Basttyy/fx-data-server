@@ -7,7 +7,7 @@ final class Plan extends Model
     const DISABLED = "disabled";
 
     protected $softdeletes = true;
-    protected $table = 'users';
+    protected $table = 'plans';
     protected $primaryKey = 'id';
 
     //oject properties

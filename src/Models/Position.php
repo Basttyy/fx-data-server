@@ -12,7 +12,7 @@ final class Position extends Model
     const MANUAL_CLOSE = 'manualclose';
 
     protected $softdeletes = true;
-    protected $table = 'position';
+    protected $table = 'positions';
     protected $primaryKey = 'id';
 
     //oject properties

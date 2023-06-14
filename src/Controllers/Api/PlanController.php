@@ -65,7 +65,8 @@ final class PlanController
 
             return JsonResponse::ok("plan retrieved success", $this->plan->toArray());
         } catch (PDOException $e) {
-            return JsonResponse::serverError("we encountered a problem");
+            consoleLog(0, $e->getMessage(). '   '.$e->getTraceAsString());
+            return JsonResponse::serverError("we encountered a db problem");
         } catch (LogicException $e) {
             return JsonResponse::serverError("we encountered a runtime problem");
         } catch (Exception $e) {
@@ -107,11 +108,12 @@ final class PlanController
             $inputJSON = file_get_contents('php://input');
 
             $body = sanitize_data(json_decode($inputJSON, true));
+            $status = Plan::DISABLED.', '.Plan::ENABLED;
 
             if ($validated = Validator::validate($body, [
                 'description' => 'required|string',
                 'price' => 'required|numeric',
-                'status' => 'required|string',
+                'status' => "sometimes|string|in:$status",
                 'features' => 'required|string'
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
@@ -160,18 +162,18 @@ final class PlanController
 
             $body = sanitize_data(json_decode($inputJSON, true));
 
+            $status = Plan::DISABLED.', '.Plan::ENABLED;
             if ($validated = Validator::validate($body, [
                 'description' => 'sometimes|string',
                 'price' => 'sometimes|numeric',
-                'status' => 'sometimes|string',
+                'status' => "sometimes|string|in:$status",
                 'features' => 'sometimes|string'
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
-            // echo "got to pass login";
             if (!$this->plan->update($body, (int)$id)) {
-                return JsonResponse::serverError("unable to update plan");
+                return JsonResponse::notFound("unable to update plan not found");
             }
 
             return JsonResponse::ok("plan updated successfull", $this->plan->toArray());
