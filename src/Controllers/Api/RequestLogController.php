@@ -104,7 +104,7 @@ final class RequestLogController
             $data['origin'] = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : "";
             $data['uripath'] = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : "";
 
-            if ( $_SERVER['CONTENT_LENGTH'] > env('CONTENT_LENGTH_MIN')) {
+            if (isset($_SERVER['CONTENT_LENGTH']) && $_SERVER['CONTENT_LENGTH'] > env('CONTENT_LENGTH_MIN')) {
                 $inputJSON = file_get_contents('php://input');
                 $data['body'] = gzdeflate(serialize(sanitize_data(json_decode($inputJSON, true))));
             }
