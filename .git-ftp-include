@@ -2,5 +2,5 @@ vendor/symfony/
 vendor/autoload.php
 public/assets/chart-dacc9446.js
 public/assets/fa-solid-900-67a65763.ttf
-!public/assets/google-fd52295b.svg
+public/assets/google-fd52295b.svg
 storage/
