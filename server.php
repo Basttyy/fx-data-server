@@ -33,7 +33,7 @@ if ($http_origin === $_ENV['USER_APP_URI'] || $http_origin === $_ENV['ADMIN_APP_
     applyCorsHeaders($http_origin);
 }
 
-if (preg_match('/\.(?:js|css|svg|ico|woff2|ttf|webp|pdf|png|jpg|jpeg|gif)$/', $_SERVER["REQUEST_URI"])) {
+if ($_ENV['APP_ENV'] === "local" && preg_match('/\.(?:js|css|svg|ico|woff2|ttf|webp|pdf|png|jpg|jpeg|gif)$/', $_SERVER["REQUEST_URI"])) {
     $path = $_SERVER['DOCUMENT_ROOT']."/public".$_SERVER["REQUEST_URI"];
     if (file_exists($path)) {
         $mime = mime_content_type($path);
