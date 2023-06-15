@@ -1,13 +1,13 @@
 RewriteEngine On
-RewriteCond %{REQUEST_URI}  !(\.png|\.jpg|\.webp|\.gif|\.jpeg|\.zip|\.css|\.svg|\.js|\.pdf)$
-RewriteRule (.*) server.php [QSA,L]
+<!-- RewriteCond %{REQUEST_URI}  !(\.png|\.jpg|\.webp|\.gif|\.jpeg|\.zip|\.css|\.svg|\.js|\.pdf|\.ico|\.woff2|\.ttf)$
+RewriteRule (.*) server.php [QSA,L] -->
 
-<!-- RewriteEngine On
+<!-- RewriteEngine On -->
 
 # Allow specific file extensions to be accessed directly from the public folder
-RewriteRule ^public/(.*)$ - [L]
+RewriteRule ^public/(\.png|\.jpg|\.webp|\.gif|\.jpeg|\.zip|\.css|\.svg|\.js|\.pdf|\.ico|\.woff2|\.ttf)$ - [L]
 
 # Redirect all other requests to server.php
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ server.php [QSA,L] -->
+RewriteRule ^(.*)$ server.php [QSA,L]
