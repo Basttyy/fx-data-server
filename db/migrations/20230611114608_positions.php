@@ -31,7 +31,11 @@ final class Positions extends AbstractMigration
             ->addColumn('closetime', 'timestamp')
             ->addColumn('partials', 'blob')
             ->addColumn('closetype', 'enum', ['values' => Position::MANUAL_CLOSE. "," .Position::BE. "," .Position::SL. "," .Position::TP])
+            ->addColumn('test_session_id', 'integer', ['signed' => false])
+            ->addColumn('user_id', 'integer', ['signed' => false])
             ->addColumn('deleted_at', 'timestamp', ['default' => null])
+            ->addForeignKey('test_session_id', 'test_sessions', 'id', ['delete' => 'CASCADE', 'update' => 'NO_ACTION'])
+            ->addForeignKey('user_id', 'users', 'id', ['delete' => 'CASCADE', 'update' => 'NO_ACTION'])
             ->addTimestamps()
             ->create();
     }

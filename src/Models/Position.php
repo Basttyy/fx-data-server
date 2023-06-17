@@ -5,6 +5,10 @@ final class Position extends Model
 {
     const BUY = "buy";
     const SELL = "sell";
+    const BUY_STOP = 'buystop';
+    const BUY_LIMIT = 'buylimit';
+    const SELL_STOP = 'sellstop';
+    const SELL_LIMIT = 'selllimit';
 
     const SL = 'stoploss';
     const TP = 'takeprofit';
@@ -17,6 +21,8 @@ final class Position extends Model
 
     //oject properties
     public $id;
+    public $test_session_id;
+    public $user_id;
     public $action;
     public $entry;
     public $exit;
@@ -37,7 +43,7 @@ final class Position extends Model
      * @var array
      */
     protected $fillable = [
-        'id', 'action', 'entry', 'exit', 'stoploss', 'takeprofit', 'pl', 'opentime', 'closetime', 'partials', 'closetype', 'deleted_at', 'created_at', 'updated_at'
+        'id', 'test_session_id', 'user_id', 'action', 'entry', 'exit', 'stoploss', 'takeprofit', 'pl', 'opentime', 'closetime', 'partials', 'closetype', 'deleted_at', 'created_at', 'updated_at'
     ];
     
     /**
