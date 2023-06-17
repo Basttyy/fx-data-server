@@ -12,6 +12,7 @@ use Basttyy\FxDataServer\Controllers\Api\Auth\TwoFaController;
 use Basttyy\FxDataServer\Controllers\Api\MigrateController;
 use Basttyy\FxDataServer\Controllers\Api\PairController;
 use Basttyy\FxDataServer\Controllers\Api\PlanController;
+use Basttyy\FxDataServer\Controllers\Api\PositionController;
 use Basttyy\FxDataServer\Controllers\Api\RequestLogController;
 use Basttyy\FxDataServer\Controllers\Api\StrategyController;
 use Basttyy\FxDataServer\Controllers\Api\TestSessionController;
@@ -91,6 +92,14 @@ get('/api/pairs/query', new PairController('list'));
 post('/api/pairs', new PairController('create'));
 put('/api/pairs/$id', new PairController('update'));
 delete('/api/pairs/$id', new PairController('delete'));
+
+/// Positions Routes
+get('/api/positions/$id', new PositionController());
+get('/api/positions', new PositionController('list'));
+get('/api/positions/query', new PositionController('list'));
+post('/api/positions', new PositionController('create'));
+put('/api/positions/$id', new PositionController('update'));
+delete('/api/positions/$id', new PositionController('delete'));
 
 /// Admin Routes
 get('/api/migrate', new MigrateController);
