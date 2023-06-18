@@ -3,6 +3,7 @@ namespace Basttyy\FxDataServer\Controllers\Api;
 
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
+use Basttyy\FxDataServer\Console\Jobs\SendContactUs;
 use Basttyy\FxDataServer\Console\Jobs\SendVerifyEmail;
 use Basttyy\FxDataServer\libs\Arr;
 use Basttyy\FxDataServer\libs\JsonResponse;
@@ -67,10 +68,9 @@ final class MiscellaneousController
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
+            $contact = new SendContactUs($body, ['firstname', 'lastname', 'email', 'subject', 'message']);
 
-            if (!ContactUs::send(Arr::only($body, ['firstname', 'lastname', 'email', 'subject', 'message']))) {
-                return JsonResponse::serverError('unable to send enquiry, please try again later');
-            }
+            $contact->init()->delay(5)->run();
 
             return JsonResponse::ok("enquiry submitted successfully");
         } catch (PDOException $e) {
