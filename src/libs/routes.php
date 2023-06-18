@@ -10,6 +10,7 @@ use Basttyy\FxDataServer\Controllers\Api\Auth\AuthController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\CaptchaController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\TwoFaController;
 use Basttyy\FxDataServer\Controllers\Api\MigrateController;
+use Basttyy\FxDataServer\Controllers\Api\MiscellaneousController;
 use Basttyy\FxDataServer\Controllers\Api\PairController;
 use Basttyy\FxDataServer\Controllers\Api\PlanController;
 use Basttyy\FxDataServer\Controllers\Api\PositionController;
@@ -114,6 +115,9 @@ get('/api/candles/ticker/$ticker/from/$fro/nums/$num/timeframe/$timefram', $getT
 get('/api/download/min/ticker/$ticker/from/$from/incr/$incr/nums/$nums', $downloadMinuteData);
 get('/api/tickers/query/$query', $searchTicker);
 get('/api/tickers/query', $searchTicker);
+
+/// Others
+post('/api/misc/contact-us', new MiscellaneousController('contact-us'));
 
 any('/404', new NotFoundController);
 
