@@ -7,6 +7,7 @@ use Basttyy\FxDataServer\libs\JsonResponse;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\Models\Position;
 use Basttyy\FxDataServer\Models\Role;
+use Basttyy\FxDataServer\Models\TestSession;
 use Basttyy\FxDataServer\Models\User;
 use Exception;
 use LogicException;
@@ -18,12 +19,14 @@ final class PositionController
     private $user;
     private $authenticator;
     private $position;
+    private $session;
 
     public function __construct($method = "show")
     {
         $this->method = $method;
         $this->user = new User();
         $this->position = new Position();
+        $this->session = new TestSession();
         $encoder = new JwtEncoder(env('APP_KEY'));
         $role = new Role();
         $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
@@ -79,6 +82,7 @@ final class PositionController
 
             return JsonResponse::ok("position retrieved success", $this->position->toArray());
         } catch (PDOException $e) {
+            consoleLog(0, $e->getMessage().'  '. $e->getTraceAsString());
             return JsonResponse::serverError("we encountered a problem");
         } catch (LogicException $e) {
             return JsonResponse::serverError("we encountered a runtime problem");
@@ -122,9 +126,7 @@ final class PositionController
                 return JsonResponse::unauthorized("you can't view this user's positions");
             }
             $id = sanitize_data($id);
-            $positions = $this->position->findBy("user_id", $id);
-            
-            if (!$positions)
+            if (!$positions = $this->position->findBy("user_id", $id))
                 return JsonResponse::notFound("unable to retrieve positions");
 
             return JsonResponse::ok("positions retrieved success", $positions);
@@ -154,19 +156,22 @@ final class PositionController
             $inputJSON = file_get_contents('php://input');
 
             $body = sanitize_data(json_decode($inputJSON, true));
-            $actions = Position::BUY.','.Position::SELL.','. Position::BUY_LIMIT.','. Position::BUY_STOP.','. Position::SELL_LIMIT.','. Position::SELL_STOP;
-            $closetypes = Position::SL.','. Position::TP.','. Position::BE.','. Position::MANUAL_CLOSE;
+            $actions = Position::BUY.', '.Position::SELL.', '. Position::BUY_LIMIT.', '. Position::BUY_STOP.', '. Position::SELL_LIMIT.', '. Position::SELL_STOP;
 
             if ($validated = Validator::validate($body, [
                 'test_session_id' => 'required|int',
                 'action' => "required|string|in:$actions",
-                'entry' => 'required|string',
-                'stoploss' => 'required|int',
-                'takeprofit' => 'required|string',
+                'entrypoint' => 'required|string',
+                'stoploss' => 'sometimes|int',
+                'takeprofit' => 'sometimes|string',
                 'pl' => 'sometimes|string',
-                'opentime' => 'required|string'
+                'entrytime' => 'required|string'
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
+            }
+
+            if (!$this->session->find($body['test_session_id'])) {
+                return JsonResponse::badRequest('selected test session does not exist');
             }
 
             $body['user_id'] = $this->user->id;
@@ -210,18 +215,18 @@ final class PositionController
 
             $body = sanitize_data(json_decode($inputJSON, true));
             $id = sanitize_data($id);
-            $actions = Position::BUY.','.Position::SELL.','. Position::BUY_LIMIT.','. Position::BUY_STOP.','. Position::SELL_LIMIT.','. Position::SELL_STOP;
-            $closetypes = Position::SL.','. Position::TP.','. Position::BE.','. Position::MANUAL_CLOSE;
+            $actions = Position::BUY.', '.Position::SELL.', '. Position::BUY_LIMIT.', '. Position::BUY_STOP.', '. Position::SELL_LIMIT.', '. Position::SELL_STOP;
+            $closetypes = Position::SL.', '. Position::TP.', '. Position::BE.', '. Position::MANUAL_CLOSE;
 
             if ($validated = Validator::validate($body, [
                 'action' => "sometimes|string|in:$actions",
-                'entry' => 'sometimes|string',
-                'exit' => 'sometimes|string',
+                'entrypoint' => 'sometimes|string',
+                'exitpoint' => 'sometimes|string',
                 'stoploss' => 'sometimes|int',
                 'takeprofit' => 'sometimes|string',
-                'pl' => 'sometimes|string',
-                'opentime' => 'sometimes|string',
-                'closetime' => 'sometimes|int',
+                'pl' => 'sometimes|numeric',
+                'entrytime' => 'sometimes|string',
+                'exittime' => 'sometimes|int',
                 'partials' => 'sometimes|string',
                 'closetype' => "sometimes|string|in:$closetypes"
             ])) {
