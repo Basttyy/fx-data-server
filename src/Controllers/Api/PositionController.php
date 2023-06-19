@@ -3,28 +3,30 @@ namespace Basttyy\FxDataServer\Controllers\Api;
 
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
-use Basttyy\FxDataServer\Console\Jobs\SendVerifyEmail;
 use Basttyy\FxDataServer\libs\JsonResponse;
 use Basttyy\FxDataServer\libs\Validator;
+use Basttyy\FxDataServer\Models\Position;
 use Basttyy\FxDataServer\Models\Role;
-use Basttyy\FxDataServer\Models\Pair;
+use Basttyy\FxDataServer\Models\TestSession;
 use Basttyy\FxDataServer\Models\User;
 use Exception;
 use LogicException;
 use PDOException;
 
-final class PairController
+final class PositionController
 {
     private $method;
     private $user;
     private $authenticator;
-    private $pair;
+    private $position;
+    private $session;
 
     public function __construct($method = "show")
     {
         $this->method = $method;
         $this->user = new User();
-        $this->pair = new Pair();
+        $this->position = new Position();
+        $this->session = new TestSession();
         $encoder = new JwtEncoder(env('APP_KEY'));
         $role = new Role();
         $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
@@ -39,8 +41,9 @@ final class PairController
             case 'list':
                 $resp = $this->list();
                 break;
-            case 'query':
-                $resp = $this->query();
+            case 'list_user':
+                $resp = $this->list_user($id);
+                break;
             case 'create':
                 $resp = $this->create();
                 break;
@@ -61,15 +64,25 @@ final class PairController
     {
         $id = sanitize_data($id);
         try {
-            if (!$user = $this->authenticator->validate()) {
+            if (!$this->authenticator->validate()) {
                 return JsonResponse::unauthorized();
             }
+            $is_admin = $this->authenticator->verifyRole($this->user, 'admin');
 
-            if (!$this->pair->find((int)$id))
-                return JsonResponse::notFound("unable to retrieve pair");
+            if (!$this->position->find((int)$id))
+                return JsonResponse::notFound("unable to retrieve position");
 
-            return JsonResponse::ok("pair retrieved success", $this->pair->toArray());
+            if (!$is_admin && $this->position->user_id !== $this->user->id) {
+                return JsonResponse::unauthorized("you can't view this position");
+            }
+                
+            if ($is_admin === false && $this->position->user_id != $this->user->id) {
+                return JsonResponse::unauthorized("you can't view this position");
+            }
+
+            return JsonResponse::ok("position retrieved success", $this->position->toArray());
         } catch (PDOException $e) {
+            consoleLog(0, $e->getMessage().'  '. $e->getTraceAsString());
             return JsonResponse::serverError("we encountered a problem");
         } catch (LogicException $e) {
             return JsonResponse::serverError("we encountered a runtime problem");
@@ -81,10 +94,20 @@ final class PairController
     private function list()
     {
         try {
-            if (!$pairs = $this->pair->all())
-                return JsonResponse::notFound("unable to retrieve pairs");
+            if (!$this->authenticator->validate()) {
+                return JsonResponse::unauthorized();
+            }
+            $is_admin = $this->authenticator->verifyRole($this->user, 'admin');
 
-            return JsonResponse::ok("pairs retrieved success", $pairs);
+            if ($is_admin) {
+                $positions = $this->position->all();
+            } else {
+                $positions = $this->position->findBy("user_id", $this->user->id);
+            }
+            if (!$positions)
+                return JsonResponse::notFound("unable to retrieve positions");
+
+            return JsonResponse::ok("positions retrieved success", $positions);
         } catch (PDOException $e) {
             return JsonResponse::serverError("we encountered a problem");
         } catch (Exception $e) {
@@ -92,27 +115,21 @@ final class PairController
         }
     }
 
-    private function query()
+    private function list_user(string $id)
     {
         try {
-            $params = sanitize_data($_GET);
-            $status = Pair::DISABLED.', '.Pair::ENABLED;
-
-            if ($validated = Validator::validate($params, [
-                'name' => 'sometimes|string',
-                'description' => 'sometimes|string',
-                'decimal_places' => 'sometimes|int',
-                'status' => "sometimes|string|in:$status",
-                'dollar_per_pip' => 'sometimes|numeric',
-                'history_start' => 'sometimes|string',
-                'history_end' => 'sometimes|string'
-            ])) {
-                return JsonResponse::badRequest('errors in request', $validated);
+            if (!$this->authenticator->validate()) {
+                return JsonResponse::unauthorized();
             }
-            if (!$pairs = $this->pair->findByArray(array_keys($params), array_values($params)))
-                return JsonResponse::notFound("unable to retrieve pairs");
 
-            return JsonResponse::ok("pairs retrieved success", $pairs);
+            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+                return JsonResponse::unauthorized("you can't view this user's positions");
+            }
+            $id = sanitize_data($id);
+            if (!$positions = $this->position->findBy("user_id", $id))
+                return JsonResponse::notFound("unable to retrieve positions");
+
+            return JsonResponse::ok("positions retrieved success", $positions);
         } catch (PDOException $e) {
             return JsonResponse::serverError("we encountered a problem");
         } catch (Exception $e) {
@@ -132,37 +149,43 @@ final class PairController
                 return JsonResponse::unauthorized();
             }
 
-            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
-                return JsonResponse::unauthorized("you don't have this permission");
+            if (!$this->authenticator->verifyRole($this->user, 'user')) {
+                return JsonResponse::unauthorized("only users can open a position");
             }
             
             $inputJSON = file_get_contents('php://input');
 
             $body = sanitize_data(json_decode($inputJSON, true));
-            $status = Pair::DISABLED.', '.Pair::ENABLED;
+            $actions = Position::BUY.', '.Position::SELL.', '. Position::BUY_LIMIT.', '. Position::BUY_STOP.', '. Position::SELL_LIMIT.', '. Position::SELL_STOP;
 
             if ($validated = Validator::validate($body, [
-                'name' => 'required|string',
-                'description' => 'required|string',
-                'decimal_places' => 'required|int',
-                'status' => "sometimes|string|in:$status",
-                'dollar_per_pip' => 'required|numeric',
-                'history_start' => 'required|string',
-                'history_end' => 'required|string'
+                'test_session_id' => 'required|int',
+                'action' => "required|string|in:$actions",
+                'entrypoint' => 'required|string',
+                'stoploss' => 'sometimes|int',
+                'takeprofit' => 'sometimes|string',
+                'pl' => 'sometimes|string',
+                'entrytime' => 'required|string'
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
-            if (!$pair = $this->pair->create($body)) {
-                return JsonResponse::serverError("unable to create pair");
+            if (!$this->session->find($body['test_session_id'])) {
+                return JsonResponse::badRequest('selected test session does not exist');
             }
 
-            return JsonResponse::ok("pair creation successful", $pair);
+            $body['user_id'] = $this->user->id;
+
+            if (!$position = $this->position->create($body)) {
+                return JsonResponse::serverError("unable to create position");
+            }
+
+            return JsonResponse::ok("position creation successful", $position);
         } catch (PDOException $e) {
             if (env("APP_ENV") === "local")
                 $message = $e->getMessage();
             else if (str_contains($e->getMessage(), 'Duplicate entry'))
-                return JsonResponse::badRequest('pair already exist');
+                return JsonResponse::badRequest('position already exist');
             else $message = "we encountered a problem";
             
             return JsonResponse::serverError($message);
@@ -184,34 +207,45 @@ final class PairController
                 return JsonResponse::unauthorized();
             }
 
-            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
-                return JsonResponse::unauthorized("you don't have this permission");
+            if (!$this->authenticator->verifyRole($this->user, 'user')) {
+                return JsonResponse::unauthorized("only users can update position");
             }
             
             $inputJSON = file_get_contents('php://input');
 
             $body = sanitize_data(json_decode($inputJSON, true));
             $id = sanitize_data($id);
-            $status = Pair::DISABLED.', '.Pair::ENABLED;
+            $actions = Position::BUY.', '.Position::SELL.', '. Position::BUY_LIMIT.', '. Position::BUY_STOP.', '. Position::SELL_LIMIT.', '. Position::SELL_STOP;
+            $closetypes = Position::SL.', '. Position::TP.', '. Position::BE.', '. Position::MANUAL_CLOSE;
 
             if ($validated = Validator::validate($body, [
-                'name' => 'sometimes|string',
-                'description' => 'sometimes|string',
-                'decimal_places' => 'sometimes|int',
-                'status' => "sometimes|string|in:$status",
-                'dollar_per_pip' => 'sometimes|numeric',
-                'history_start' => 'sometimes|string',
-                'history_end' => 'sometimes|string'
+                'action' => "sometimes|string|in:$actions",
+                'entrypoint' => 'sometimes|string',
+                'exitpoint' => 'sometimes|string',
+                'stoploss' => 'sometimes|int',
+                'takeprofit' => 'sometimes|string',
+                'pl' => 'sometimes|numeric',
+                'entrytime' => 'sometimes|string',
+                'exittime' => 'sometimes|int',
+                'partials' => 'sometimes|string',
+                'closetype' => "sometimes|string|in:$closetypes"
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
-            // echo "got to pass login";
-            if (!$this->pair->update($body, (int)$id)) {
-                return JsonResponse::notFound("unable to update pair");
+            if (!$this->position->find($id)) {
+                return JsonResponse::notFound("position does not exist");
             }
 
-            return JsonResponse::ok("pair updated successfully", $this->pair->toArray());
+            if ($this->position->user_id !== $this->user->id) {
+                return JsonResponse::unauthorized("you can't update this position");
+            }
+
+            if (!$this->position->update($body, (int)$id)) {
+                return JsonResponse::notFound("unable to update position");
+            }
+
+            return JsonResponse::ok("position updated successfully", $this->position->toArray());
         } catch (PDOException $e) {
             if (env("APP_ENV") === "local")
                 $message = $e->getMessage();
@@ -233,16 +267,24 @@ final class PairController
                 return JsonResponse::unauthorized();
             }
 
-            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
-                return JsonResponse::unauthorized("you don't have this permission");
+            if (!$this->authenticator->verifyRole($this->user, 'user')) {
+                return JsonResponse::unauthorized("only users can create strategy");
             }
             $id = sanitize_data($id);
 
-            if (!$this->pair->delete((int)$id)) {
-                return JsonResponse::notFound("unable to delete pair or pair not found");
+            if (!$this->position->find($id)) {
+                return JsonResponse::notFound("position does not exist");
             }
 
-            return JsonResponse::ok("pair deleted successfully");
+            if ($this->position->user_id !== $this->user->id) {
+                return JsonResponse::unauthorized("you can't update this position");
+            }
+
+            if (!$this->position->delete((int)$id)) {
+                return JsonResponse::notFound("unable to delete position or position not found");
+            }
+
+            return JsonResponse::ok("position deleted successfully");
         } catch (PDOException $e) {
             if (env("APP_ENV") === "local")
                 $message = $e->getMessage();
