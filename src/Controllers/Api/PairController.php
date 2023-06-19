@@ -103,7 +103,7 @@ final class PairController
                 'description' => 'sometimes|string',
                 'decimal_places' => 'sometimes|int',
                 'status' => "sometimes|string|in:$status",
-                'dollar_per_pip' => 'sometimes|int',
+                'dollar_per_pip' => 'sometimes|numeric',
                 'history_start' => 'sometimes|string',
                 'history_end' => 'sometimes|string'
             ])) {
@@ -146,7 +146,7 @@ final class PairController
                 'description' => 'required|string',
                 'decimal_places' => 'required|int',
                 'status' => "sometimes|string|in:$status",
-                'dollar_per_pip' => 'required|float',
+                'dollar_per_pip' => 'required|numeric',
                 'history_start' => 'required|string',
                 'history_end' => 'required|string'
             ])) {
@@ -199,7 +199,7 @@ final class PairController
                 'description' => 'sometimes|string',
                 'decimal_places' => 'sometimes|int',
                 'status' => "sometimes|string|in:$status",
-                'dollar_per_pip' => 'sometimes|int',
+                'dollar_per_pip' => 'sometimes|numeric',
                 'history_start' => 'sometimes|string',
                 'history_end' => 'sometimes|string'
             ])) {
