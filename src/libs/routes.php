@@ -98,11 +98,11 @@ get('/api/admin/logs/$id', new RequestLogController());
 get('/api/admin/logs', new RequestLogController('list'));
 
 /// Historical Data Routes
-get('/api/download/ticker/$ticker/from/$from/nums/$nums/faster/$faster', $downloadTickData);
-get('/api/candles/ticker/$ticker/from/$fro/nums/$num/timeframe/$timefram', $getTimeframeCandles);
-get('/api/download/min/ticker/$ticker/from/$from/incr/$incr/nums/$nums', $downloadMinuteData);
-get('/api/tickers/query/$query', $searchTicker);
-get('/api/tickers/query', $searchTicker);
+get('/api/fx/download/ticker/$ticker/from/$from/nums/$nums/faster/$faster', $downloadTickData);
+get('/api/fx/candles/ticker/$ticker/from/$fro/nums/$num/timeframe/$timefram', $getTimeframeCandles);
+get('/api/fx/download/min/ticker/$ticker/from/$from/incr/$incr/nums/$nums', $downloadMinuteData);
+get('/api/fx/tickers/query/$query', $searchTicker);
+get('/api/fx/tickers/query', $searchTicker);
 
 any('/404', new NotFoundController);
 
