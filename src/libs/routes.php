@@ -10,8 +10,10 @@ use Basttyy\FxDataServer\Controllers\Api\Auth\AuthController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\CaptchaController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\TwoFaController;
 use Basttyy\FxDataServer\Controllers\Api\MigrateController;
+use Basttyy\FxDataServer\Controllers\Api\MiscellaneousController;
 use Basttyy\FxDataServer\Controllers\Api\PairController;
 use Basttyy\FxDataServer\Controllers\Api\PlanController;
+use Basttyy\FxDataServer\Controllers\Api\PositionController;
 use Basttyy\FxDataServer\Controllers\Api\RequestLogController;
 use Basttyy\FxDataServer\Controllers\Api\StrategyController;
 use Basttyy\FxDataServer\Controllers\Api\TestSessionController;
@@ -72,6 +74,7 @@ delete('/api/plans/$id', new PlanController('delete'));
 get('/api/strategies/$id', new StrategyController());
 get('/api/strategies', new StrategyController('list'));
 get('/api/strategies/query/$query', new StrategyController('list'));
+get('/api/strategies/users/$id', new StrategyController('list_user'));
 post('/api/strategies', new StrategyController('create'));
 put('/api/strategies/$id', new StrategyController('update'));
 delete('/api/strategies/$id', new StrategyController('delete'));
@@ -92,6 +95,15 @@ post('/api/pairs', new PairController('create'));
 put('/api/pairs/$id', new PairController('update'));
 delete('/api/pairs/$id', new PairController('delete'));
 
+/// Positions Routes
+get('/api/positions/$id', new PositionController());
+get('/api/positions', new PositionController('list'));
+get('/api/positions/query', new PositionController('list'));
+get('/api/positions/users/$id', new PositionController('list_user'));
+post('/api/positions', new PositionController('create'));
+put('/api/positions/$id', new PositionController('update'));
+delete('/api/positions/$id', new PositionController('delete'));
+
 /// Admin Routes
 get('/api/migrate', new MigrateController);
 get('/api/admin/logs/$id', new RequestLogController());
@@ -103,6 +115,9 @@ get('/api/fx/candles/ticker/$ticker/from/$fro/nums/$num/timeframe/$timefram', $g
 get('/api/fx/download/min/ticker/$ticker/from/$from/incr/$incr/nums/$nums', $downloadMinuteData);
 get('/api/fx/tickers/query/$query', $searchTicker);
 get('/api/fx/tickers/query', $searchTicker);
+
+/// Others
+post('/api/misc/contact-us', new MiscellaneousController('contact-us'));
 
 any('/404', new NotFoundController);
 
