@@ -1,13 +1,37 @@
-RewriteEngine On
-<!-- RewriteCond %{REQUEST_URI}  !(\.png|\.jpg|\.webp|\.gif|\.jpeg|\.zip|\.css|\.svg|\.js|\.pdf|\.ico|\.woff2|\.ttf)$
-RewriteRule (.*) server.php [QSA,L] -->
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/rss+xml
+    AddOutputFilterByType DEFLATE application/x-font
+    AddOutputFilterByType DEFLATE application/x-font-opentype
+    AddOutputFilterByType DEFLATE application/x-font-otf
+    AddOutputFilterByType DEFLATE application/x-font-truetype
+    AddOutputFilterByType DEFLATE application/x-font-ttf
+    AddOutputFilterByType DEFLATE application/x-javascript
+    AddOutputFilterByType DEFLATE application/xhtml+xml
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE font/opentype
+    AddOutputFilterByType DEFLATE font/otf
+    AddOutputFilterByType DEFLATE font/ttf
+    AddOutputFilterByType DEFLATE image/svg+xml
+    AddOutputFilterByType DEFLATE image/x-icon
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/javascript
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/xml
+</IfModule>
 
-<!-- RewriteEngine On -->
+RewriteEngine On
+# RewriteCond %{REQUEST_URI}  !(\.png|\.jpg|\.webp|\.gif|\.jpeg|\.zip|\.css|\.svg|\.js|\.pdf|\.ico|\.woff2|\.ttf)$
+# RewriteRule (.*) server.php [QSA,L]
 
 # Allow specific file extensions to be accessed directly from the public folder
-RewriteRule ^public/(\.png|\.jpg|\.webp|\.gif|\.jpeg|\.zip|\.css|\.svg|\.js|\.pdf|\.ico|\.woff2|\.ttf)$ - [L]
+RewriteCond %{REQUEST_URI} !^/public/
+RewriteRule ^(.+\.(png|jpg|webp|gif|jpeg|zip|css|svg|js|pdf|ico|woff2|ttf))$ /public/$1 [L]
 
 # Redirect all other requests to server.php
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ server.php [QSA,L]
+RewriteRule (.*) server.php [QSA,L]
+
+DirectoryIndex server.php
