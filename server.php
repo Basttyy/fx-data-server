@@ -20,7 +20,7 @@ function applyCorsHeaders($origin) {
 $customMappings = [
     'js' => 'text/javascript', //'application/javascript',
     'css' => 'text/css',
-    // 'woff2' => 'font/woff2'
+    'woff2' => 'font/woff2'
 ];
 
 $dotenv = strtolower(PHP_OS_FAMILY) === 'windows' ? Dotenv::createImmutable(__DIR__."\\") : Dotenv::createImmutable(__DIR__.'/');
