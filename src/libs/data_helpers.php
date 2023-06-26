@@ -178,7 +178,7 @@ function getFilesList(string $ticker, int $from, int $nums): bool|array
     return false;
 }
 
-function getMinutesFilesList(string $ticker, int &$from, int $increment, int $nums): bool|array
+function getMinutesFilesList(string $ticker, int $timeframe, int &$from, int $increment, int $nums): bool|array
 {
     // consoleLog("info", "the vars are $ticker:  $from:   $nums");
     // return true;
@@ -191,7 +191,7 @@ function getMinutesFilesList(string $ticker, int &$from, int $increment, int $nu
         if ($datetime->greaterThan(Carbon::now()) || $datetime->lessThan(Carbon::createFromFormat('Y/m/d', '2016/01/01'))) {
             return false;
         }
-        $file_path = "{$_SERVER['DOCUMENT_ROOT']}/minute_data/$ticker/{$datetime->format('Y/m')}/{$datetime->format('Y-m-d')}_data.csv";
+        $file_path = "{$_SERVER['DOCUMENT_ROOT']}/minute_data/{$timeframe}mins/$ticker/{$datetime->format('Y/m')}/{$datetime->format('Y-m-d')}_data.csv";
         // str_replace('/', "\\", $file_path);
         consoleLog(0, $file_path.PHP_EOL);
         if (!file_exists($file_path)) {
