@@ -2,7 +2,7 @@
 require_once __DIR__."/../config.php";
 require_once __DIR__."/libs/helpers.php";
 
-$downloadMinuteData = function (string $ticker, int $from, int $incr, int $nums)
+$downloadMinuteData = function (string $ticker, int $period, int $from, int $incr, int $nums)
 {
     if (!count(searchTicker($ticker))) {
         header("Content-type: application/json");
@@ -14,7 +14,7 @@ $downloadMinuteData = function (string $ticker, int $from, int $incr, int $nums)
 
     $data = false;
     // if ($nums > 1) {
-    if (!$files = getMinutesFilesList($ticker, $from, $incr, $nums)) {
+    if (!$files = getMinutesFilesList($ticker, $period, $from, $incr, $nums)) {
         header("Content-type: application/json");
         http_response_code(404);
         consoleLog(0, "file not found or datetime not in range");
@@ -52,6 +52,7 @@ $downloadMinuteData = function (string $ticker, int $from, int $incr, int $nums)
     $ext = pathinfo($files[0], PATHINFO_EXTENSION);
     $mime = mime_content_type($files[0]);
     header("Content-type: {$mime}");
+    header("Content-encoding: deflate");
     // consoleLog('info', "CORS added to file {$mime} : {$filePath}");
     consoleLog('info', 'got total files of: '.count($files));
     $i = 1;

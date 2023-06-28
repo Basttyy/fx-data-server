@@ -84,6 +84,7 @@ class FxController
         $ext = pathinfo($files[0], PATHINFO_EXTENSION);
         $mime = mime_content_type($files[0]);
         header("Content-type: {$mime}");
+        header("Content-encoding: deflate");
         // consoleLog('info', "CORS added to file {$mime} : {$filePath}");
         consoleLog('info', 'got total files of: '.count($files));
         $i = 1;
@@ -98,7 +99,7 @@ class FxController
             //     echo $data;
             // } else {
                 echo file_get_contents($filePath);
-                consoleLog('info', "file $filePath sent");
+                // consoleLog('info', "file $filePath sent");
                 $i++;
                 //unlink($filePath);
             // }
@@ -146,6 +147,7 @@ class FxController
         }
         consoleLog('info', "CORS added to file {$mime} : {$filePath}");
         header("Content-type: {$mime}");
+        header("Content-encoding: deflate");
         if ($data) {
             echo $data;
         } else {
@@ -159,19 +161,14 @@ class FxController
     {
         header("Content-type: application/json");
         if (!$data = getCandles($ticker, $from, $nums, $timeframe)) {
-            http_response_code(404);
-            echo json_encode([
-                "message" => "required csv file(s) were not found"
-            ]);
+            return JsonResponse::notFound("required csv file(s) were not found");
         } else {
-            http_response_code(200);
-            echo json_encode([
-                "message" => "data retrieved success",
+            header("Content-encoding: deflate");
+            return JsonResponse::ok("data retrieved success", [
                 "count" => count($data),
                 "data" => $data
             ]);
         }
-        return true;
     }
 
     private function searchTicker(string $query)
