@@ -30,7 +30,7 @@ $downloadMinuteData = function (string $ticker, int $period, int $from, int $inc
         //     return true;
         // }
     // } else {
-    //     $filePath = "{$_SERVER['DOCUMENT_ROOT']}{$_SERVER["REQUEST_URI"]}";
+    //     $filePath = "{$_SERVER['']}/..{$_SERVER["REQUEST_URI"]}";
     // }
     
     // if (!$data && !file_exists($filePath)) {

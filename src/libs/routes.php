@@ -39,7 +39,7 @@ call_user_func(new RequestLogController('create'));
 /// frontend route
 get('/', function () {
   header('Content-Type: text/html', true, 200);
-  echo file_get_contents($_SERVER["DOCUMENT_ROOT"]."/public/index.html");
+  echo file_get_contents($_SERVER["DOCUMENT_ROOT"]."/index.html");
   return true;
 });
 
