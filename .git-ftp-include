@@ -3,3 +3,4 @@ vendor/autoload.php
 public/assets/
 public/index.html
 storage/
+!public/.htaccess
