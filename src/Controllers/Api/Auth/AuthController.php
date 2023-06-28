@@ -135,7 +135,7 @@ final class AuthController
                 ]);
             }
             
-            $hybridauth = new Hybridauth("{$_SERVER['DOCUMENT_ROOT']}/hybridauth_config.php");  //, null, new DbStorage('SOCIALAUTH::STORAGE'));
+            $hybridauth = new Hybridauth("{$_SERVER['DOCUMENT_ROOT']}/../hybridauth_config.php");  //, null, new DbStorage('SOCIALAUTH::STORAGE'));
             
             $adapter = $hybridauth->authenticate($provider);
     
