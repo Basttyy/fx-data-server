@@ -231,7 +231,10 @@ final class AuthController
         //     return JsonResponse::badRequest('errors in request', $validated);
         // }
         try {
-            if (!$token = $this->authenticator->validate()) {
+            if (!$this->authenticator->validate()) {
+                return JsonResponse::unauthorized("invalid auth token");
+            }
+            if (!$token = $this->authenticator->authenticate($this->user)) {
                 return JsonResponse::unauthorized("invalid auth token");
             }
             return JsonResponse::ok("refresh token success", [

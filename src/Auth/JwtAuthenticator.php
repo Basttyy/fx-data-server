@@ -148,10 +148,16 @@ final class JwtAuthenticator
      * @param string $password_or_token
      * @return string|bool
      */
-    public function authenticate(User $user, string $password_or_token)
+    public function authenticate(User $user, string $password_or_token = "")
     {
-        if (!password_verify($password_or_token, $user->password)) {
-            return false;
+        if ($password_or_token === "") {
+            if (!$this->validate()) {
+                return false;
+            }
+        } else {
+            if (!password_verify($password_or_token, $user->password)) {
+                return false;
+            }
         }
 
         $issued_at = time();
