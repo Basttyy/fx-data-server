@@ -16,7 +16,7 @@ class FxController
     {
         switch ($this->method) {
             case 'download_minute_data':
-                $resp = $this->downloadMinuteData($ticker, $from, $incr, $nums);
+                $resp = $this->downloadMinuteData($ticker, $timeframe, $from, $incr, $nums);
                 break;
             case 'download_tick_data':
                 $resp = $this->downloadTickData($ticker, $from, $nums, $faster);
@@ -34,7 +34,7 @@ class FxController
         $resp;
     }
 
-    private function downloadMinuteData (string $ticker, int $from, int $incr, int $nums)
+    private function downloadMinuteData (string $ticker, string $timeframe, int $from, int $incr, int $nums)
     {
         if (!count(searchTicker($ticker))) {
             header("Content-type: application/json");
@@ -46,7 +46,7 @@ class FxController
 
         $data = false;
         // if ($nums > 1) {
-        if (!$files = getMinutesFilesList($ticker, $from, $incr, $nums)) {
+        if (!$files = getMinutesFilesList($ticker, $timeframe, $from, $incr, $nums)) {
             header("Content-type: application/json");
             http_response_code(404);
             consoleLog(0, "file not found or datetime not in range");
