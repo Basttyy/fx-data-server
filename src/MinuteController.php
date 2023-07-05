@@ -8,7 +8,7 @@ $downloadMinuteData = function (string $ticker, int $period, int $from, int $inc
         header("Content-type: application/json");
         http_response_code(404);
         consoleLog(0, "request ticker does not exist");
-        out(json_encode(["message" => "ticker does not exist"]));
+        echo(json_encode(["message" => "ticker does not exist"]));
         return true;
     }
 
@@ -17,8 +17,7 @@ $downloadMinuteData = function (string $ticker, int $period, int $from, int $inc
     if (!$files = getMinutesFilesList($ticker, $period, $from, $incr, $nums)) {
         header("Content-type: application/json");
         http_response_code(404);
-        consoleLog(0, "file not found or datetime not in range");
-        out(json_encode(["message" => "file not found or datetime not in range"]));
+        echo(json_encode(["message" => "file not found or datetime not in range"]));
         return true;
     }
 

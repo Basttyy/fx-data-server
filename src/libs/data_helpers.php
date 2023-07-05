@@ -180,8 +180,6 @@ function getFilesList(string $ticker, int $from, int $nums): bool|array
 
 function getMinutesFilesList(string $ticker, int $timeframe, int &$from, int $increment, int $nums): bool|array
 {
-    // consoleLog("info", "the vars are $ticker:  $from:   $nums");
-    // return true;
     $datetime = new Carbon();
     // $datetime->setTimestamp($from);
     $datetime = $datetime->setTimestamp($from);
@@ -192,17 +190,14 @@ function getMinutesFilesList(string $ticker, int $timeframe, int &$from, int $in
             return false;
         }
         $file_path = "{$_SERVER['DOCUMENT_ROOT']}/../minute_data/{$timeframe}mins/$ticker/{$datetime->format('Y/m')}/{$datetime->format('Y-m-d')}_data.csv";
-        // str_replace('/', "\\", $file_path);
-        consoleLog(0, $file_path.PHP_EOL);
         if (!file_exists($file_path)) {
             $datetime = $increment === 1 ? $datetime->addDay() : $datetime->subDay();
-            consoleLog('info', "File not found Error for : " . $file_path);
             continue;
         }
         if ($from === 0)
             $from = $datetime->getTimestamp();
         array_unshift($files, $file_path);
-        $datetime = $increment === 1 ? $datetime->addDay() : $datetime->subDay();
+        $datetime = (bool)$increment ? $datetime->addDay() : $datetime->subDay();
         $i++;
     }
     if (count($files))

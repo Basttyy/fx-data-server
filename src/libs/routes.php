@@ -26,7 +26,7 @@ use Basttyy\FxDataServer\libs\MysqlSessionHandler;
 // ##################################################
 // ##################################################
 
-if (strtolower($_SERVER['REQUEST_METHOD']) !== "options") {
+if (strtolower($_SERVER["REQUEST_METHOD"]) !== "options") {
   session_destroy();
   if (session_status() !== PHP_SESSION_ACTIVE) {
     session_set_save_handler(new MysqlSessionHandler, true);
