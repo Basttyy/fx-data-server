@@ -50,12 +50,15 @@ $downloadMinuteData = function (string $ticker, int $period, int $from, int $inc
     ];
     $ext = pathinfo($files[0], PATHINFO_EXTENSION);
     $mime = mime_content_type($files[0]);
-    header("Content-type: {$mime}");
-    header("Content-encoding: deflate");
+    header("Content-type: text/csv");
+    // header("Content-encoding: deflate");
     // consoleLog('info', "CORS added to file {$mime} : {$filePath}");
-    consoleLog('info', 'got total files of: '.count($files));
     $i = 1;
+    
     foreach ($files as $filePath) {
+        if ($nums === 3) {
+            logger()->info("file is: $filePath");
+        }
         // $ext = pathinfo($filePath, PATHINFO_EXTENSION);
         // consoleLog('Debug', $ext);
         if (array_key_exists($ext, $customMappings)) {
@@ -65,8 +68,10 @@ $downloadMinuteData = function (string $ticker, int $period, int $from, int $inc
         // if ($data) {
         //     echo $data;
         // } else {
-            echo file_get_contents($filePath);
-            consoleLog('info', "file $filePath sent");
+            echo gzuncompress(file_get_contents($filePath));
+            // if ($i < $nums)
+            //     echo "*----*";
+            // consoleLog('info', "file $filePath sent");
             $i++;
             //unlink($filePath);
         // }
