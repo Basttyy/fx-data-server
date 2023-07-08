@@ -18,19 +18,19 @@ require_once __DIR__."/src/libs/helpers.php";
 //     return false;
 // }
 
-if (!$fh = file_get_contents(storage_path()."compressed.csv.gz")) {
-    consoleLog('error', "unable to read source file: $file");
-    return false;
-}
-if (!$compressed = gzuncompress($fh)) {
-    consoleLog('error', "unable to compress file");
-    return false;
-}
+// if (!$fh = file_get_contents(storage_path()."compressed.csv.gz")) {
+//     consoleLog('error', "unable to read source file: $file");
+//     return false;
+// }
+// if (!$compressed = gzuncompress($fh)) {
+//     consoleLog('error', "unable to compress file");
+//     return false;
+// }
 
-if (!file_put_contents(storage_path()."uncompressed.csv", $compressed)) {
-    consoleLog('error', "unable to write compressed data to file: $result_path");
-    return false;
-}
+// if (!file_put_contents(storage_path()."uncompressed.csv", $compressed)) {
+//     consoleLog('error', "unable to write compressed data to file: $result_path");
+//     return false;
+// }
 
 return 0;
 
