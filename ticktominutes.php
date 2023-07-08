@@ -4,6 +4,36 @@ require_once __DIR__."/src/libs/helpers.php";
 
 // php ticktominutes.php parse xauusd 2016,2017,2018,2019,2020,2021,2022,2023 2,5,15,30,60,120
 
+// if (!$fh = file_get_contents(storage_path()."2021-01-03--22h_ticks.csv")) {
+//     consoleLog('error', "unable to read source file: $file");
+//     return false;
+// }
+// if (!$compressed = gzdeflate($fh, encoding: ZLIB_ENCODING_DEFLATE)) {
+//     consoleLog('error', "unable to compress file");
+//     return false;
+// }
+
+// if (!file_put_contents(storage_path()."compressed.csv.gz", $compressed)) {
+//     consoleLog('error', "unable to write compressed data to file: $result_path");
+//     return false;
+// }
+
+if (!$fh = file_get_contents(storage_path()."compressed.csv.gz")) {
+    consoleLog('error', "unable to read source file: $file");
+    return false;
+}
+if (!$compressed = gzuncompress($fh)) {
+    consoleLog('error', "unable to compress file");
+    return false;
+}
+
+if (!file_put_contents(storage_path()."uncompressed.csv", $compressed)) {
+    consoleLog('error', "unable to write compressed data to file: $result_path");
+    return false;
+}
+
+return 0;
+
 use Carbon\Carbon;
 $command = $argv[1]; /// compress|parse
 $tickers = explode(',', strtoupper($argv[2]));
