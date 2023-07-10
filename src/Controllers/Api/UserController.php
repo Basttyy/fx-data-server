@@ -150,6 +150,8 @@ final class UserController
             $mail_job = new SendVerifyEmail(array_merge($user, ['email2fa_token' => $body['email2fa_token']]));
             $mail_job->init()->delay(5)->run();
 
+            $user['is_admin'] = false;
+            $user['subscription'] = null;
             return JsonResponse::ok("user creation successful", $user);
         } catch (PDOException $e) {
             if (env("APP_ENV") === "local")
