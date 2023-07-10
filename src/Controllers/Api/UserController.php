@@ -8,6 +8,7 @@ use Basttyy\FxDataServer\Exceptions\NotFoundException;
 use Basttyy\FxDataServer\libs\JsonResponse;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\Models\Role;
+use Basttyy\FxDataServer\Models\Subscription;
 use Basttyy\FxDataServer\Models\User;
 use Exception;
 use LogicException;
@@ -17,14 +18,16 @@ final class UserController
 {
     private $method;
     private $user;
+    private $subscription;
     private $authenticator;
 
     public function __construct($method = "show")
     {
         $this->method = $method;
-        $this->user = new User();
+        $this->user = new User;
+        $this->subscription = new Subscription;
         $encoder = new JwtEncoder(env('APP_KEY'));
-        $role = new Role();
+        $role = new Role;
         $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
     }
 
@@ -66,11 +69,16 @@ final class UserController
                 return JsonResponse::unauthorized("you can't view this user");
             }
 
-            if (!$user = $this->user->find((int)$id))
+            if (!$this->user->find((int)$id))
                 return JsonResponse::notFound("unable to retrieve user");
+            $subscription = $this->subscription->findBy('user_id', $user->id, false);
+
+            $user = $this->$user->toArray();
+            $user['is_admin'] = $is_admin;
+            $user['subscription'] = $subscription ? $subscription : null;
 
             return JsonResponse::ok("user retrieved success", [
-                'data' => $user->toArray()
+                'data' => $user
             ]);
         } catch (PDOException $e) {
             return JsonResponse::serverError("we encountered a problem");
