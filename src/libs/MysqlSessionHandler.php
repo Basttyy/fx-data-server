@@ -20,7 +20,8 @@ class MysqlSessionHandler implements SessionHandlerInterface, SessionIdInterface
         // consoleLog(0, "mysql handler called");
         $this->table = "session";
         $dbname = env('DB_NAME');
-        $this->dbConnection = new PDO("mysql:host=localhost;dbname=$dbname", env('DB_USER'), env('DB_PASS'));
+        $host = env('DB_HOST');
+        $this->dbConnection = new PDO("mysql:host=$host;dbname=$dbname", env('DB_USER'), env('DB_PASS'));
     }
     public function open($sessionSavePath, $sessionName): bool
     {
@@ -79,7 +80,6 @@ class MysqlSessionHandler implements SessionHandlerInterface, SessionIdInterface
     }
     public function write($sessionId, $sessionData): bool
     {
-        consoleLog(0, "wite is called");
         try {
             $query = "REPLACE INTO `{$this->table}` (id, session_data, session_last_updated) VALUES (:id, :session_data, NOW())";
             $statement = $this->dbConnection->prepare($query);
@@ -131,7 +131,7 @@ class MysqlSessionHandler implements SessionHandlerInterface, SessionIdInterface
         }
     }
 
-    private function handle_exception(PDOException $exception) {        
+    private function handle_exception(PDOException $exception) {      
         if ( strpos($exception->getMessage(), "doesn't exist") !== false ) {
           $sql = "CREATE TABLE IF NOT EXISTS `{$this->table}` (
             `id` CHAR(32) NOT NULL,

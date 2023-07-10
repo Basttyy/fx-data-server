@@ -128,7 +128,7 @@ abstract class Model
     public function __construct(object $child = null)
     {
         $this->child = $child;
-        mysqly::auth(env('DB_USER'), env('DB_PASS'), env('DB_NAME'));
+        mysqly::auth(env('DB_USER'), env('DB_PASS'), env('DB_NAME'), env('DB_HOST'));
         $this->prepareModel();
     }
 

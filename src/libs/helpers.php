@@ -58,7 +58,8 @@ if (! function_exists('sanitize_data')) {
 
 if (!function_exists("consoleLog")) {
     function consoleLog($level, $msg) {
-        file_put_contents("php://stdout", "[" . $level . "] " . $msg . "\n");
+        file_put_contents("php://stderr", "[" . $level . "] " . $msg . "\n");
+        // file_put_contents("php://stdout", "[" . $level . "] " . $msg . "\n");
     }
 }
 

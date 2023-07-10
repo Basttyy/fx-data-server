@@ -45,9 +45,8 @@ final class CaptchaController
         try {
             $captcha = new CaptchaBuilder;
             $_SESSION['captcha-phrase'] = $captcha->getPhrase();
-            $captcha->build(128, 32);
             header('Content-Type: image/jpeg');
-            $captcha->output();
+            $captcha->build(128, 48)->output();
 
             return true;
         } catch (Exception $e) {

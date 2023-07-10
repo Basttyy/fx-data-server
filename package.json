@@ -1,5 +1,8 @@
 {
   "dependencies": {
     "nodemon": "^2.0.22"
+  },
+  "devDependencies": {
+    "serverless-lift": "^1.27.0"
   }
 }

@@ -1,0 +1,56 @@
+service: app
+
+provider:
+    name: aws
+    region: us-east-1
+    apiGateway:
+        binaryMediaTypes:
+            - 'image/jpeg'
+    environment:
+        BREF_BINARY_RESPONSES: '1'
+
+plugins:
+  - ./vendor/bref/bref
+  - ./vendor/bref/extra-php-extensions
+  - serverless-lift
+
+functions:
+    api:
+        handler: public/server.php
+        description: ''
+        runtime: php-81-fpm
+        layers:
+            - ${bref-extra:gd-php-81}
+        timeout: 28 # in seconds (API Gateway has a timeout of 29 seconds)
+        events:
+            -   httpApi: '*'
+        vpc:
+            securityGroupIds:
+                - sg-09f0fed8dfe2d4c61
+            subnetIds:
+                - subnet-0be2353518acfca5b
+                - subnet-029e1558b28a20934
+                - subnet-0b45857b40bec8fd7
+                - subnet-0387e0576bba123bc
+                - subnet-0f43f48f3d97fed7d
+                - subnet-0dd5c7abe9d611a3c
+
+constructs:
+    landing:
+        type: single-page-app
+        path: public
+
+# Exclude files from deployment
+package:
+    patterns:
+        - '!node_modules/**'
+        - '!tests/**'
+        - '!download/**'
+        - '!minute_data/**'
+        - '!.github/**'
+        - '!public/assets/**'
+        - '!public/minute_data/**'
+        - '!public/.htaccess'
+        - '!public/vite.svg'
+        - '!.git-ftp-ignore'
+        - '!.git-ftp-include'
