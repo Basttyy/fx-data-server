@@ -16,6 +16,7 @@ use Basttyy\FxDataServer\Controllers\Api\PlanController;
 use Basttyy\FxDataServer\Controllers\Api\PositionController;
 use Basttyy\FxDataServer\Controllers\Api\RequestLogController;
 use Basttyy\FxDataServer\Controllers\Api\StrategyController;
+use Basttyy\FxDataServer\Controllers\Api\SubscriptionController;
 use Basttyy\FxDataServer\Controllers\Api\TestSessionController;
 use Basttyy\FxDataServer\Controllers\Api\UserController;
 use Basttyy\FxDataServer\Controllers\Api\UserExplicitController;
@@ -69,6 +70,13 @@ get('/api/plans/query/$query', new PlanController('list'));
 post('/api/plans', new PlanController('create'));
 put('/api/plans/$id', new PlanController('update'));
 delete('/api/plans/$id', new PlanController('delete'));
+
+/// Subscription Routes
+get('/api/subscriptions/$id', new SubscriptionController());
+get('/api/subscriptions', new Subscriptions('list'));
+get('/api/subscriptions/query/$query', new SubscriptionController('list'));
+get('/api/subscriptions/palns/$id', new SubscriptionController('list_plan'));
+post('/api/subscriptions', new SubscriptionController('create'));
 
 /// Strategy Routes
 get('/api/strategies/$id', new StrategyController());
