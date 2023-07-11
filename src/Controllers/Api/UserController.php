@@ -74,8 +74,8 @@ final class UserController
             $subscription = $this->subscription->findBy('user_id', $this->user->id, false); //TODO: we need to add a filter that will ensure the subscription is active
 
             $user = $this->user->toArray();
-            $user['is_admin'] = $is_admin;
-            $user['subscription'] = $subscription ? $subscription : null;
+            $user['extra']['is_admin'] = $is_admin;
+            $user['extra']['subscription'] = $subscription ? $subscription : null;
 
             return JsonResponse::ok("user retrieved success", [
                 'data' => $user

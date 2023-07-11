@@ -105,8 +105,8 @@ final class AuthController
             $is_admin = $this->authenticator->verifyRole($this->user, 'admin');
 
             $user = $this->user->toArray();
-            $user['is_admin'] = $is_admin;
-            $user['subscription'] = $subscription ? $subscription : null;
+            $user['extra']['is_admin'] = $is_admin;
+            $user['extra']['subscription'] = $subscription ? $subscription : null;
 
             return JsonResponse::ok("login successfull", [
                 'auth_token' => $token,
