@@ -11,6 +11,7 @@ use Basttyy\FxDataServer\libs\DbStorage;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\libs\JsonResponse;
 use Basttyy\FxDataServer\Models\Role;
+use Basttyy\FxDataServer\Models\Subscription;
 use Basttyy\FxDataServer\Models\User;
 use Exception;
 use Hybridauth\Exception\HttpRequestFailedException;
@@ -26,14 +27,16 @@ final class AuthController
     private $authenticator;
 
     private $user;
+    private $subscription;
     private $method;
 
     public function __construct($method = 'login')
     {
         $this->method = $method;
-        $this->user = new User();
+        $this->user = new User;
+        $this->subscription = new Subscription;
         $encoder = new JwtEncoder(env('APP_KEY'));
-        $role = new Role();
+        $role = new Role;
         $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
         // $authMiddleware = new Guard($authenticator);
     }
@@ -98,10 +101,16 @@ final class AuthController
             if (!$token = $this->authenticator->authenticate($this->user, $body['password'])) {
                 return JsonResponse::unauthorized("invalid login details");
             }
+            $subscription = $this->subscription->findBy('user_id', $this->user->id, false);
+            $is_admin = $this->authenticator->verifyRole($this->user, 'admin');
+
+            $user = $this->user->toArray();
+            $user['extra']['is_admin'] = $is_admin;
+            $user['extra']['subscription'] = $subscription ? $subscription : null;
 
             return JsonResponse::ok("login successfull", [
                 'auth_token' => $token,
-                'data' => $this->user->toArray()
+                'data' => $user
             ]);
         } catch (NotFoundException $ex) {
             if (env('APP_ENV') === "local")
