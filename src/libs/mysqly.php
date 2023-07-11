@@ -43,11 +43,8 @@ class mysqly {
       $in = implode(', ', $in);
       $where[] = "`{$k}` IN ($in)";
     }
-    else if ($v !== null && str_contains((string)$v, 'NULL')) {
+    else if (str_contains($v, 'NULL')) {
       $where[] = "`{$k}` $v";
-    }
-    else if ($v !== null && is_string($v) && str_contains($v, 'now')) {
-      $where[] = "`{$k}` = now()";
     }
     else {
       $where[] = "`{$k}` = :{$k}";
@@ -71,9 +68,6 @@ class mysqly {
         $key = implode('.', $path);
         $values[] = "`{$name}` = JSON_SET({$name}, '$.{$key}', :{$place_holder}) ";
         $bind[":{$place_holder}"] = $value;
-      }
-      else if ($value !== null && is_string($value) && str_contains($value, 'now')) {
-        $values[] = "`{$name}` = current_timestamp";
       }
       else {
         $values[] = "`{$name}` = :{$name}";

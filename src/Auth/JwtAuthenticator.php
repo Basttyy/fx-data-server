@@ -5,8 +5,6 @@ namespace Basttyy\FxDataServer\Auth;
 use Basttyy\FxDataServer\libs\Arr;
 use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\User;
-use Hybridauth\Adapter\AdapterInterface;
-use Hybridauth\Hybridauth;
 
 final class JwtAuthenticator
 {
@@ -66,30 +64,6 @@ final class JwtAuthenticator
             return false;
         }
 
-        if (str_contains($jwt, "social_login:")) {
-            $providers = ['facebook']; //, 'twitter', 'google'];
-            $hybridauth = new Hybridauth("{$_SERVER['DOCUMENT_ROOT']}/../hybridauth_config.php");  //, null, new DbStorage('SOCIALAUTH::STORAGE'));
-
-            foreach ($providers as $provider) {
-                if ($hybridauth->isConnectedWith($provider)) {
-                    $adapter = $hybridauth->getAdapter($provider);
-                    break;
-                }
-                $adapter = null;
-            }
-            if ($adapter instanceof AdapterInterface) {
-                if (!$this->user->find((int)base64_decode(str_replace('social_login:', '', $jwt)))) {
-                    return false;
-                }
-                $user_profile = $adapter->getUserProfile();
-                if ($this->user->uuid !== $user_profile->identifier && $this->user->email !== $user_profile->email) {
-                    return false;
-                }
-                return $this->user;
-            }
-            return false;
-        }
-
         if (is_null($payload = $this->encoder->decode($jwt))) {
             return false;
         }
@@ -121,6 +95,7 @@ final class JwtAuthenticator
 
     private function extractToken(): ?string
     {
+        // print_r($_SERVER);
         if (!isset($_SERVER['HTTP_AUTHORIZATION']))
             return null;
         $auth_header = $_SERVER['HTTP_AUTHORIZATION'];
@@ -147,16 +122,10 @@ final class JwtAuthenticator
      * @param string $password_or_token
      * @return string|bool
      */
-    public function authenticate(User $user, string $password_or_token = "")
+    public function authenticate(User $user, string $password_or_token)
     {
-        if ($password_or_token === "") {
-            if (!$this->validate()) {
-                return false;
-            }
-        } else {
-            if (!password_verify($password_or_token, $user->password)) {
-                return false;
-            }
+        if (!password_verify($password_or_token, $user->password)) {
+            return false;
         }
 
         $issued_at = time();

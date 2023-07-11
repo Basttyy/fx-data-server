@@ -5,7 +5,6 @@ require_once __DIR__."/../libs/helpers.php";
 
 use Basttyy\FxDataServer\libs\Arr;
 use Basttyy\FxDataServer\libs\mysqly;
-use DateTime;
 use Exception;
 use PDO;
 
@@ -143,12 +142,6 @@ abstract class Model
         return $this;
     }
 
-    /**
-     * Fill a model with array of values
-     * @param int $id
-     * 
-     * @return self
-     */
     public function fill($values)
     {
         // if ($self == null) {
@@ -398,7 +391,7 @@ abstract class Model
         }
         $query_arr['id'] = $id;
 
-        if (!mysqly::update($this->table, $query_arr, $values)) {
+        if (!$stat = mysqly::update($this->table, $query_arr, $values)) {
             return false;
         }
 
@@ -422,14 +415,11 @@ abstract class Model
         
         $query_arr = [];
 
-        $query_arr['id'] = $id;
         if ($this->child->softdeletes) {
             $query_arr['deleted_at'] = "IS NULL";
-            if (!mysqly::update($this->table, $query_arr, ['deleted_at' => "now"]))
-                return false;
-            return true;
             //$this->builder->useSoftDelete = true;
         }
+        $query_arr['id'] = $id;
 
         return mysqly::remove($this->table, $query_arr);
     }
