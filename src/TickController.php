@@ -14,7 +14,7 @@ $downloadTickData = function (string $ticker, int $from, int $nums, bool $faster
             return true;
         }
     } else {
-        $filePath = "{$_SERVER['DOCUMENT_ROOT']}{$_SERVER["REQUEST_URI"]}";
+        $filePath = "{$_SERVER['DOCUMENT_ROOT']}/..{$_SERVER["REQUEST_URI"]}";
     }
     
     if (!$data && !file_exists($filePath)) {

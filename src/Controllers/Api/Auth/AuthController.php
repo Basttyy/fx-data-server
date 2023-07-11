@@ -11,6 +11,7 @@ use Basttyy\FxDataServer\libs\DbStorage;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\libs\JsonResponse;
 use Basttyy\FxDataServer\Models\Role;
+use Basttyy\FxDataServer\Models\Subscription;
 use Basttyy\FxDataServer\Models\User;
 use Exception;
 use Hybridauth\Exception\HttpRequestFailedException;
@@ -26,14 +27,16 @@ final class AuthController
     private $authenticator;
 
     private $user;
+    private $subscription;
     private $method;
 
     public function __construct($method = 'login')
     {
         $this->method = $method;
-        $this->user = new User();
+        $this->user = new User;
+        $this->subscription = new Subscription;
         $encoder = new JwtEncoder(env('APP_KEY'));
-        $role = new Role();
+        $role = new Role;
         $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
         // $authMiddleware = new Guard($authenticator);
     }
@@ -98,10 +101,16 @@ final class AuthController
             if (!$token = $this->authenticator->authenticate($this->user, $body['password'])) {
                 return JsonResponse::unauthorized("invalid login details");
             }
+            $subscription = $this->subscription->findBy('user_id', $this->user->id, false);
+            $is_admin = $this->authenticator->verifyRole($this->user, 'admin');
+
+            $user = $this->user->toArray();
+            $user['is_admin'] = $is_admin;
+            $user['subscription'] = $subscription ? $subscription : null;
 
             return JsonResponse::ok("login successfull", [
                 'auth_token' => $token,
-                'data' => $this->user->toArray()
+                'data' => $user
             ]);
         } catch (NotFoundException $ex) {
             if (env('APP_ENV') === "local")
@@ -116,6 +125,9 @@ final class AuthController
 
     private function loginOauth()
     {
+        if (strtolower($_SERVER['REQUEST_METHOD']) === "options") {
+            return JsonResponse::ok();
+        }
         try {
             if (isset($_GET['provider'])) {
                 $_SESSION['provider'] = $_GET['provider'];
@@ -132,12 +144,12 @@ final class AuthController
                 ]);
             }
             
-            $hybridauth = new Hybridauth("{$_SERVER['DOCUMENT_ROOT']}/hybridauth_config.php");  //, null, new DbStorage('SOCIALAUTH::STORAGE'));
+            $hybridauth = new Hybridauth("{$_SERVER['DOCUMENT_ROOT']}/../hybridauth_config.php");  //, null, new DbStorage('SOCIALAUTH::STORAGE'));
             
             $adapter = $hybridauth->authenticate($provider);
     
             // Returns a boolean of whether the user is connected with Twitter
-            if (!$isConnected = $adapter->isConnected()) {
+            if (!$adapter->isConnected()) {
                 if (env('APP_ENV') === 'local') consoleLog(0, "user is not connected to provider");
                 return JsonResponse::unauthorized("unsuccessful social login attempt");
             }
@@ -165,14 +177,14 @@ final class AuthController
                 }
 
                 return JsonResponse::created('user account has been created', [
-                    'auth_token' => "social_login",
+                    'auth_token' => "social_login:". base64_encode($user['id']),
                     'data' => $user
                 ]);
             }
 
             return JsonResponse::ok("login successfull", [
-                'auth_token' => "social_login",
-                'data' => $user
+                'auth_token' => "social_login:". base64_encode($user[0]['id']),
+                'user' => $user[0]
             ]);
     
             // Disconnect the adapter (log out)
@@ -228,7 +240,10 @@ final class AuthController
         //     return JsonResponse::badRequest('errors in request', $validated);
         // }
         try {
-            if (!$token = $this->authenticator->validate()) {
+            if (!$this->authenticator->validate()) {
+                return JsonResponse::unauthorized("invalid auth token");
+            }
+            if (!$token = $this->authenticator->authenticate($this->user)) {
                 return JsonResponse::unauthorized("invalid auth token");
             }
             return JsonResponse::ok("refresh token success", [

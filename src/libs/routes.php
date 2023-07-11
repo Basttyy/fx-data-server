@@ -10,6 +10,14 @@ use Basttyy\FxDataServer\Controllers\Api\Auth\AuthController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\CaptchaController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\TwoFaController;
 use Basttyy\FxDataServer\Controllers\Api\MigrateController;
+use Basttyy\FxDataServer\Controllers\Api\MiscellaneousController;
+use Basttyy\FxDataServer\Controllers\Api\PairController;
+use Basttyy\FxDataServer\Controllers\Api\PlanController;
+use Basttyy\FxDataServer\Controllers\Api\PositionController;
+use Basttyy\FxDataServer\Controllers\Api\RequestLogController;
+use Basttyy\FxDataServer\Controllers\Api\StrategyController;
+use Basttyy\FxDataServer\Controllers\Api\SubscriptionController;
+use Basttyy\FxDataServer\Controllers\Api\TestSessionController;
 use Basttyy\FxDataServer\Controllers\Api\UserController;
 use Basttyy\FxDataServer\Controllers\Api\UserExplicitController;
 use Basttyy\FxDataServer\Controllers\NotFoundController;
@@ -19,7 +27,7 @@ use Basttyy\FxDataServer\libs\MysqlSessionHandler;
 // ##################################################
 // ##################################################
 
-if (strtolower($_SERVER['REQUEST_METHOD']) !== "options") {
+if (strtolower($_SERVER["REQUEST_METHOD"]) !== "options") {
   session_destroy();
   if (session_status() !== PHP_SESSION_ACTIVE) {
     session_set_save_handler(new MysqlSessionHandler, true);
@@ -27,10 +35,13 @@ if (strtolower($_SERVER['REQUEST_METHOD']) !== "options") {
   }
 }
 
+call_user_func(new RequestLogController('create'));
+
 /// frontend route
 get('/', function () {
   header('Content-Type: text/html', true, 200);
-  echo file_get_contents($_SERVER["DOCUMENT_ROOT"]."/public/index.html");
+  echo file_get_contents($_SERVER["DOCUMENT_ROOT"]."/index.html");
+  return true;
 });
 
 /// Auth routes
@@ -52,15 +63,69 @@ delete('/api/users/$id', new UserController('delete'));
 /// User Special Routes
 post('/api/users/method/$method', new UserExplicitController());
 
+/// Plan Routes
+get('/api/plans/$id', new PlanController());
+get('/api/plans', new PlanController('list'));
+get('/api/plans/query/$query', new PlanController('list'));
+post('/api/plans', new PlanController('create'));
+put('/api/plans/$id', new PlanController('update'));
+delete('/api/plans/$id', new PlanController('delete'));
+
+/// Subscription Routes
+get('/api/subscriptions/$id', new SubscriptionController());
+get('/api/subscriptions', new Subscriptions('list'));
+get('/api/subscriptions/query/$query', new SubscriptionController('list'));
+get('/api/subscriptions/palns/$id', new SubscriptionController('list_plan'));
+post('/api/subscriptions', new SubscriptionController('create'));
+
+/// Strategy Routes
+get('/api/strategies/$id', new StrategyController());
+get('/api/strategies', new StrategyController('list'));
+get('/api/strategies/query/$query', new StrategyController('list'));
+get('/api/strategies/users/$id', new StrategyController('list_user'));
+post('/api/strategies', new StrategyController('create'));
+put('/api/strategies/$id', new StrategyController('update'));
+delete('/api/strategies/$id', new StrategyController('delete'));
+
+/// TestSessions Routes
+get('/api/test-sessions/$id', new TestSessionController());
+get('/api/test-sessions', new TestSessionController('list'));
+get('/api/test-sessions/query/$query', new TestSessionController('list'));
+post('/api/test-sessions', new TestSessionController('create'));
+put('/api/test-sessions/$id', new TestSessionController('update'));
+delete('/api/test-sessions/$id', new TestSessionController('delete'));
+
+/// Pairs Routes
+get('/api/pairs/$id', new PairController());
+get('/api/pairs', new PairController('list'));
+get('/api/pairs/query', new PairController('list'));
+post('/api/pairs', new PairController('create'));
+put('/api/pairs/$id', new PairController('update'));
+delete('/api/pairs/$id', new PairController('delete'));
+
+/// Positions Routes
+get('/api/positions/$id', new PositionController());
+get('/api/positions', new PositionController('list'));
+get('/api/positions/query', new PositionController('list'));
+get('/api/positions/users/$id', new PositionController('list_user'));
+post('/api/positions', new PositionController('create'));
+put('/api/positions/$id', new PositionController('update'));
+delete('/api/positions/$id', new PositionController('delete'));
+
 /// Admin Routes
 get('/api/migrate', new MigrateController);
+get('/api/admin/logs/$id', new RequestLogController());
+get('/api/admin/logs', new RequestLogController('list'));
 
 /// Historical Data Routes
-get('/api/download/ticker/$ticker/from/$from/nums/$nums/faster/$faster', $downloadTickData);
-get('/api/candles/ticker/$ticker/from/$fro/nums/$num/timeframe/$timefram', $getTimeframeCandles);
-get('/api/download/min/ticker/$ticker/from/$from/incr/$incr/nums/$nums', $downloadMinuteData);
-get('/api/tickers/query/$query', $searchTicker);
-get('/api/tickers/query', $searchTicker);
+get('/api/fx/download/ticker/$ticker/from/$from/nums/$nums/faster/$faster', $downloadTickData);
+get('/api/fx/candles/ticker/$ticker/from/$fro/nums/$num/timeframe/$timefram', $getTimeframeCandles);
+get('/api/fx/download/min/ticker/$ticker/period/$period/from/$from/incr/$incr/nums/$nums', $downloadMinuteData);
+get('/api/fx/tickers/query/$query', $searchTicker);
+get('/api/fx/tickers/query', $searchTicker);
+
+/// Others
+post('/api/misc/contact-us', new MiscellaneousController('contact-us'));
 
 any('/404', new NotFoundController);
 

@@ -2,23 +2,22 @@
 require_once __DIR__."/../config.php";
 require_once __DIR__."/libs/helpers.php";
 
-$downloadMinuteData = function (string $ticker, int $from, int $incr, int $nums)
+$downloadMinuteData = function (string $ticker, int $period, int $from, int $incr, int $nums)
 {
     if (!count(searchTicker($ticker))) {
         header("Content-type: application/json");
         http_response_code(404);
         consoleLog(0, "request ticker does not exist");
-        out(json_encode(["message" => "ticker does not exist"]));
+        echo(json_encode(["message" => "ticker does not exist"]));
         return true;
     }
 
     $data = false;
     // if ($nums > 1) {
-    if (!$files = getMinutesFilesList($ticker, $from, $incr, $nums)) {
+    if (!$files = getMinutesFilesList($ticker, $period, $from, $incr, $nums)) {
         header("Content-type: application/json");
         http_response_code(404);
-        consoleLog(0, "file not found or datetime not in range");
-        out(json_encode(["message" => "file not found or datetime not in range"]));
+        echo(json_encode(["message" => "file not found or datetime not in range"]));
         return true;
     }
 
@@ -30,7 +29,7 @@ $downloadMinuteData = function (string $ticker, int $from, int $incr, int $nums)
         //     return true;
         // }
     // } else {
-    //     $filePath = "{$_SERVER['DOCUMENT_ROOT']}{$_SERVER["REQUEST_URI"]}";
+    //     $filePath = "{$_SERVER['']}/..{$_SERVER["REQUEST_URI"]}";
     // }
     
     // if (!$data && !file_exists($filePath)) {
@@ -51,11 +50,15 @@ $downloadMinuteData = function (string $ticker, int $from, int $incr, int $nums)
     ];
     $ext = pathinfo($files[0], PATHINFO_EXTENSION);
     $mime = mime_content_type($files[0]);
-    header("Content-type: {$mime}");
+    header("Content-type: text/csv");
+    // header("Content-encoding: deflate");
     // consoleLog('info', "CORS added to file {$mime} : {$filePath}");
-    consoleLog('info', 'got total files of: '.count($files));
     $i = 1;
+    
     foreach ($files as $filePath) {
+        if ($nums === 3) {
+            logger()->info("file is: $filePath");
+        }
         // $ext = pathinfo($filePath, PATHINFO_EXTENSION);
         // consoleLog('Debug', $ext);
         if (array_key_exists($ext, $customMappings)) {
@@ -65,8 +68,10 @@ $downloadMinuteData = function (string $ticker, int $from, int $incr, int $nums)
         // if ($data) {
         //     echo $data;
         // } else {
-            echo file_get_contents($filePath);
-            consoleLog('info', "file $filePath sent");
+            echo gzuncompress(file_get_contents($filePath));
+            // if ($i < $nums)
+            //     echo "*----*";
+            // consoleLog('info', "file $filePath sent");
             $i++;
             //unlink($filePath);
         // }

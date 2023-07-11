@@ -21,7 +21,7 @@ $dbcharset = env('DB_CHARSET');
 $chron_interval = env('CHRON_INTERVAL');
 
 $start_time = time();
-$end_time = time() + $chron_interval;
+$end_time = $start_time + $chron_interval;
 
 $job_Queue = new Job_Queue(Job_Queue::QUEUE_TYPE_MYSQL, [
     $dbtype => [
@@ -34,16 +34,13 @@ $pdo = new PDO("$dbtype:dbname=$dbname;host=$dbhost", $dbuser, $dbpass);
 $job_Queue->addQueueConnection($pdo);
 $job_Queue->watchPipeline('default');
 
-$job = $job_Queue->getNextBuriedJob();
-
 while ($end_time > time()) {
+    $job = $job_Queue->getNextBuriedJob();
     if (empty($job)) {
         sleep(1);
-        echo "buried job is empty".PHP_EOL;
         continue;
     }
 
-    echo "Processing job {$job['id']}\n";
     $payload = $job['payload'];
 
     try {

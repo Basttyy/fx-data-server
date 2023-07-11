@@ -15,7 +15,7 @@ class ContactUs
 
         self::$mail->addAddress(env('SUPPORT_EMAIL_USER'), env('SUPPORT_EMAIL_NAME'));
         self::$mail->setFrom(env('NOREPLY_EMAIL_USER'), env('NOREPLY_EMAIL_NAME'));
-        self::$mail->addReplyTo($data['email'], $data['name']);
+        self::$mail->addReplyTo($data['email'], $data['firstname'].' '. $data['lastname']);
 
         self::$mail->Subject = $data['subject']; // 'Verify Your Email';
         // $mail->addAttachment(__FILE__, 'images/logo.png');
@@ -28,9 +28,9 @@ class ContactUs
         try {
             $content = ["Hello Support"];
             $content = array_push($content, explode("\n", $data["message"]));
-            $html = Templater::view('verify.html', 'src/libs/mail/html/', [
+            $html = Templater::view('verify.html', '/Mail/html/', [
                 'title' => "Contact Us",
-                'header' => "Customer Request",
+                'header' => "User Enquiry",
                 'sender_email' => "noreply@backtestfx.com",  //$sender->email,
                 'contents' => $content,
                 'links' => []
@@ -39,11 +39,13 @@ class ContactUs
             new self($html, $data);
 
             self::$mail->send();
-            echo "email sent successfully".PHP_EOL;
+            // echo "email sent successfully".PHP_EOL;
+            logger(storage_path()."logs/email.log")->info("email sent successfully");
             return true;
         } catch (Exception $e) {
-            echo 'Caught a ' . get_class($e) . ': ' . $e->getMessage().PHP_EOL;
-            echo $e->getTraceAsString();
+            logger(storage_path()."logs/email.log")->error($e->getMessage(), $e->getTrace());
+            // echo 'Caught a ' . get_class($e) . ': ' . $e->getMessage().PHP_EOL;
+            // echo $e->getTraceAsString();
             return false;
         }
     }

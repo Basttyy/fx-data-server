@@ -360,6 +360,8 @@ class Job_Queue {
 	 * Buries (hides) a job
 	 *
 	 * @param mixed $job
+	 * @param int $time_to_retry
+	 * 
 	 * @return void
 	 */
 	public function buryJob($job, int $time_to_retry): void {
@@ -529,7 +531,7 @@ class Job_Queue {
 		if(empty($exists)) {
 			$table_names = $this->getSqlTableName();
 
-            foreach ($table_names as $table_name) {
+            foreach ($table_names as $index => $table_name) {
                 if($this->isMysqlQueueType()) {
                     // Doesn't like this in a prepared statement...
                     $escaped_table_name = $this->connection->quote($table_name);
@@ -541,8 +543,8 @@ class Job_Queue {
                 
                 $has_table = !!count($statement->fetchAll(PDO::FETCH_ASSOC));
                 if(!$has_table) {
-                    if($this->isMysqlQueueType()) {
-                        $field_type = $this->options['mysql']['use_compression'] ? 'longblob' : 'longtext';
+					$field_type = $this->options['mysql']['use_compression'] ? 'longblob' : 'longtext';
+                    if($index < 1) {
                         $this->connection->exec("CREATE TABLE IF NOT EXISTS {$table_name} (
                             `id` int(11) NOT NULL AUTO_INCREMENT,
                             `pipeline` varchar(500) NOT NULL,
@@ -562,11 +564,13 @@ class Job_Queue {
                         );");
                     } else {
                         $this->connection->exec("CREATE TABLE IF NOT EXISTS {$table_name} (
-                            'id' INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                            'pipeline' TEXT NOT NULL,
-                            'payload' TEXT NOT NULL,
-                            'added_dt' TEXT NOT NULL, -- COMMENT 'In UTC'
-                            'attempts' tinyint(4) UNSIGNED NOT NULL
+                            `id` int(11) NOT NULL AUTO_INCREMENT,
+                            `pipeline` varchar(500) NOT NULL,
+                            `payload` {$field_type} NOT NULL,
+                            `added_dt` datetime NOT NULL COMMENT 'In UTC',
+                            `attempts` tinyint(4) UNSIGNED NOT NULL,
+                            PRIMARY KEY (`id`),
+                            KEY `pipeline` (`pipeline`(75))
                         );");
                         
                         //$this->connection->exec("CREATE INDEX pipeline ON {$table_name} ('pipeline', 'send_dt', 'is_buried', 'is_reserved'");
