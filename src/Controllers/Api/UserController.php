@@ -60,20 +60,20 @@ final class UserController
     {
         $id = sanitize_data($id);
         try {
-            if (!$user = $this->authenticator->validate()) {
+            if (!$this->authenticator->validate()) {
                 return JsonResponse::unauthorized();
             }
-            $is_admin = $this->authenticator->verifyRole($user, 'admin');
+            $is_admin = $this->authenticator->verifyRole($this->user, 'admin');
 
-            if ($is_admin === false && $user->id != $id) {
+            if ($is_admin === false && $this->user->id != $id) {
                 return JsonResponse::unauthorized("you can't view this user");
             }
 
             if (!$this->user->find((int)$id))
                 return JsonResponse::notFound("unable to retrieve user");
-            $subscription = $this->subscription->findBy('user_id', $user->id, false);
+            $subscription = $this->subscription->findBy('user_id', $this->user->id, false); //TODO: we need to add a filter that will ensure the subscription is active
 
-            $user = $this->$user->toArray();
+            $user = $this->user->toArray();
             $user['is_admin'] = $is_admin;
             $user['subscription'] = $subscription ? $subscription : null;
 
