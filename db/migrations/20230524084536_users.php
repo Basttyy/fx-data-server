@@ -45,9 +45,7 @@ final class Users extends AbstractMigration
             ->addForeignKey('role_id', 'roles', 'id', ['delete' => 'CASCADE', 'update' => 'NO_ACTION'])
             ->addColumn('deleted_at', 'timestamp', ['null' => true])
             ->addTimestamps()
-            ->addIndex(['username'], ['unique' => true])
-            ->addIndex(['email'], ['unique' => true])
-            ->addIndex(['uuid'], ['unique' => true])
+            ->addIndex(['username', 'email', 'uuid'], ['unique' => true])
             ->create();
     }
 }

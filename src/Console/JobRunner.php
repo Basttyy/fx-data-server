@@ -21,7 +21,8 @@ $dbcharset = env('DB_CHARSET');
 $chron_interval = env('CHRON_INTERVAL');
 
 $start_time = time();
-$end_time = $start_time + $chron_interval;
+$end_time = time() + $chron_interval;
+echo $dbtype.PHP_EOL;
 
 $job_Queue = new Job_Queue(Job_Queue::QUEUE_TYPE_MYSQL, [
     $dbtype => [
@@ -40,13 +41,16 @@ while ($end_time > time()) {
     
     if(empty($job)) {
         sleep(1);
+        echo "job is empty".PHP_EOL;
         continue;
     }
 
     $payload = $job['payload'];
+    // echo $payload.PHP_EOL;
 
     try {
         $job_obj = unserialize($payload);
+        var_dump($job_obj);
 
         if ($job_obj instanceof QueueInterface) {
             $job_obj->setJob($job);

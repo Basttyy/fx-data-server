@@ -1,12 +1,10 @@
 <?php
 declare(strict_types=1);
 
-use Basttyy\FxDataServer\Models\Plan;
 use Phinx\Migration\AbstractMigration;
 
 final class Plans extends AbstractMigration
 {
-    const TABLE_NAME = 'plans';
     /**
      * Change Method.
      *
@@ -20,14 +18,6 @@ final class Plans extends AbstractMigration
      */
     public function change(): void
     {
-        $table = $this->table($this::TABLE_NAME);
-        $table->addColumn('name', 'string', ['limit' => 30])
-            ->addColumn('description', 'string')
-            ->addColumn('price', 'decimal')
-            ->addColumn('status', 'string', ['default' => Plan::ENABLED])
-            ->addColumn('features', 'string')
-            ->addColumn('deleted_at', 'timestamp', ['null' => true])
-            ->addTimestamps()
-            ->create();
+
     }
 }

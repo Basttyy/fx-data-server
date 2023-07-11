@@ -4,7 +4,6 @@
 # Example usage:
 #   ./fx-data-download.py -p EURUSD -y 2013,2014
 #in windows:  python fx-data-download.py -p EURUSD -y 2023 -m all -d all -c -C
-#  python fx-data-download.py -p EURUSD -y 2023 -m 04 -d 26,27,28,29,30,31 -c -C
 
 import sys
 import os
@@ -297,7 +296,7 @@ class Dukascopy:
             if not os.path.exists(os.path.dirname(self.path)):
                 os.makedirs(os.path.dirname(self.path))
             i = 1
-            while i <= 10:
+            while i <= 5:
                 try:
                     urllib.request.urlretrieve(self.url, filename=self.path)
                     break
@@ -517,7 +516,6 @@ if __name__ == "__main__":
 
     try:
         currencies = []
-        socket.setdefaulttimeout(10)
         for pair in sorted(pairs):
             for year in sorted(years):
                 for month in sorted(months):

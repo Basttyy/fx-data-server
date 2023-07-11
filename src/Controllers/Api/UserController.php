@@ -3,12 +3,11 @@ namespace Basttyy\FxDataServer\Controllers\Api;
 
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
-use Basttyy\FxDataServer\Console\Jobs\SendVerifyEmail;
+use Basttyy\FxDataServer\Console\Jobs\SendEmail;
 use Basttyy\FxDataServer\Exceptions\NotFoundException;
 use Basttyy\FxDataServer\libs\JsonResponse;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\Models\Role;
-use Basttyy\FxDataServer\Models\Subscription;
 use Basttyy\FxDataServer\Models\User;
 use Exception;
 use LogicException;
@@ -18,16 +17,14 @@ final class UserController
 {
     private $method;
     private $user;
-    private $subscription;
     private $authenticator;
 
     public function __construct($method = "show")
     {
         $this->method = $method;
-        $this->user = new User;
-        $this->subscription = new Subscription;
+        $this->user = new User();
         $encoder = new JwtEncoder(env('APP_KEY'));
-        $role = new Role;
+        $role = new Role();
         $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
     }
 
@@ -60,25 +57,21 @@ final class UserController
     {
         $id = sanitize_data($id);
         try {
-            if (!$this->authenticator->validate()) {
+            if (!$user = $this->authenticator->validate()) {
                 return JsonResponse::unauthorized();
             }
-            $is_admin = $this->authenticator->verifyRole($this->user, 'admin');
+            $is_admin = $this->authenticator->verifyRole($user, 'admin');
 
-            if ($is_admin === false && $this->user->id != $id) {
+            if (!$is_admin && $user->id !== $id) {
                 return JsonResponse::unauthorized("you can't view this user");
             }
+            throw new Exception("custom exception");
 
-            if (!$this->user->find((int)$id))
+            if (!$user = $this->user->find((int)$id))
                 return JsonResponse::notFound("unable to retrieve user");
-            $subscription = $this->subscription->findBy('user_id', $this->user->id, false); //TODO: we need to add a filter that will ensure the subscription is active
-
-            $user = $this->user->toArray();
-            $user['is_admin'] = $is_admin;
-            $user['subscription'] = $subscription ? $subscription : null;
 
             return JsonResponse::ok("user retrieved success", [
-                'data' => $user
+                'data' => $user->toArray()
             ]);
         } catch (PDOException $e) {
             return JsonResponse::serverError("we encountered a problem");
@@ -147,11 +140,9 @@ final class UserController
                 return JsonResponse::serverError("unable to create user");
             }
 
-            $mail_job = new SendVerifyEmail(array_merge($user, ['email2fa_token' => $body['email2fa_token']]));
+            $mail_job = new SendEmail(array_merge($user, ['email2fa_token' => $body['email2fa_token']]));
             $mail_job->init()->delay(5)->run();
 
-            $user['is_admin'] = false;
-            $user['subscription'] = null;
             return JsonResponse::ok("user creation successful", $user);
         } catch (PDOException $e) {
             if (env("APP_ENV") === "local")

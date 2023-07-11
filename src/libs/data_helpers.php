@@ -161,7 +161,7 @@ function getFilesList(string $ticker, int $from, int $nums): bool|array
     $datetime = $datetime->setTimestamp($from);
     $files = array(); $i = 0; $s = 0;
     while ($i < $nums) {
-        $file_path = "{$_SERVER['DOCUMENT_ROOT']}/../download/$ticker/{$datetime->format('Y/m')}/{$datetime->format('Y-m-d')}--{$datetime->format('H')}h_ticks.csv";
+        $file_path = "{$_SERVER['DOCUMENT_ROOT']}/download/$ticker/{$datetime->format('Y/m')}/{$datetime->format('Y-m-d')}--{$datetime->format('H')}h_ticks.csv";
         // str_replace('/', "\\", $file_path);
         consoleLog(0, $file_path.PHP_EOL);
         if (!file_exists($file_path)) {
@@ -178,8 +178,10 @@ function getFilesList(string $ticker, int $from, int $nums): bool|array
     return false;
 }
 
-function getMinutesFilesList(string $ticker, int $timeframe, int &$from, int $increment, int $nums): bool|array
+function getMinutesFilesList(string $ticker, int &$from, int $increment, int $nums): bool|array
 {
+    // consoleLog("info", "the vars are $ticker:  $from:   $nums");
+    // return true;
     $datetime = new Carbon();
     // $datetime->setTimestamp($from);
     $datetime = $datetime->setTimestamp($from);
@@ -189,15 +191,18 @@ function getMinutesFilesList(string $ticker, int $timeframe, int &$from, int $in
         if ($datetime->greaterThan(Carbon::now()) || $datetime->lessThan(Carbon::createFromFormat('Y/m/d', '2016/01/01'))) {
             return false;
         }
-        $file_path = "{$_SERVER['DOCUMENT_ROOT']}/../minute_data/{$timeframe}mins/$ticker/{$datetime->format('Y/m')}/{$datetime->format('Y-m-d')}_data.csv";
+        $file_path = "{$_SERVER['DOCUMENT_ROOT']}/minute_data/$ticker/{$datetime->format('Y/m')}/{$datetime->format('Y-m-d')}_data.csv";
+        // str_replace('/', "\\", $file_path);
+        consoleLog(0, $file_path.PHP_EOL);
         if (!file_exists($file_path)) {
             $datetime = $increment === 1 ? $datetime->addDay() : $datetime->subDay();
+            consoleLog('info', "File not found Error for : " . $file_path);
             continue;
         }
         if ($from === 0)
             $from = $datetime->getTimestamp();
         array_unshift($files, $file_path);
-        $datetime = (bool)$increment ? $datetime->addDay() : $datetime->subDay();
+        $datetime = $increment === 1 ? $datetime->addDay() : $datetime->subDay();
         $i++;
     }
     if (count($files))

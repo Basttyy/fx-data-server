@@ -4,9 +4,5 @@
 .git-ftp-ignore
 .git-ftp-include
 .gitlab-ci.yml
-composer.lock
-composer.json
-package.json
-package.lock
 
 .github/*

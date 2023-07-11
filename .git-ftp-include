@@ -1,6 +1,3 @@
-vendor/symfony/
-vendor/autoload.php
-public/assets/
-public/index.html
+vendor/monolog/
+public/
 storage/
-!public/
