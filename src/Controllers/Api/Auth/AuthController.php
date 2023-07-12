@@ -119,6 +119,8 @@ final class AuthController
         } catch (Exception $e) {
             if (env('APP_ENV') === "local")
                 consoleLog(0, $e->getMessage() . "   " . $e->getTraceAsString());
+            else
+                logger()->error($e->getMessage(), $e->getTrace());
             return JsonResponse::serverError("something happened try again ");
         }
     }
