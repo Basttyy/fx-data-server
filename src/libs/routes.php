@@ -73,7 +73,7 @@ delete('/api/plans/$id', new PlanController('delete'));
 
 /// Subscription Routes
 get('/api/subscriptions/$id', new SubscriptionController());
-get('/api/subscriptions', new Subscriptions('list'));
+get('/api/subscriptions', new SubscriptionController('list'));
 get('/api/subscriptions/query/$query', new SubscriptionController('list'));
 get('/api/subscriptions/palns/$id', new SubscriptionController('list_plan'));
 post('/api/subscriptions', new SubscriptionController('create'));
