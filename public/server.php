@@ -14,12 +14,12 @@ use Dotenv\Dotenv;
 //     $_SERVER['HTTP_AUTHORIZATION'] = apache_request_headers()['Authorization'];
 // }
 
-// function applyCorsHeaders($origin) {
-//     header("Access-Control-Allow-Origin: $origin");
-//     header("Access-Control-Allow-Credentials: true");
-//     header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-//     header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Range, Content-Disposition, Content-Type, Authorization');
-// }
+function applyCorsHeaders($origin) {
+    header("Access-Control-Allow-Origin: $origin");
+    header("Access-Control-Allow-Credentials: true");
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+    header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Range, Content-Disposition, Content-Type, Authorization');
+}
 
 $customMappings = [
     'js' => 'text/javascript', //'application/javascript',
@@ -31,11 +31,11 @@ $dotenv = strtolower(PHP_OS_FAMILY) === 'windows' ? Dotenv::createImmutable(__DI
 $dotenv->load();
 $dotenv->required(['APP_KEY', 'APP_ENV', 'DB_USER', 'DB_HOST', 'DB_NAME', 'ADMIN_APP_URI', 'USER_APP_URI', 'SERVER_APP_URI', 'FINGERPRINT_MAX_AGE', 'SECRET_TOKEN', 'SHA_TYPE', 'CONTENT_LENGTH_MIN'])->notEmpty();
 
-// $http_origin = $_SERVER["HTTP_ORIGIN"] ?? "";
-// if ($http_origin === $_ENV['USER_APP_URI'] || $http_origin === $_ENV['ADMIN_APP_URI'] || $http_origin === $_ENV['SERVER_APP_URI']) {
-//     // file_put_contents("php://stdout", "[" . 0 . "] " . "cors header applied: $http_origin" . "\n");
-//     applyCorsHeaders($http_origin);
-// }
+$http_origin = $_SERVER["HTTP_ORIGIN"] ?? "";
+if ($http_origin === $_ENV['USER_APP_URI'] || $http_origin === $_ENV['ADMIN_APP_URI'] || $http_origin === $_ENV['SERVER_APP_URI']) {
+    // file_put_contents("php://stdout", "[" . 0 . "] " . "cors header applied: $http_origin" . "\n");
+    applyCorsHeaders($http_origin);
+}
 
 if ($_ENV['APP_ENV'] === "loc" && preg_match('/\.(?:js|css|svg|ico|woff2|ttf|webp|pdf|png|jpg|jpeg|gif)$/', $_SERVER["REQUEST_URI"])) {
     $path = $_SERVER['DOCUMENT_ROOT'].$_SERVER["REQUEST_URI"];
