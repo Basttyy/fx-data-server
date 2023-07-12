@@ -3,6 +3,7 @@ namespace Basttyy\FxDataServer\Controllers\Api;
 
 use Basttyy\FxDataServer\libs\JsonResponse;
 use Exception;
+use Phinx\Console\PhinxApplication;
 use Phinx\Wrapper\TextWrapper;
 
 final class MigrateController
@@ -25,7 +26,7 @@ final class MigrateController
                 'rollback' => 'getRollback',
                 'seed' => 'getSeed',
             ];
-            $command = $_GET['command'] ?? null;
+            $command = sanitize_data($_GET['command']) ?? null;
 
             if (!$command) {
                 $command = 'status';
@@ -38,19 +39,20 @@ final class MigrateController
             }
 
             // Get the environment and target version parameters.
-            $env = $_GET['e'] ?? null;
-            $target = $_GET['t'] ?? null;
+            $env = sanitize_data($_GET['e']) ?? null;
+            $target = sanitize_data($_GET['t']) ?? null;
+            $configuration = $_SERVER['DOCUMENT_ROOT']."/../phinx.php";
 
             // Check if debugging is enabled.
             $debug = !empty($_GET['debug']) && filter_var($_GET['debug'], FILTER_VALIDATE_BOOLEAN);
 
             // Execute the command and determine if it was successful.
-            $output = call_user_func([$this->wrap, $routes[$command]], $env, $target);
+            $output = call_user_func([$this->wrap, $routes[$command]], $env, $target, $configuration);
             $error = $this->wrap->getExitCode() > 0;
 
             // Finally, display the output of the command.
             if ($error) {
-                $args = implode(', ', [var_export($env, true), var_export($target, true)]);
+                $args = implode(', ', [var_export($env, true), var_export($target, true)], var_export($configuration, true));
                 return JsonResponse::serverError("OUTPUT: $output --- DEBUG: $command($args)");
             } else {
                 $args = implode(', ', [var_export($env, true), var_export($target, true)]);
