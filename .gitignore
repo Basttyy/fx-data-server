@@ -4,6 +4,8 @@
 /node_modules/
 /minute_data/
 /storage/
-/public/
+public/*
+!public/.htaccess
+!public/server.php
 
 .env
