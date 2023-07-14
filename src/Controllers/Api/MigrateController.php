@@ -46,7 +46,7 @@ final class MigrateController
             $debug = !empty($_GET['debug']) && filter_var($_GET['debug'], FILTER_VALIDATE_BOOLEAN);
 
             // Execute the command and determine if it was successful.
-            $this->wrap->setOption('configuration', $_SERVER['DOCUMENT_ROOT']."/../phinx.php");
+            $this->wrap->setOption('configuration', $_SERVER['DOCUMENT_ROOT']."/phinx.php");
             $output = call_user_func([$this->wrap, $routes[$command]], $env, $target);
             $error = $this->wrap->getExitCode() > 0;
 
