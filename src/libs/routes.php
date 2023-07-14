@@ -38,11 +38,11 @@ if (strtolower($_SERVER["REQUEST_METHOD"]) !== "options") {
 call_user_func(new RequestLogController('create'));
 
 /// frontend route
-get('/', function () {
-  header('Content-Type: text/html', true, 200);
-  echo file_get_contents($_SERVER["DOCUMENT_ROOT"]."/index.html");
-  return true;
-});
+// get('/', function () {
+//   header('Content-Type: text/html', true, 200);
+//   echo file_get_contents($_SERVER["DOCUMENT_ROOT"]."/index.html");
+//   return true;
+// });
 
 /// Auth routes
 post('/api/login', new AuthController());

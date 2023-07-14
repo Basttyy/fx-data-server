@@ -4,7 +4,7 @@ echo "got to server.php file".PHP_EOL;
 $log_path = $_SERVER["DOCUMENT_ROOT"]."/storage/logs/php_error.log";
 echo $log_path.PHP_EOL;
 ini_set('error_log', $log_path);
-require_once __DIR__."/../vendor/autoload.php";
+require_once __DIR__."/vendor/autoload.php";
 
 use Dotenv\Dotenv;
 // Copyright Monwoo 2017, service@monwoo.com
@@ -31,7 +31,7 @@ $customMappings = [
     'woff2' => 'font/woff2'
 ];
 
-$dotenv = strtolower(PHP_OS_FAMILY) === 'windows' ? Dotenv::createImmutable(__DIR__."\\..\\") : Dotenv::createImmutable(__DIR__."/../");
+$dotenv = strtolower(PHP_OS_FAMILY) === 'windows' ? Dotenv::createImmutable(__DIR__."\\") : Dotenv::createImmutable(__DIR__."/");
 $dotenv->load();
 $dotenv->required(['APP_KEY', 'APP_ENV', 'DB_USER', 'DB_HOST', 'DB_NAME', 'ADMIN_APP_URI', 'USER_APP_URI', 'SERVER_APP_URI', 'FINGERPRINT_MAX_AGE', 'SECRET_TOKEN', 'SHA_TYPE', 'CONTENT_LENGTH_MIN'])->notEmpty();
 
@@ -62,7 +62,7 @@ if ($_ENV['APP_ENV'] === "loc" && preg_match('/\.(?:js|css|svg|ico|woff2|ttf|web
 
 if (preg_match('/^.*$/i', $_SERVER["REQUEST_URI"])) {
     //register controllers
-    require_once __DIR__.'/../src/libs/routes.php';
+    require_once __DIR__.'/src/libs/routes.php';
 } else {
     consoleLog('info', "Not catched by routing, Transparent serving for : "
     . $_SERVER["REQUEST_URI"]);
