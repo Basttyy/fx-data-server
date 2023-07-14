@@ -1,7 +1,9 @@
 <?php
 
 echo "got to server.php file".PHP_EOL;
-ini_set('error_log', $_SERVER["DOCUMENT_ROOT"]."/../storage/logs/php_error.log");
+$log_path = $_SERVER["DOCUMENT_ROOT"]."/../storage/logs/php_error.log";
+echo $log_path.PHP_EOL;
+ini_set('error_log', $log_path);
 require_once __DIR__."/../vendor/autoload.php";
 
 use Dotenv\Dotenv;
