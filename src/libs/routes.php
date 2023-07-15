@@ -45,87 +45,87 @@ call_user_func(new RequestLogController('create'));
 // });
 
 /// Auth routes
-post('/api/login', new AuthController());
-get('/api/login', new AuthController('login_oauth'));
-get('/api/refresh-token', new AuthController('refresh_token'));
-get('/api/auth/captcha', new CaptchaController());
-post('/api/auth/captcha', new CaptchaController('validate'));
-get('/api/auth/twofa/$mode', new TwoFaController());
-post('/api/auth/twofa/$mode', new TwoFaController('validate'));
+post('/login', new AuthController());
+get('/login', new AuthController('login_oauth'));
+get('/refresh-token', new AuthController('refresh_token'));
+get('/auth/captcha', new CaptchaController());
+post('/auth/captcha', new CaptchaController('validate'));
+get('/auth/twofa/$mode', new TwoFaController());
+post('/auth/twofa/$mode', new TwoFaController('validate'));
 
 /// User Routes
-get('/api/users/$id', new UserController());
-get('/api/users', new UserController('list'));
-get('/api/users/query/$query', new UserController('list'));
-post('/api/users', new UserController('create'));
-put('/api/users/$id', new UserController('update'));
-delete('/api/users/$id', new UserController('delete'));
+get('/users/$id', new UserController());
+get('/users', new UserController('list'));
+get('/users/query/$query', new UserController('list'));
+post('/users', new UserController('create'));
+put('/users/$id', new UserController('update'));
+delete('/users/$id', new UserController('delete'));
 /// User Special Routes
-post('/api/users/method/$method', new UserExplicitController());
+post('/users/method/$method', new UserExplicitController());
 
 /// Plan Routes
-get('/api/plans/$id', new PlanController());
-get('/api/plans', new PlanController('list'));
-get('/api/plans/query/$query', new PlanController('list'));
-post('/api/plans', new PlanController('create'));
-put('/api/plans/$id', new PlanController('update'));
-delete('/api/plans/$id', new PlanController('delete'));
+get('/plans/$id', new PlanController());
+get('/plans', new PlanController('list'));
+get('/plans/query/$query', new PlanController('list'));
+post('/plans', new PlanController('create'));
+put('/plans/$id', new PlanController('update'));
+delete('/plans/$id', new PlanController('delete'));
 
 /// Subscription Routes
-get('/api/subscriptions/$id', new SubscriptionController());
-get('/api/subscriptions', new SubscriptionController('list'));
-get('/api/subscriptions/query/$query', new SubscriptionController('list'));
-get('/api/subscriptions/palns/$id', new SubscriptionController('list_plan'));
-post('/api/subscriptions', new SubscriptionController('create'));
+get('/subscriptions/$id', new SubscriptionController());
+get('/subscriptions', new SubscriptionController('list'));
+get('/subscriptions/query/$query', new SubscriptionController('list'));
+get('/subscriptions/palns/$id', new SubscriptionController('list_plan'));
+post('/subscriptions', new SubscriptionController('create'));
 
 /// Strategy Routes
-get('/api/strategies/$id', new StrategyController());
-get('/api/strategies', new StrategyController('list'));
-get('/api/strategies/query/$query', new StrategyController('list'));
-get('/api/strategies/users/$id', new StrategyController('list_user'));
-post('/api/strategies', new StrategyController('create'));
-put('/api/strategies/$id', new StrategyController('update'));
-delete('/api/strategies/$id', new StrategyController('delete'));
+get('/strategies/$id', new StrategyController());
+get('/strategies', new StrategyController('list'));
+get('/strategies/query/$query', new StrategyController('list'));
+get('/strategies/users/$id', new StrategyController('list_user'));
+post('/strategies', new StrategyController('create'));
+put('/strategies/$id', new StrategyController('update'));
+delete('/strategies/$id', new StrategyController('delete'));
 
 /// TestSessions Routes
-get('/api/test-sessions/$id', new TestSessionController());
-get('/api/test-sessions', new TestSessionController('list'));
-get('/api/test-sessions/query/$query', new TestSessionController('list'));
-post('/api/test-sessions', new TestSessionController('create'));
-put('/api/test-sessions/$id', new TestSessionController('update'));
-delete('/api/test-sessions/$id', new TestSessionController('delete'));
+get('/test-sessions/$id', new TestSessionController());
+get('/test-sessions', new TestSessionController('list'));
+get('/test-sessions/query/$query', new TestSessionController('list'));
+post('/test-sessions', new TestSessionController('create'));
+put('/test-sessions/$id', new TestSessionController('update'));
+delete('/test-sessions/$id', new TestSessionController('delete'));
 
 /// Pairs Routes
-get('/api/pairs/$id', new PairController());
-get('/api/pairs', new PairController('list'));
-get('/api/pairs/query', new PairController('list'));
-post('/api/pairs', new PairController('create'));
-put('/api/pairs/$id', new PairController('update'));
-delete('/api/pairs/$id', new PairController('delete'));
+get('/pairs/$id', new PairController());
+get('/pairs', new PairController('list'));
+get('/pairs/query', new PairController('list'));
+post('/pairs', new PairController('create'));
+put('/pairs/$id', new PairController('update'));
+delete('/pairs/$id', new PairController('delete'));
 
 /// Positions Routes
-get('/api/positions/$id', new PositionController());
-get('/api/positions', new PositionController('list'));
-get('/api/positions/query', new PositionController('list'));
-get('/api/positions/users/$id', new PositionController('list_user'));
-post('/api/positions', new PositionController('create'));
-put('/api/positions/$id', new PositionController('update'));
-delete('/api/positions/$id', new PositionController('delete'));
+get('/positions/$id', new PositionController());
+get('/positions', new PositionController('list'));
+get('/positions/query', new PositionController('list'));
+get('/positions/users/$id', new PositionController('list_user'));
+post('/positions', new PositionController('create'));
+put('/positions/$id', new PositionController('update'));
+delete('/positions/$id', new PositionController('delete'));
 
 /// Admin Routes
-get('/api/migrate', new MigrateController);
-get('/api/admin/logs/$id', new RequestLogController());
-get('/api/admin/logs', new RequestLogController('list'));
+get('/migrate', new MigrateController);
+get('/admin/logs/$id', new RequestLogController());
+get('/admin/logs', new RequestLogController('list'));
 
 /// Historical Data Routes
-get('/api/fx/download/ticker/$ticker/from/$from/nums/$nums/faster/$faster', $downloadTickData);
-get('/api/fx/candles/ticker/$ticker/from/$fro/nums/$num/timeframe/$timefram', $getTimeframeCandles);
-get('/api/fx/download/min/ticker/$ticker/period/$period/from/$from/incr/$incr/nums/$nums', $downloadMinuteData);
-get('/api/fx/tickers/query/$query', $searchTicker);
-get('/api/fx/tickers/query', $searchTicker);
+get('/fx/download/ticker/$ticker/from/$from/nums/$nums/faster/$faster', $downloadTickData);
+get('/fx/candles/ticker/$ticker/from/$fro/nums/$num/timeframe/$timefram', $getTimeframeCandles);
+get('/fx/download/min/ticker/$ticker/period/$period/from/$from/incr/$incr/nums/$nums', $downloadMinuteData);
+get('/fx/tickers/query/$query', $searchTicker);
+get('/fx/tickers/query', $searchTicker);
 
 /// Others
-post('/api/misc/contact-us', new MiscellaneousController('contact-us'));
+post('/misc/contact-us', new MiscellaneousController('contact-us'));
 
 any('/404', new NotFoundController);
 
