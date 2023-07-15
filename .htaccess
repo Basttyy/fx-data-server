@@ -1,10 +1,7 @@
 RewriteEngine On
 
-SetEnvIf Host ^backtestfx\.test:5553$ ALLOW_ORIGIN1
-SetEnvIf Host ^dev\.backtestfx\.com$ ALLOW_ORIGIN2
-
-Header always set Access-Control-Allow-Origin %{ALLOW_ORIGIN1}e env=ALLOW_ORIGIN1
-Header always set Access-Control-Allow-Origin %{ALLOW_ORIGIN2}e env=ALLOW_ORIGIN2
+Header always set Access-Control-Allow-Origin "http://backtestfx.test:5553"
+Header always set Access-Control-Allow-Origin "https://dev.backtestfx.com"
 Header always set Access-Control-Allow-Credentials "true"
 Header always set Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Range, Content-Disposition, Content-Type, Accept, Authorization"
 Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
