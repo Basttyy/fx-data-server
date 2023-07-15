@@ -1,5 +1,13 @@
 RewriteEngine On
 
+<IfModule mod_headers.c>
+    Header always set Access-Control-Allow-Origin "http://backtestfx.test:5553"
+    Header always set Access-Control-Allow-Origin "https://dev.backtestfx.com"
+    Header always set Access-Control-Allow-Credentials "true"
+    Header always set Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Range, Content-Disposition, Content-Type, Accept, Authorization"
+    Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+</IfModule>
+
 Options -Indexes
 <FilesMatch "^\.|\/\.">
     Require all denied
