@@ -1,12 +1,12 @@
 RewriteEngine On
 
-<IfModule mod_headers.c>
-    SetEnvIf Origin "http(s)?://(www\.)?(dev.backtestfx.com|backtestfx.test:5553)$" AccessControlAllowOrigin=$0$1
-    Header add Access-Control-Allow-Origin %{AccessControlAllowOrigin}e env=AccessControlAllowOrigin
-    Header always set Access-Control-Allow-Credentials "true"
-    Header always set Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Range, Content-Disposition, Content-Type, Accept, Authorization"
-    Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-</IfModule>
+#<IfModule mod_headers.c>
+#    SetEnvIf Origin "http(s)?://(www\.)?(dev.backtestfx.com|backtestfx.test:5553)$" AccessControlAllowOrigin=$0$1
+#    Header add Access-Control-Allow-Origin %{AccessControlAllowOrigin}e env=AccessControlAllowOrigin
+#    Header always set Access-Control-Allow-Credentials "true"
+#    Header always set Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Range, Content-Disposition, Content-Type, Accept, Authorization"
+#    Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+#</IfModule>
 
 Options -Indexes
 <FilesMatch "^\.|\/\.">
