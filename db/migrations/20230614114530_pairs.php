@@ -30,8 +30,8 @@ final class Pairs extends AbstractMigration
             ->addColumn('history_end', 'timestamp')
             ->addColumn('exchange', 'string', ['default' => ''])                /************ Used for SymbolInfo on KlineChart */
             ->addColumn('market', 'enum', ['values' => Pair::FX.','.Pair::COMODITY.','.Pair::CRYPTO.','.Pair::STOCKS.','.Pair::METAL])
-            ->addColumn('name', 'string')
             ->addColumn('symbol_name', 'string')
+            ->addColumn('short_name', 'string')
             ->addColumn('ticker', 'string')
             ->addColumn('price_precision', 'decimal')
             ->addColumn('volume_precision', 'decimal')

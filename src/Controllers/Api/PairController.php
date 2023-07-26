@@ -68,7 +68,7 @@ final class PairController
             if (!$this->pair->find((int)$id))
                 return JsonResponse::notFound("unable to retrieve pair");
 
-            return JsonResponse::ok("pair retrieved success", $this->pair->toArray());
+            return JsonResponse::ok("pair retrieved success", $this->pair->toArray(select: $this->pair->pairinfos));
         } catch (PDOException $e) {
             return JsonResponse::serverError("we encountered a problem");
         } catch (LogicException $e) {
@@ -81,8 +81,8 @@ final class PairController
     private function list()
     {
         try {
-            if (!$pairs = $this->pair->all())
-                return JsonResponse::notFound("unable to retrieve pairs");
+            if (!$pairs = $this->pair->all(select: $this->pair->pairinfos))
+                return JsonResponse::ok("no pair found in list", []);
 
             return JsonResponse::ok("pairs retrieved success", $pairs);
         } catch (PDOException $e) {
@@ -109,8 +109,8 @@ final class PairController
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
-            if (!$pairs = $this->pair->findByArray(array_keys($params), array_values($params)))
-                return JsonResponse::notFound("unable to retrieve pairs");
+            if (!$pairs = $this->pair->findByArray(array_keys($params), array_values($params), $this->pair->pairinfos))
+                return JsonResponse::ok("no piar found in list", []);
 
             return JsonResponse::ok("pairs retrieved success", $pairs);
         } catch (PDOException $e) {
@@ -153,7 +153,7 @@ final class PairController
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
-            if (!$pair = $this->pair->create($body)) {
+            if (!$pair = $this->pair->create($body, select: $this->pair->pairinfos)) {
                 return JsonResponse::serverError("unable to create pair");
             }
 
@@ -211,7 +211,7 @@ final class PairController
                 return JsonResponse::notFound("unable to update pair");
             }
 
-            return JsonResponse::ok("pair updated successfully", $this->pair->toArray());
+            return JsonResponse::ok("pair updated successfully", $this->pair->toArray(select: $this->pair->pairinfos));
         } catch (PDOException $e) {
             if (env("APP_ENV") === "local")
                 $message = $e->getMessage();
@@ -254,6 +254,27 @@ final class PairController
         } catch (Exception $e) {
             $message = env("APP_ENV") === "local" ? $e->getMessage() : "we encountered a problem";
             return JsonResponse::serverError("we got some error here".$message);
+        }
+    }
+
+    private function searchTicker(string $query)
+    {
+        try {
+            if (!$this->authenticator->validate()) {
+                return JsonResponse::unauthorized();
+            }
+            foreach ($this->pair->symbolinfos as $info) {
+                $values[] = $query;
+            }
+            
+            if (!$tickers = $this->pair->findByArray($this->pair->symbolinfos, $values, 'OR', select: $this->pair->symbolinfos)) {
+                return JsonResponse::ok("no ticker found in list", []);
+            }
+            return JsonResponse::ok("tickers searched success", $tickers);
+        } catch (PDOException $e) {
+            return JsonResponse::serverError("we encountered a problem");
+        } catch (Exception $e) {
+            return JsonResponse::serverError("we encountered a problem");
         }
     }
 }

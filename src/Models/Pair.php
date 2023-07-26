@@ -29,13 +29,42 @@ final class Pair extends Model
     public $created_at;
     public $updated_at;
 
+    //object symbol properties
+    public $exchange;
+    public $market;
+    public $symbol_name;
+    public $short_name;
+    public $ticker;
+    public $price_precision;
+    public $volume_precision;
+    public $price_currency;
+    public $type;
+    public $logo;
+
+    /**
+     * object properties that are used by Pair
+     * 
+     * @var array
+     */
+    public $pairinfos = [
+        'id', 'name', 'description', 'status', 'dollar_per_pip', 'history_start', 'history_end'
+    ];
+    /**
+     * object properties that are used by SymbolInfo in Klinecharts only
+     * 
+     * @var array
+     */
+    public $symbolinfos = [
+        'exchange', 'market', 'symbol_name', 'short_name', 'ticker', 'price_precision', 'volume_precision', 'price_currency', 'type', 'logo'
+    ];
+
     /**
      * Indicates what database attributes of the model can be filled at once
      * 
      * @var array
      */
     protected $fillable = [
-        'id', 'name', 'description', 'decimal_places', 'status', 'dollar_per_pip', 'history_start', 'history_end', 'deleted_at', 'created_at', 'updated_at'
+        'id', 'name', 'description', 'status', 'dollar_per_pip', 'history_start', 'history_end', 'deleted_at', 'created_at', 'updated_at'
     ];
     
     /**
