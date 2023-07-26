@@ -55,6 +55,7 @@ final class MiscellaneousController
             if (!$this->authenticator->validate()) {
                 return JsonResponse::unauthorized();
             }
+            $query = sanitize_data($query);
             foreach ($this->pair->symbolinfos as $info) {
                 $values[] = $query;
             }

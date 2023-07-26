@@ -101,7 +101,6 @@ final class PairController
             if ($validated = Validator::validate($params, [
                 'name' => 'sometimes|string',
                 'description' => 'sometimes|string',
-                'decimal_places' => 'sometimes|int',
                 'status' => "sometimes|string|in:$status",
                 'dollar_per_pip' => 'sometimes|numeric',
                 'history_start' => 'sometimes|string',
@@ -140,6 +139,7 @@ final class PairController
 
             $body = sanitize_data(json_decode($inputJSON, true));
             $status = Pair::DISABLED.', '.Pair::ENABLED;
+            $markets = Pair::FX.','.Pair::COMODITY.','.Pair::CRYPTO.','.Pair::STOCKS.','.Pair::METAL;
 
             if ($validated = Validator::validate($body, [
                 'name' => 'required|string',
@@ -148,7 +148,17 @@ final class PairController
                 'status' => "sometimes|string|in:$status",
                 'dollar_per_pip' => 'required|numeric',
                 'history_start' => 'required|string',
-                'history_end' => 'required|string'
+                'history_end' => 'required|string',
+                'exchange' => 'sometimes|string',
+                'market' => "required|in:$markets",
+                'symbol_name' => 'required|string',
+                'short_name' => 'required|string',
+                'ticker' => 'required|string',
+                'price_precision' => 'required|int',
+                'volume_precision' => 'required|int',
+                'price_currency' => 'required|string',
+                'type' => 'sometimes|string',
+                'logo' => 'sometimes|string'
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
@@ -193,15 +203,25 @@ final class PairController
             $body = sanitize_data(json_decode($inputJSON, true));
             $id = sanitize_data($id);
             $status = Pair::DISABLED.', '.Pair::ENABLED;
+            $markets = Pair::FX.','.Pair::COMODITY.','.Pair::CRYPTO.','.Pair::STOCKS.','.Pair::METAL;
 
             if ($validated = Validator::validate($body, [
                 'name' => 'sometimes|string',
                 'description' => 'sometimes|string',
-                'decimal_places' => 'sometimes|int',
                 'status' => "sometimes|string|in:$status",
                 'dollar_per_pip' => 'sometimes|numeric',
                 'history_start' => 'sometimes|string',
-                'history_end' => 'sometimes|string'
+                'history_end' => 'sometimes|string',
+                'exchange' => 'sometimes|string',
+                'market' => "sometimes|in:$markets",
+                'symbol_name' => 'sometimes|string',
+                'short_name' => 'sometimes|string',
+                'ticker' => 'sometimes|string',
+                'price_precision' => 'sometimes|int',
+                'volume_precision' => 'sometimes|int',
+                'price_currency' => 'sometimes|string',
+                'type' => 'sometimes|string',
+                'logo' => 'sometimes|string'
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }

@@ -23,7 +23,6 @@ final class Pairs extends AbstractMigration
         $table = $this->table($this::TABLE_NAME);
         $table->addColumn('name', 'string')
             ->addColumn('description', 'string', ['null' => true])
-            ->addColumn('decimal_places', 'integer', ['default' => 2])
             ->addColumn('status', 'enum', ['values' => Pair::ENABLED.','.Pair::DISABLED, 'default' => Pair::ENABLED])
             ->addColumn('dollar_per_pip', 'decimal')
             ->addColumn('history_start', 'timestamp')

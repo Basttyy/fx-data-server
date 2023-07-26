@@ -34,7 +34,7 @@ final class TwoFaController
         // $authMiddleware = new Guard($authenticator);
     }
 
-    public function __invoke(string $mode)
+    public function __invoke(string $mode, int $status)
     {
         switch ($this->method) {
             case 'generate':
@@ -42,6 +42,9 @@ final class TwoFaController
                 break;
             case 'validate':
                 $resp = $this->verifyCode($mode);
+                break;
+            case 'twofaonoff':
+                $resp = $this->twofaonoff($mode, $status);
                 break;
             default:
                 $resp = JsonResponse::serverError('bad method call');
@@ -114,6 +117,9 @@ final class TwoFaController
                     if ($user->email2fa_token === $body['code'] && $user->email2fa_expire > time()) { //TODO: verify token is not expired
                         $values = ['email2fa_token' => null, 'email2fa_expire' => null];
                         $values['status'] = isset($body['is_email_verification']) ? User::ACTIVE : $user->status;
+                        if (!isset($body['is_email_verification']) && !str_contains($user->twofa_types, User::EMAIL))
+                            $values['twofa_types'] = strlen($user->twofa_types) < 1 ? $user->twofa_types.User::EMAIL : $user->twofa_types.','.User::EMAIL;
+                        
                         $user->update($values);
                         return JsonResponse::ok("code is valid", ['status' => 'validated']);
                     } else {
@@ -122,6 +128,10 @@ final class TwoFaController
                 } else {
                     $google2fa = new Google2FA();
                     if ($google2fa->verifyKey($user->twofa_secret, $body['code'])) {
+                        if (!str_contains($user->twofa_types, User::GOOGLE2FA))
+                            $values['twofa_types'] = strlen($user->twofa_types) < 1 ? $user->twofa_types.User::GOOGLE2FA : $user->twofa_types.','.User::GOOGLE2FA;
+                        
+                        $user->update($values);
                         return JsonResponse::ok("code is valid", ['status' => 'validated']);
                     } else {
                          return JsonResponse::badRequest("code is not valid", ['status' => 'failed']);
@@ -132,6 +142,30 @@ final class TwoFaController
             if (env('APP_ENV') === "local")
                 consoleLog(0, $e->getMessage() . "   " . $e->getTraceAsString());
             return JsonResponse::serverError("something happened try again ");
+        }
+    }
+    
+    private function twofaonoff(string $mode, int $status)
+    {   
+        if (!$user = Guard::tryToAuthenticate($this->authenticator)) {
+            return JsonResponse::unauthorized();
+        }
+        $mode = sanitize_data($mode);
+
+        if (!$user = $user->find()) {
+            return JsonResponse::serverError("unable to find logged in user");
+        }
+
+        if (!$status) {
+            $values['twofa_types'] = str_replace($mode, '', $this->user->twofa_types);
+            $values['twofa_types'] = str_starts_with($values['twofa_types'], ',') ? substr($values['twofa_types'], 1) : $values['twofa_types'];
+            $values['twofa_types'] = str_ends_with($values['twofa_types'], ',') ? substr($values['twofa_types'], 0, -1) : $values['twofa_types'];
+    
+            if (!$this->user->update($values)) {
+                return JsonResponse::serverError("unable to turn off twofa for user");
+            }
+
+            return JsonResponse::ok('twofa has been turned off for user', $this->user);
         }
     }
 }

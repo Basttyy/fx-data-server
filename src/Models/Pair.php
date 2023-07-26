@@ -20,7 +20,6 @@ final class Pair extends Model
     public $id;
     public $name;
     public $description;
-    public $decimal_places;
     public $status;
     public $dollar_per_pip;
     public $history_start;
