@@ -6,6 +6,12 @@ final class Pair extends Model
     const ENABLED = "enabled";
     const DISABLED = "disabled";
 
+    const FX = 'fx';
+    const CRYPTO = 'crypto';
+    const STOCKS = 'stocks';
+    const METAL = 'metal';
+    const COMODITY = 'comodity';
+
     protected $softdeletes = true;
     protected $table = 'pairs';
     protected $primaryKey = 'id';
