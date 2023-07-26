@@ -73,9 +73,12 @@ final class UserController
                 return JsonResponse::notFound("unable to retrieve user");
             $subscription = $this->subscription->findBy('user_id', $this->user->id, false); //TODO: we need to add a filter that will ensure the subscription is active
 
-            $user = $this->user->toArray();
+            $user = array_diff($this->user->toArray(), $this->user->twofainfos);
             $user['extra']['is_admin'] = $is_admin;
             $user['extra']['subscription'] = $subscription ? $subscription : null;
+            $user['extra']['2fa']['enabled'] = strlen($this->user->twofa_types) > 0;
+            $user['extra']['2fa']['twofa_types'] = $this->user->twofa_types;
+            $user['extra']['2fa']['twofa_default_type'] = $this->user->twofa_default_type;
 
             return JsonResponse::ok("user retrieved success", [
                 'data' => $user

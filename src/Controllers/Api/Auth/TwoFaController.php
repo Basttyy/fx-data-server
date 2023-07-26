@@ -56,7 +56,7 @@ final class TwoFaController
             if (!$user = Guard::tryToAuthenticate($this->authenticator)) {
                 return JsonResponse::unauthorized();
             }
-            if ($mode == "email") {
+            if ($mode == User::EMAIL) {
                 $code = implode([rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9)]);
                 if (!$user->update(['email2fa_token' => (string)$code, 'email2fa_expire' => time() + env('email2fa_expire')])) {  //TODO:: this token should be timeed and should expire
                     return JsonResponse::serverError("unable to generate token");

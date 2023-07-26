@@ -104,9 +104,12 @@ final class AuthController
             $subscription = $this->subscription->findBy('user_id', $this->user->id, false);
             $is_admin = $this->authenticator->verifyRole($this->user, 'admin');
 
-            $user = $this->user->toArray();
+            $user = array_diff($this->user->toArray(), $this->user->twofainfos);
             $user['extra']['is_admin'] = $is_admin;
             $user['extra']['subscription'] = $subscription ? $subscription : null;
+            $user['extra']['2fa']['enabled'] = strlen($this->user->twofa_types) > 0;
+            $user['extra']['2fa']['twofa_types'] = $this->user->twofa_types;
+            $user['extra']['2fa']['twofa_default_type'] = $this->user->twofa_default_type;
 
             return JsonResponse::ok("login successfull", [
                 'auth_token' => $token,
@@ -177,16 +180,34 @@ final class AuthController
                 ])) {
                     return JsonResponse::serverError("error creating user please try again");
                 }
+                
+                $usr = array_diff($user[0], $this->user->twofainfos);
+                $subscription = $this->subscription->findBy('user_id', $this->user->id, false);
+                
+                $usr['extra']['is_admin'] = false;
+                $usr['extra']['subscription'] = $subscription ? $subscription : null;
+                $user['extra']['2fa']['enabled'] = strlen($this->user->twofa_types) > 0;
+                $usr['extra']['2fa']['twofa_types'] = $this->user->twofa_types;
+                $usr['extra']['2fa']['twofa_default_type'] = $this->user->twofa_default_type;
 
                 return JsonResponse::created('user account has been created', [
-                    'auth_token' => "social_login:". base64_encode($user['id']),
-                    'data' => $user
+                    'auth_token' => "social_login:". base64_encode($usr['id']),
+                    'data' => $usr
                 ]);
             }
+                
+            $usr = array_diff($user[0], $this->user->twofainfos);
+            $subscription = $this->subscription->findBy('user_id', $this->user->id, false);
+            
+            $usr['extra']['is_admin'] = false;
+            $usr['extra']['subscription'] = $subscription ? $subscription : null;
+            $user['extra']['2fa']['enabled'] = strlen($this->user->twofa_types) > 0;
+            $usr['extra']['2fa']['twofa_types'] = $this->user->twofa_types;
+            $usr['extra']['2fa']['twofa_default_type'] = $this->user->twofa_default_type;
 
             return JsonResponse::ok("login successfull", [
-                'auth_token' => "social_login:". base64_encode($user[0]['id']),
-                'user' => $user[0]
+                'auth_token' => "social_login:". base64_encode($usr['id']),
+                'user' => $usr
             ]);
     
             // Disconnect the adapter (log out)
