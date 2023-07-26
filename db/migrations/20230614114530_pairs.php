@@ -22,14 +22,13 @@ final class Pairs extends AbstractMigration
     {
         $table = $this->table($this::TABLE_NAME);
         $table->addColumn('name', 'string')
-            ->addColumn('description', 'string', ['null' => true])
+            ->addColumn('description', 'string', ['null' => true])             /************ Will be used as 'name' in Klinechart's SymbolInfo */
             ->addColumn('status', 'enum', ['values' => Pair::ENABLED.','.Pair::DISABLED, 'default' => Pair::ENABLED])
             ->addColumn('dollar_per_pip', 'decimal')
             ->addColumn('history_start', 'timestamp')
             ->addColumn('history_end', 'timestamp')
             ->addColumn('exchange', 'string', ['default' => ''])                /************ Used for SymbolInfo on KlineChart */
             ->addColumn('market', 'enum', ['values' => Pair::FX.','.Pair::COMODITY.','.Pair::CRYPTO.','.Pair::STOCKS.','.Pair::METAL])
-            ->addColumn('symbol_name', 'string')
             ->addColumn('short_name', 'string')
             ->addColumn('ticker', 'string')
             ->addColumn('price_precision', 'decimal')
