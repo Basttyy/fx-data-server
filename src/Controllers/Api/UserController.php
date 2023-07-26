@@ -103,7 +103,7 @@ final class UserController
                 $users = $this->user->findBy("role_id", 1);
             }
             if (!$users)
-                return JsonResponse::notFound("unable to retrieve users");
+                return JsonResponse::ok("no user found in list", []);
 
             return JsonResponse::ok("users retrieved success", [
                 'data' => $users

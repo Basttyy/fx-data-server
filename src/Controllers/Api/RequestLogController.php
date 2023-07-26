@@ -86,7 +86,7 @@ final class RequestLogController
 
             $logs = $this->log->all();
             if (!$logs)
-                return JsonResponse::notFound("unable to retrieve logs");
+                return JsonResponse::ok("no log found in list", []);
 
             return JsonResponse::ok("logs retrieved success", $logs);
         } catch (PDOException $e) {

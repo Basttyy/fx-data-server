@@ -100,7 +100,7 @@ final class TestSessionController
                 $sessions = $this->session->findBy("user_id", $this->user->id);
             }
             if (!$sessions)
-                return JsonResponse::notFound("unable to retrieve test sessions");
+                return JsonResponse::ok("no testsession found in list", []);
 
             return JsonResponse::ok("test sessions retrieved success", $sessions);
         } catch (PDOException $e) {
@@ -124,7 +124,7 @@ final class TestSessionController
             $sessions = $this->session->findBy("user_id", $id);
             
             if (!$sessions)
-                return JsonResponse::notFound("unable to retrieve test sessions");
+                return JsonResponse::ok("no testsession found in list", []);
 
             return JsonResponse::ok("test sessions retrieved success", $sessions);
         } catch (PDOException $e) {

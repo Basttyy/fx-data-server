@@ -30,7 +30,7 @@ final class PairController
         $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
     }
 
-    public function __invoke(string $id = null)
+    public function __invoke(string $id = null, string $query = null)
     {
         switch ($this->method) {
             case 'show':
@@ -254,27 +254,6 @@ final class PairController
         } catch (Exception $e) {
             $message = env("APP_ENV") === "local" ? $e->getMessage() : "we encountered a problem";
             return JsonResponse::serverError("we got some error here".$message);
-        }
-    }
-
-    private function searchTicker(string $query)
-    {
-        try {
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
-            foreach ($this->pair->symbolinfos as $info) {
-                $values[] = $query;
-            }
-            
-            if (!$tickers = $this->pair->findByArray($this->pair->symbolinfos, $values, 'OR', select: $this->pair->symbolinfos)) {
-                return JsonResponse::ok("no ticker found in list", []);
-            }
-            return JsonResponse::ok("tickers searched success", $tickers);
-        } catch (PDOException $e) {
-            return JsonResponse::serverError("we encountered a problem");
-        } catch (Exception $e) {
-            return JsonResponse::serverError("we encountered a problem");
         }
     }
 }

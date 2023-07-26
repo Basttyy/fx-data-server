@@ -23,7 +23,7 @@ final class MiscellaneousController
     private $authenticator;
     private $pair;
 
-    public function __construct($method = "")
+    public function __construct($method = "contact_us")
     {
         $this->method = $method;
         $this->user = new User();
@@ -33,17 +33,41 @@ final class MiscellaneousController
         $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
     }
 
-    public function __invoke(string $id = null)
+    public function __invoke(string $query = null)
     {
         switch ($this->method) {
+            case 'search_ticker':
+                $resp = $this->searchTicker($query);
+                break;
             case 'contact_us':
-                $resp = $this->contact_us($id);
+                $resp = $this->contact_us();
                 break;
             default:
                 $resp = JsonResponse::serverError('bad method call');
         }
 
         $resp;
+    }
+
+    private function searchTicker(string $query)
+    {
+        try {
+            if (!$this->authenticator->validate()) {
+                return JsonResponse::unauthorized();
+            }
+            foreach ($this->pair->symbolinfos as $info) {
+                $values[] = $query;
+            }
+            
+            if (!$tickers = $this->pair->findByArray($this->pair->symbolinfos, $values, 'OR', select: $this->pair->symbolinfos)) {
+                return JsonResponse::ok("no ticker found in list", []);
+            }
+            return JsonResponse::ok("tickers searched success", $tickers);
+        } catch (PDOException $e) {
+            return JsonResponse::serverError("we encountered a problem");
+        } catch (Exception $e) {
+            return JsonResponse::serverError("we encountered a problem");
+        }
     }
 
     private function contact_us()

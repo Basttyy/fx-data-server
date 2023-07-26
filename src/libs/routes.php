@@ -122,11 +122,11 @@ get('/admin/logs', new RequestLogController('list'));
 get('/fx/download/ticker/$ticker/from/$from/nums/$nums/faster/$faster', $downloadTickData);
 get('/fx/candles/ticker/$ticker/from/$fro/nums/$num/timeframe/$timefram', $getTimeframeCandles);
 get('/fx/download/min/ticker/$ticker/period/$period/from/$from/incr/$incr/nums/$nums', new FxController());
-get('/fx/tickers/query/$query', $searchTicker);
-get('/fx/tickers/query', $searchTicker);
+get('/fx/tickers/query/$query', new MiscellaneousController('search_ticker'));
+get('/fx/tickers/query', new MiscellaneousController('search_ticker'));
 
 /// Others
-post('/misc/contact-us', new MiscellaneousController('contact-us'));
+post('/misc/contact-us', new MiscellaneousController());
 
 any('/404', new NotFoundController);
 
