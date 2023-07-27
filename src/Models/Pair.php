@@ -9,8 +9,8 @@ final class Pair extends Model
     const FX = 'fx';
     const CRYPTO = 'crypto';
     const STOCKS = 'stocks';
-    const METAL = 'metal';
     const COMODITY = 'comodity';
+    const INDICES = 'indices';
 
     protected $softdeletes = true;
     protected $table = 'pairs';
@@ -45,7 +45,7 @@ final class Pair extends Model
      * @var array
      */
     public $pairinfos = [
-        'id', 'name', 'description', 'status', 'dollar_per_pip', 'history_start', 'history_end'
+        'id', 'name', 'description', 'price_precision', 'status', 'dollar_per_pip', 'history_start', 'history_end'
     ];
     /**
      * object properties that are used by SymbolInfo in Klinecharts only
@@ -62,7 +62,7 @@ final class Pair extends Model
      * @var array
      */
     protected $fillable = [
-        'id', 'name', 'description', 'status', 'dollar_per_pip', 'history_start', 'history_end', 'deleted_at', 'created_at', 'updated_at'
+        'id', 'name', 'description', 'status', 'dollar_per_pip', 'exchange', 'market', 'short_name', 'ticker', 'price_precision', 'volume_precision', 'price_currency', 'type', 'logo', 'history_start', 'history_end', 'deleted_at', 'created_at', 'updated_at'
     ];
     
     /**

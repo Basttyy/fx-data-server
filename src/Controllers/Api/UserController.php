@@ -5,6 +5,7 @@ use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\Console\Jobs\SendVerifyEmail;
 use Basttyy\FxDataServer\Exceptions\NotFoundException;
+use Basttyy\FxDataServer\libs\Arr;
 use Basttyy\FxDataServer\libs\JsonResponse;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\Models\Role;
@@ -73,12 +74,12 @@ final class UserController
                 return JsonResponse::notFound("unable to retrieve user");
             $subscription = $this->subscription->findBy('user_id', $this->user->id, false); //TODO: we need to add a filter that will ensure the subscription is active
 
-            $user = array_diff($this->user->toArray(), $this->user->twofainfos);
+            $user = Arr::except($this->user->toArray(), $this->user->twofainfos);
             $user['extra']['is_admin'] = $is_admin;
             $user['extra']['subscription'] = $subscription ? $subscription : null;
-            $user['extra']['2fa']['enabled'] = strlen($this->user->twofa_types) > 0;
-            $user['extra']['2fa']['twofa_types'] = $this->user->twofa_types;
-            $user['extra']['2fa']['twofa_default_type'] = $this->user->twofa_default_type;
+            $user['extra']['twofa']['enabled'] = strlen($this->user->twofa_types) > 0;
+            $user['extra']['twofa']['twofa_types'] = $this->user->twofa_types;
+            $user['extra']['twofa']['twofa_default_type'] = $this->user->twofa_default_type;
 
             return JsonResponse::ok("user retrieved success", [
                 'data' => $user

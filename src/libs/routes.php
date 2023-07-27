@@ -100,6 +100,7 @@ delete('/test-sessions/$id', new TestSessionController('delete'));
 /// Pairs Routes
 get('/pairs/$id', new PairController());
 get('/pairs', new PairController('list'));
+get('/pairs/listonlypair', new PairController('listonlypair'));
 get('/pairs/query', new PairController('list'));
 post('/pairs', new PairController('create'));
 put('/pairs/$id', new PairController('update'));

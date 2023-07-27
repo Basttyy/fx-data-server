@@ -39,6 +39,9 @@ final class PairController
             case 'list':
                 $resp = $this->list();
                 break;
+            case 'listonlypair':
+                $resp = $this->listonlypair();
+                break;
             case 'query':
                 $resp = $this->query();
             case 'create':
@@ -79,6 +82,20 @@ final class PairController
     }
     
     private function list()
+    {
+        try {
+            if (!$pairs = $this->pair->all())
+                return JsonResponse::ok("no pair found in list", []);
+
+            return JsonResponse::ok("pairs retrieved success", $pairs);
+        } catch (PDOException $e) {
+            return JsonResponse::serverError("we encountered a problem");
+        } catch (Exception $e) {
+            return JsonResponse::serverError("we encountered a problem");
+        }
+    }
+  
+    private function listonlypair()
     {
         try {
             if (!$pairs = $this->pair->all(select: $this->pair->pairinfos))
@@ -139,12 +156,11 @@ final class PairController
 
             $body = sanitize_data(json_decode($inputJSON, true));
             $status = Pair::DISABLED.', '.Pair::ENABLED;
-            $markets = Pair::FX.','.Pair::COMODITY.','.Pair::CRYPTO.','.Pair::STOCKS.','.Pair::METAL;
+            $markets = Pair::FX.','.Pair::COMODITY.','.Pair::CRYPTO.','.Pair::STOCKS.','.Pair::INDICES;
 
             if ($validated = Validator::validate($body, [
                 'name' => 'required|string',
                 'description' => 'required|string',
-                'decimal_places' => 'required|int',
                 'status' => "sometimes|string|in:$status",
                 'dollar_per_pip' => 'required|numeric',
                 'history_start' => 'required|string',
@@ -202,7 +218,7 @@ final class PairController
             $body = sanitize_data(json_decode($inputJSON, true));
             $id = sanitize_data($id);
             $status = Pair::DISABLED.', '.Pair::ENABLED;
-            $markets = Pair::FX.','.Pair::COMODITY.','.Pair::CRYPTO.','.Pair::STOCKS.','.Pair::METAL;
+            $markets = Pair::FX.','.Pair::COMODITY.','.Pair::CRYPTO.','.Pair::STOCKS.','.Pair::INDICES;
 
             if ($validated = Validator::validate($body, [
                 'name' => 'sometimes|string',

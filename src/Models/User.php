@@ -64,7 +64,7 @@ final class User extends Model
         'phone', 'level', 'country', 'city', 'postal_code', 'address',
         'role_id', 'access_token', 'twofa_secret', 'email2fa_token', 'status',
         'avatar', 'created_at', 'updated_at', 'deleted_at', 'email2fa_expire',
-        'twofa_enabled', 'twofa_types', 'twofa_default_type'
+        'twofa_types', 'twofa_default_type'
     ];
 
     /**
