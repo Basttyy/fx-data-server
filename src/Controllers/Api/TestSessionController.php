@@ -102,7 +102,6 @@ final class TestSessionController
             if (!$sessions)
                 return JsonResponse::ok("no testsession found in list", []);
 
-            logger()->info("sessions is", $sessions);
             return JsonResponse::ok("test sessions retrieved success", $sessions);
         } catch (PDOException $e) {
             return JsonResponse::serverError("we encountered a problem");
