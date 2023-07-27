@@ -79,7 +79,7 @@ final class PlanController
         try {
             $plans = $this->plan->all();
             if (!$plans)
-                return JsonResponse::notFound("unable to retrieve plans");
+                return JsonResponse::ok('no plan found in list', []);
 
             return JsonResponse::ok("plans retrieved success", $plans);
         } catch (PDOException $e) {

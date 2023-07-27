@@ -22,12 +22,20 @@ final class Pairs extends AbstractMigration
     {
         $table = $this->table($this::TABLE_NAME);
         $table->addColumn('name', 'string')
-            ->addColumn('description', 'string', ['null' => true])
-            ->addColumn('decimal_places', 'integer', ['default' => 2])
+            ->addColumn('description', 'string', ['null' => true])             /************ Will be used as 'name' in Klinechart's SymbolInfo */
             ->addColumn('status', 'enum', ['values' => Pair::ENABLED.','.Pair::DISABLED, 'default' => Pair::ENABLED])
             ->addColumn('dollar_per_pip', 'decimal')
             ->addColumn('history_start', 'timestamp')
             ->addColumn('history_end', 'timestamp')
+            ->addColumn('exchange', 'string', ['default' => ''])                /************ Used for SymbolInfo on KlineChart */
+            ->addColumn('market', 'enum', ['values' => Pair::FX.','.Pair::COMODITY.','.Pair::CRYPTO.','.Pair::STOCKS.','.Pair::INDICES])
+            ->addColumn('short_name', 'string')
+            ->addColumn('ticker', 'string')
+            ->addColumn('price_precision', 'decimal')
+            ->addColumn('volume_precision', 'decimal')
+            ->addColumn('price_currency', 'string')
+            ->addColumn('type', 'string', ['default' => 'ADRC'])
+            ->addColumn('logo', 'string', ['null' => true])                     /************ End of SymbolInfo */
             ->addColumn('deleted_at', 'timestamp', ['null' => true])
             ->addIndex('name', ['unique' => true])
             ->addTimestamps()

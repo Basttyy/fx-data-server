@@ -30,7 +30,7 @@ final class PairController
         $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
     }
 
-    public function __invoke(string $id = null)
+    public function __invoke(string $id = null, string $query = null)
     {
         switch ($this->method) {
             case 'show':
@@ -39,8 +39,12 @@ final class PairController
             case 'list':
                 $resp = $this->list();
                 break;
+            case 'listonlypair':
+                $resp = $this->listonlypair();
+                break;
             case 'query':
-                $resp = $this->query();
+                $resp = $this->query($id);
+                break;
             case 'create':
                 $resp = $this->create();
                 break;
@@ -68,7 +72,7 @@ final class PairController
             if (!$this->pair->find((int)$id))
                 return JsonResponse::notFound("unable to retrieve pair");
 
-            return JsonResponse::ok("pair retrieved success", $this->pair->toArray());
+            return JsonResponse::ok("pair retrieved success", $this->pair->toArray(select: $this->pair->pairinfos));
         } catch (PDOException $e) {
             return JsonResponse::serverError("we encountered a problem");
         } catch (LogicException $e) {
@@ -82,7 +86,21 @@ final class PairController
     {
         try {
             if (!$pairs = $this->pair->all())
-                return JsonResponse::notFound("unable to retrieve pairs");
+                return JsonResponse::ok("no pair found in list", []);
+
+            return JsonResponse::ok("pairs retrieved success", $pairs);
+        } catch (PDOException $e) {
+            return JsonResponse::serverError("we encountered a problem");
+        } catch (Exception $e) {
+            return JsonResponse::serverError("we encountered a problem");
+        }
+    }
+  
+    private function listonlypair()
+    {
+        try {
+            if (!$pairs = $this->pair->all(select: $this->pair->pairinfos))
+                return JsonResponse::ok("no pair found in list", []);
 
             return JsonResponse::ok("pairs retrieved success", $pairs);
         } catch (PDOException $e) {
@@ -92,7 +110,7 @@ final class PairController
         }
     }
 
-    private function query()
+    private function query(string $id)
     {
         try {
             $params = sanitize_data($_GET);
@@ -101,7 +119,6 @@ final class PairController
             if ($validated = Validator::validate($params, [
                 'name' => 'sometimes|string',
                 'description' => 'sometimes|string',
-                'decimal_places' => 'sometimes|int',
                 'status' => "sometimes|string|in:$status",
                 'dollar_per_pip' => 'sometimes|numeric',
                 'history_start' => 'sometimes|string',
@@ -109,8 +126,15 @@ final class PairController
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
-            if (!$pairs = $this->pair->findByArray(array_keys($params), array_values($params)))
-                return JsonResponse::notFound("unable to retrieve pairs");
+            if ($id == 0)
+                $select = [];
+            else if ($id == 1)
+                $select = $this->pair->pairinfos;
+            else
+                $select = $this->pair->symbolinfos;
+
+            if (!$pairs = $this->pair->findByArray(array_keys($params), array_values($params), select: $select))
+                return JsonResponse::ok("no piar found in list", []);
 
             return JsonResponse::ok("pairs retrieved success", $pairs);
         } catch (PDOException $e) {
@@ -140,20 +164,29 @@ final class PairController
 
             $body = sanitize_data(json_decode($inputJSON, true));
             $status = Pair::DISABLED.', '.Pair::ENABLED;
+            $markets = Pair::FX.','.Pair::COMODITY.','.Pair::CRYPTO.','.Pair::STOCKS.','.Pair::INDICES;
 
             if ($validated = Validator::validate($body, [
                 'name' => 'required|string',
                 'description' => 'required|string',
-                'decimal_places' => 'required|int',
                 'status' => "sometimes|string|in:$status",
                 'dollar_per_pip' => 'required|numeric',
                 'history_start' => 'required|string',
-                'history_end' => 'required|string'
+                'history_end' => 'required|string',
+                'exchange' => 'sometimes|string',
+                'market' => "required|in:$markets",
+                'short_name' => 'required|string',
+                'ticker' => 'required|string',
+                'price_precision' => 'required|int',
+                'volume_precision' => 'required|int',
+                'price_currency' => 'required|string',
+                'type' => 'sometimes|string',
+                'logo' => 'sometimes|string'
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
-            if (!$pair = $this->pair->create($body)) {
+            if (!$pair = $this->pair->create($body, select: $this->pair->pairinfos)) {
                 return JsonResponse::serverError("unable to create pair");
             }
 
@@ -193,15 +226,24 @@ final class PairController
             $body = sanitize_data(json_decode($inputJSON, true));
             $id = sanitize_data($id);
             $status = Pair::DISABLED.', '.Pair::ENABLED;
+            $markets = Pair::FX.','.Pair::COMODITY.','.Pair::CRYPTO.','.Pair::STOCKS.','.Pair::INDICES;
 
             if ($validated = Validator::validate($body, [
                 'name' => 'sometimes|string',
                 'description' => 'sometimes|string',
-                'decimal_places' => 'sometimes|int',
                 'status' => "sometimes|string|in:$status",
                 'dollar_per_pip' => 'sometimes|numeric',
                 'history_start' => 'sometimes|string',
-                'history_end' => 'sometimes|string'
+                'history_end' => 'sometimes|string',
+                'exchange' => 'sometimes|string',
+                'market' => "sometimes|in:$markets",
+                'short_name' => 'sometimes|string',
+                'ticker' => 'sometimes|string',
+                'price_precision' => 'sometimes|int',
+                'volume_precision' => 'sometimes|int',
+                'price_currency' => 'sometimes|string',
+                'type' => 'sometimes|string',
+                'logo' => 'sometimes|string'
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
@@ -211,7 +253,7 @@ final class PairController
                 return JsonResponse::notFound("unable to update pair");
             }
 
-            return JsonResponse::ok("pair updated successfully", $this->pair->toArray());
+            return JsonResponse::ok("pair updated successfully", $this->pair->toArray(select: $this->pair->pairinfos));
         } catch (PDOException $e) {
             if (env("APP_ENV") === "local")
                 $message = $e->getMessage();

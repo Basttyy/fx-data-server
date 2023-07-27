@@ -105,7 +105,7 @@ final class PositionController
                 $positions = $this->position->findBy("user_id", $this->user->id);
             }
             if (!$positions)
-                return JsonResponse::notFound("unable to retrieve positions");
+                return JsonResponse::ok("no position found in list", []);
 
             return JsonResponse::ok("positions retrieved success", $positions);
         } catch (PDOException $e) {
@@ -127,7 +127,7 @@ final class PositionController
             }
             $id = sanitize_data($id);
             if (!$positions = $this->position->findBy("user_id", $id))
-                return JsonResponse::notFound("unable to retrieve positions");
+                return JsonResponse::ok("no positions found in list", []);
 
             return JsonResponse::ok("positions retrieved success", $positions);
         } catch (PDOException $e) {

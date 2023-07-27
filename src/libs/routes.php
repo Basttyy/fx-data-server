@@ -9,6 +9,7 @@ require_once __DIR__.'/../MinuteController.php';
 use Basttyy\FxDataServer\Controllers\Api\Auth\AuthController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\CaptchaController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\TwoFaController;
+use Basttyy\FxDataServer\Controllers\Api\FxController;
 use Basttyy\FxDataServer\Controllers\Api\MigrateController;
 use Basttyy\FxDataServer\Controllers\Api\MiscellaneousController;
 use Basttyy\FxDataServer\Controllers\Api\PairController;
@@ -50,8 +51,9 @@ get('/login', new AuthController('login_oauth'));
 get('/refresh-token', new AuthController('refresh_token'));
 get('/auth/captcha', new CaptchaController());
 post('/auth/captcha', new CaptchaController('validate'));
-get('/auth/twofa/$mode', new TwoFaController());
-post('/auth/twofa/$mode', new TwoFaController('validate'));
+get('/auth/twofa/mode/$mode', new TwoFaController());
+post('/auth/twofa/mode/$mode', new TwoFaController('validate'));
+get('/auth/twofa/mode/$mode/status/$status', new TwoFaController('twofaonoff'));
 
 /// User Routes
 get('/users/$id', new UserController());
@@ -98,7 +100,8 @@ delete('/test-sessions/$id', new TestSessionController('delete'));
 /// Pairs Routes
 get('/pairs/$id', new PairController());
 get('/pairs', new PairController('list'));
-get('/pairs/query', new PairController('list'));
+get('/pairs/list/onlypair', new PairController('listonlypair'));
+get('/pairs/list/pairorsym/$id/query/$query', new PairController('query'));
 post('/pairs', new PairController('create'));
 put('/pairs/$id', new PairController('update'));
 delete('/pairs/$id', new PairController('delete'));
@@ -106,7 +109,7 @@ delete('/pairs/$id', new PairController('delete'));
 /// Positions Routes
 get('/positions/$id', new PositionController());
 get('/positions', new PositionController('list'));
-get('/positions/query', new PositionController('list'));
+get('/positions/query/$query', new PositionController('list'));
 get('/positions/users/$id', new PositionController('list_user'));
 post('/positions', new PositionController('create'));
 put('/positions/$id', new PositionController('update'));
@@ -120,12 +123,12 @@ get('/admin/logs', new RequestLogController('list'));
 /// Historical Data Routes
 get('/fx/download/ticker/$ticker/from/$from/nums/$nums/faster/$faster', $downloadTickData);
 get('/fx/candles/ticker/$ticker/from/$fro/nums/$num/timeframe/$timefram', $getTimeframeCandles);
-get('/fx/download/min/ticker/$ticker/period/$period/from/$from/incr/$incr/nums/$nums', $downloadMinuteData);
-get('/fx/tickers/query/$query', $searchTicker);
-get('/fx/tickers/query', $searchTicker);
+get('/fx/download/min/ticker/$ticker/period/$period/from/$from/incr/$incr/nums/$nums', new FxController());
+get('/fx/tickers/query/$query', new MiscellaneousController('search_ticker'));
+get('/fx/tickers/query', new MiscellaneousController('search_ticker'));
 
 /// Others
-post('/misc/contact-us', new MiscellaneousController('contact-us'));
+post('/misc/contact-us', new MiscellaneousController());
 
 any('/404', new NotFoundController);
 

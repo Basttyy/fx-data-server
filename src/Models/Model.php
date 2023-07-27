@@ -168,7 +168,7 @@ abstract class Model
         return $this->child;
     }
 
-    public function toArray($guard = true)
+    public function toArray($guard = true, $select = [])
     {
         $result = array();
         // if ($self == null) {
@@ -177,11 +177,19 @@ abstract class Model
         // if ($self == null) {
         //     return $result;
         // }
-        $items = $guard ? array_diff($this->child->fillable, $this->child->guarded) : $this->child->fillable;
         $obj_props = array_diff(array_keys(get_object_vars($this->child)), [
             'fillable', 'guarded', 'table', 'primaryKey', 'exists', 'db', 'builder',
             'connection', 'keyType', 'incrementing', 'perPage', 'wasRecentlyCreated', 'child'
         ]);
+        if (sizeof($select)) {
+            foreach ($select as $item) {
+                if (Arr::exists($obj_props, $item, true)) {
+                    $result[$item] = $this->child->{$item};
+                }
+            }
+            return $result;
+        }
+        $items = $guard ? array_diff($this->child->fillable, $this->child->guarded) : $this->child->fillable;
         foreach ($items as $item) {
             if (Arr::exists($obj_props, $item, true)) {
                 $result[$item] = $this->child->{$item};
@@ -202,12 +210,16 @@ abstract class Model
      * 
      * @return array|bool
      */
-    public function create(array $values, $is_protected = true)
+    public function create(array $values, $is_protected = true, $select = [])
     {
         if (!$id = mysqly::insert($this->table, $values)) {
             return false;
         }
-        $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
+        if (count($select)) {
+            $fields = $select;
+        } else {
+            $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
+        }
         if (!$model = mysqly::fetch($this->table, ['id' => $id], $fields)) {
             return true;
         }
@@ -245,7 +257,7 @@ abstract class Model
      * 
      * @return array
      */
-    public function all($is_protected = true)
+    public function all($is_protected = true, $select = [])
     {
         $query_arr = [];
 
@@ -254,7 +266,11 @@ abstract class Model
             //$this->builder->useSoftDelete = true;
         }
 
-        $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
+        if (count($select)) {
+            $fields = $select;
+        } else {
+            $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
+        }
 
         if (!$fields = mysqly::fetch($this->table, $query_arr, $fields)) {
             return false;
@@ -270,7 +286,7 @@ abstract class Model
      * @param bool $is_protected
      * @return array|bool
      */
-    public function findBy($key, $value, $is_protected = true)
+    public function findBy($key, $value, $is_protected = true, $select = [])
     {
         $query_arr = [];
 
@@ -281,9 +297,12 @@ abstract class Model
         $query_arr[$key] = $value;
         if ($this->order !== "")
             $query_arr['order_by'] = $this->order;
-
-        
-        $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
+    
+        if (count($select)) {
+            $fields = $select;
+        } else {
+            $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
+        }
 
         if (!$model = mysqly::fetch($this->table, $query_arr, $fields)) {
             return false;
@@ -299,7 +318,7 @@ abstract class Model
      * 
      * @return array|bool
      */
-    public function findByArray(array $keys, array $values, $or_and = "AND", $is_protected = true)
+    public function findByArray(array $keys, array $values, $or_and = "AND", $is_protected = true, $select = [])
     {
         if (count($keys) !== count($values)) {
             return false;
@@ -317,7 +336,11 @@ abstract class Model
             // $this->builder->where($key, $values[$pos]);
         }
         
-        $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
+        if (count($select)) {
+            $fields = $select;
+        } else {
+            $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
+        }
         if (!$fields = $or_and === "AND" ? mysqly::fetch($this->table, $query_arr, $fields) : mysqly::fetchOr($this->table, $query_arr, $fields)) {
             return false;
         }

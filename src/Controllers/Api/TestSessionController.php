@@ -76,7 +76,7 @@ final class TestSessionController
                 return JsonResponse::unauthorized("you can't view this session");
             }
 
-            return JsonResponse::ok("session retrieved success", $this->strategy->toArray());
+            return JsonResponse::ok("session retrieved success", $this->session->toArray());
         } catch (PDOException $e) {
             return JsonResponse::serverError("we encountered a problem");
         } catch (LogicException $e) {
@@ -100,7 +100,7 @@ final class TestSessionController
                 $sessions = $this->session->findBy("user_id", $this->user->id);
             }
             if (!$sessions)
-                return JsonResponse::notFound("unable to retrieve test sessions");
+                return JsonResponse::ok("no testsession found in list", []);
 
             return JsonResponse::ok("test sessions retrieved success", $sessions);
         } catch (PDOException $e) {
@@ -124,7 +124,7 @@ final class TestSessionController
             $sessions = $this->session->findBy("user_id", $id);
             
             if (!$sessions)
-                return JsonResponse::notFound("unable to retrieve test sessions");
+                return JsonResponse::ok("no testsession found in list", []);
 
             return JsonResponse::ok("test sessions retrieved success", $sessions);
         } catch (PDOException $e) {
@@ -170,6 +170,7 @@ final class TestSessionController
             }
 
             $body['user_id'] = $this->user->id;
+            $body['present_date'] = $body['start_date'];
 
             if (!$session = $this->session->create($body)) {
                 return JsonResponse::serverError("unable to create test session");
@@ -212,9 +213,9 @@ final class TestSessionController
             $id = sanitize_data($id);
 
             if ($validated = Validator::validate($body, [
-                'starting_bal' => 'sometimes|string',
-                'current_bal' => 'sometimes|string',
-                'strategy_id' => 'sometimes|string',
+                'starting_bal' => 'sometimes|numeric',
+                'current_bal' => 'sometimes|numeric',
+                'strategy_id' => 'sometimes|int',
                 'pair' => 'sometimes|string',
                 'chart' => 'sometimes|string',
                 'chart_timestamp' => 'sometimes|integer',

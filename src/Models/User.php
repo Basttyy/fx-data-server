@@ -7,6 +7,11 @@ final class User extends Model
     const INACTIVE = "inactive";
     const UNVERIFIED = "unverified";
     const ACTIVE = "active";
+
+    const EMAIL = 'email';
+    const PHONE = 'phone';
+    const GOOGLE2FA = 'google2fa';
+
     protected $softdeletes = true;
 
     protected $table = 'users';
@@ -32,11 +37,22 @@ final class User extends Model
     public $twofa_secret;
     public $email2fa_token;
     public $email2fa_expire;
+    public $twofa_types;
+    public $twofa_default_type;
     public $status;
     public $avatar;
     public $created_at;
     public $updated_at;
     public $deleted_at;
+
+    /**
+     * user twofa properties
+     * 
+     * @var array
+     */
+    public $twofainfos = [
+        'twofa_types', 'twofa_default_type'
+    ];
 
     /**
      * Indicates what database attributes of the model can be filled at once
@@ -47,7 +63,8 @@ final class User extends Model
         'id', 'uuid', 'firstname', 'lastname', 'username', 'email', 'password',
         'phone', 'level', 'country', 'city', 'postal_code', 'address',
         'role_id', 'access_token', 'twofa_secret', 'email2fa_token', 'status',
-        'avatar', 'created_at', 'updated_at', 'deleted_at', 'email2fa_expire'
+        'avatar', 'created_at', 'updated_at', 'deleted_at', 'email2fa_expire',
+        'twofa_types', 'twofa_default_type'
     ];
 
     /**

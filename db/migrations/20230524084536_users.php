@@ -38,6 +38,8 @@ final class Users extends AbstractMigration
             ->addColumn('twofa_secret', 'string', ['null' => true])
             ->addColumn('email2fa_token', 'string', ['null' => true])
             ->addColumn('email2fa_expire', 'integer', ['null' => true])
+            ->addColumn('twofa_default_type', 'enum', ['values' => ','.User::EMAIL.','.User::GOOGLE2FA, 'default' => User::EMAIL, 'default' => ''])
+            ->addColumn('twofa_types', 'string', ['null' => true, 'default' => ''])              //will contain comma seperated string of on or more of the above
             ->addColumn('postal_code', 'biginteger', ['null' => true])
             ->addColumn('status', 'string', ['default' => User::UNVERIFIED])
             ->addColumn('level', 'integer', ['null' => true, 'default' => 1])

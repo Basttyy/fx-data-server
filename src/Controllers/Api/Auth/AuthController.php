@@ -7,6 +7,7 @@ use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\Exceptions\NotFoundException;
 use Basttyy\FxDataServer\Exceptions\QueryException;
+use Basttyy\FxDataServer\libs\Arr;
 use Basttyy\FxDataServer\libs\DbStorage;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\libs\JsonResponse;
@@ -104,23 +105,21 @@ final class AuthController
             $subscription = $this->subscription->findBy('user_id', $this->user->id, false);
             $is_admin = $this->authenticator->verifyRole($this->user, 'admin');
 
-            $user = $this->user->toArray();
+            $user = Arr::except($this->user->toArray(), $this->user->twofainfos);
             $user['extra']['is_admin'] = $is_admin;
             $user['extra']['subscription'] = $subscription ? $subscription : null;
+            $user['extra']['twofa']['enabled'] = strlen($this->user->twofa_types) > 0;
+            $user['extra']['twofa']['twofa_types'] = $this->user->twofa_types;
+            $user['extra']['twofa']['twofa_default_type'] = $this->user->twofa_default_type;
 
             return JsonResponse::ok("login successfull", [
                 'auth_token' => $token,
                 'data' => $user
             ]);
         } catch (NotFoundException $ex) {
-            if (env('APP_ENV') === "local")
-                consoleLog(0, $ex->getMessage() . "   " . $ex->getTraceAsString());
             return JsonResponse::unauthorized("the requested user was not found");
         } catch (Exception $e) {
-            if (env('APP_ENV') === "local")
-                consoleLog(0, $e->getMessage() . "   " . $e->getTraceAsString());
-            else
-                logger()->error($e->getMessage(), $e->getTrace());
+            logger()->error($e->getMessage(), $e->getTrace());
             return JsonResponse::serverError("something happened try again ");
         }
     }
@@ -177,16 +176,34 @@ final class AuthController
                 ])) {
                     return JsonResponse::serverError("error creating user please try again");
                 }
+                
+                $usr = Arr::except($user[0], $this->user->twofainfos);
+                $subscription = $this->subscription->findBy('user_id', $this->user->id, false);
+                
+                $usr['extra']['is_admin'] = false;
+                $usr['extra']['subscription'] = $subscription ? $subscription : null;
+                $usr['extra']['twofa']['enabled'] = strlen($this->user->twofa_types) > 0;
+                $usr['extra']['twofa']['twofa_types'] = $this->user->twofa_types;
+                $usr['extra']['twofa']['twofa_default_type'] = $this->user->twofa_default_type;
 
                 return JsonResponse::created('user account has been created', [
-                    'auth_token' => "social_login:". base64_encode($user['id']),
-                    'data' => $user
+                    'auth_token' => "social_login:". base64_encode($usr['id']),
+                    'data' => $usr
                 ]);
             }
+                
+            $usr = Arr::except($user[0], $this->user->twofainfos);
+            $subscription = $this->subscription->findBy('user_id', $this->user->id, false);
+            
+            $usr['extra']['is_admin'] = false;
+            $usr['extra']['subscription'] = $subscription ? $subscription : null;
+            $usr['extra']['twofa']['enabled'] = strlen($this->user->twofa_types) > 0;
+            $usr['extra']['twofa']['twofa_types'] = $this->user->twofa_types;
+            $usr['extra']['twofa']['twofa_default_type'] = $this->user->twofa_default_type;
 
             return JsonResponse::ok("login successfull", [
-                'auth_token' => "social_login:". base64_encode($user[0]['id']),
-                'user' => $user[0]
+                'auth_token' => "social_login:". base64_encode($usr['id']),
+                'user' => $usr
             ]);
     
             // Disconnect the adapter (log out)

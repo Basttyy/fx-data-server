@@ -1,28 +1,38 @@
 <?php
 namespace Basttyy\FxDataServer\Controllers\Api;
 
+use Basttyy\FxDataServer\Auth\JwtAuthenticator;
+use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\libs\JsonResponse;
+use Basttyy\FxDataServer\Models\Role;
+use Basttyy\FxDataServer\Models\User;
 
 class FxController
 {
     private $method;
+    private $user;
+    private $authenticator;
 
-    public function __construct($method = "")
+    public function __construct($method = "download_minute_data")
     {
         $this->method = $method;
+        $this->user = new User();
+        $encoder = new JwtEncoder(env('APP_KEY'));
+        $role = new Role();
+        $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
     }
 
-    public function __invoke(string $ticker = "", string $timeframe = "", string $query = "", int $from = null, int $incr = null, int $nums = null, bool $faster = null)
+    public function __invoke(string $ticker = "", string $period = "", int $from = null, int $incr = null, int $nums = null, string $query = "", bool $faster = null)
     {
         switch ($this->method) {
             case 'download_minute_data':
-                $resp = $this->downloadMinuteData($ticker, $timeframe, $from, $incr, $nums);
+                $resp = $this->downloadMinuteData($ticker, $period, $from, $incr, $nums);
                 break;
             case 'download_tick_data':
                 $resp = $this->downloadTickData($ticker, $from, $nums, $faster);
                 break;
             case 'get_timeframe_candles':
-                $resp = $this->getTimeframeCandles($ticker, $from, $nums, $timeframe);
+                $resp = $this->getTimeframeCandles($ticker, $from, $nums, $period);
                 break;
             case 'search_ticker':
                 $resp = $this->searchTicker($query);
@@ -34,46 +44,24 @@ class FxController
         $resp;
     }
 
-    private function downloadMinuteData (string $ticker, string $timeframe, int $from, int $incr, int $nums)
+    private function downloadMinuteData (string $ticker, string $period, int $from, int $incr, int $nums)
     {
+        if (!$this->authenticator->validate()) {
+            return JsonResponse::unauthorized();
+        }
+        if (!$is_admin = $this->authenticator->verifyRole($this->user, 'user')) {
+            return JsonResponse::unauthorized('you are not authorized to access this resource');
+        }
+
         if (!count(searchTicker($ticker))) {
-            header("Content-type: application/json");
-            http_response_code(404);
-            consoleLog(0, "request ticker does not exist");
-            out(json_encode(["message" => "ticker does not exist"]));
-            return true;
+            return JsonResponse::notFound("ticker does not exist");
         }
-
+    
         $data = false;
-        // if ($nums > 1) {
-        if (!$files = getMinutesFilesList($ticker, $timeframe, $from, $incr, $nums)) {
-            header("Content-type: application/json");
-            http_response_code(404);
-            consoleLog(0, "file not found or datetime not in range");
-            out(json_encode(["message" => "file not found or datetime not in range"]));
-            return true;
+        if (!$files = getMinutesFilesList($ticker, $period, $from, $incr, $nums)) {
+            return JsonResponse::notFound('file not found or datetime not in range');
         }
-
-            //$filePath = __DIR__."/../download/$ticker/temp/".(string)time().".csv";
-            // if (!$data = joinCsvFast($files, $filePath, $faster)) {
-            //     consoleLog(0, "someting happend, couldn't join csv");
-            //     http_response_code(500);
-            //     out(json_encode(["message" => "unable to join csv files"]));
-            //     return true;
-            // }
-        // } else {
-        //     $filePath = "{$_SERVER['DOCUMENT_ROOT']}/..{$_SERVER["REQUEST_URI"]}";
-        // }
-        
-        // if (!$data && !file_exists($filePath)) {
-        //     consoleLog('info', "File not found Error for : " . $_SERVER["REQUEST_URI"]);
-        //     // return false;
-        //     http_response_code(404);
-        //     header("Content-type: application/json");
-        //     echo "File not Found : {$filePath}";
-        //     return true;
-        // }
-
+    
         // https://stackoverflow.com/questions/45179337/mime-content-type-returning-text-plain-for-css-and-js-files-only
         // https://stackoverflow.com/questions/7236191/how-to-create-a-custom-magic-file-database
         // Otherwise, you can use custom rules :
@@ -82,27 +70,16 @@ class FxController
             'css' => 'text/css',
         ];
         $ext = pathinfo($files[0], PATHINFO_EXTENSION);
+        if (array_key_exists($ext, $customMappings)) {
+            $mime = $customMappings[$ext];
+        }
         $mime = mime_content_type($files[0]);
-        header("Content-type: {$mime}");
-        header("Content-encoding: deflate");
-        // consoleLog('info', "CORS added to file {$mime} : {$filePath}");
-        consoleLog('info', 'got total files of: '.count($files));
+        header("Content-type: $ext");
         $i = 1;
+        
         foreach ($files as $filePath) {
-            // $ext = pathinfo($filePath, PATHINFO_EXTENSION);
-            // consoleLog('Debug', $ext);
-            if (array_key_exists($ext, $customMappings)) {
-                $mime = $customMappings[$ext];
-            }
-            // header("Content-type: {$mime}");
-            // if ($data) {
-            //     echo $data;
-            // } else {
-                echo file_get_contents($filePath);
-                // consoleLog('info', "file $filePath sent");
-                $i++;
-                //unlink($filePath);
-            // }
+            echo gzuncompress(file_get_contents($filePath));
+            $i++;
         }
         return true;
     }
@@ -157,10 +134,10 @@ class FxController
         return true;
     }
 
-    private function getTimeframeCandles(string $ticker, int $from, int $nums, int $timeframe)
+    private function getTimeframeCandles(string $ticker, int $from, int $nums, int $period)
     {
         header("Content-type: application/json");
-        if (!$data = getCandles($ticker, $from, $nums, $timeframe)) {
+        if (!$data = getCandles($ticker, $from, $nums, $period)) {
             return JsonResponse::notFound("required csv file(s) were not found");
         } else {
             header("Content-encoding: deflate");

@@ -89,7 +89,7 @@ final class SubscriptionController
             }
             $subscriptions = $this->subscription->all();
             if (!$subscriptions)
-                return JsonResponse::notFound("unable to retrieve subscriptions");
+                return JsonResponse::ok("no subscription found in list", []);
 
             return JsonResponse::ok("subscriptions retrieved success", $subscriptions);
         } catch (PDOException $e) {
@@ -114,7 +114,7 @@ final class SubscriptionController
             $subscriptions = $this->subscription->findBy("user_id", $id);
             
             if (!$subscriptions)
-                return JsonResponse::notFound("unable to retrieve subscriptions");
+                return JsonResponse::ok("no subscription found in list", []);
 
             return JsonResponse::ok("subscriptions retrieved success", $subscriptions);
         } catch (PDOException $e) {

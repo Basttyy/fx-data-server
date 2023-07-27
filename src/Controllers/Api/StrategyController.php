@@ -97,7 +97,7 @@ final class StrategyController
                 $strategies = $this->strategy->findBy("user_id", $this->user->id);
             }
             if (!$strategies)
-                return JsonResponse::notFound("unable to retrieve strategies");
+                return JsonResponse::ok("no strategy found in list", []);
 
             return JsonResponse::ok("strategies retrieved success", $strategies);
         } catch (PDOException $e) {
@@ -121,7 +121,7 @@ final class StrategyController
             $strategies = $this->strategy->findBy("user_id", $id);
             
             if (!$strategies)
-                return JsonResponse::notFound("unable to retrieve strategies");
+                return JsonResponse::ok("no strategy found in list", []);
 
             return JsonResponse::ok("strategies retrieved success", $strategies);
         } catch (PDOException $e) {
