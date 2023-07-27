@@ -29,7 +29,7 @@ final class TestSessions extends AbstractMigration
             ->addColumn('chart_timestamp', 'integer', ['null' => true])
             ->addColumn('start_date', 'timestamp')
             ->addColumn('end_date', 'timestamp')
-            ->addColumn('current_date', 'timestamp')
+            ->addColumn('present_date', 'timestamp')
             ->addColumn('deleted_at', 'timestamp', ['null' => true])
             ->addForeignKey('strategy_id', 'strategies', 'id', ['delete' => 'NO_ACTION', 'update' => 'NO_ACTION'])
             ->addForeignKey('user_id', 'users', 'id', ['delete' => 'NO_ACTION', 'update' => 'NO_ACTION'])

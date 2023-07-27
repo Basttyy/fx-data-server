@@ -100,8 +100,8 @@ delete('/test-sessions/$id', new TestSessionController('delete'));
 /// Pairs Routes
 get('/pairs/$id', new PairController());
 get('/pairs', new PairController('list'));
-get('/pairs/listonlypair', new PairController('listonlypair'));
-get('/pairs/query', new PairController('list'));
+get('/pairs/list/onlypair', new PairController('listonlypair'));
+get('/pairs/list/pairorsym/$id/query/$query', new PairController('query'));
 post('/pairs', new PairController('create'));
 put('/pairs/$id', new PairController('update'));
 delete('/pairs/$id', new PairController('delete'));
@@ -109,7 +109,7 @@ delete('/pairs/$id', new PairController('delete'));
 /// Positions Routes
 get('/positions/$id', new PositionController());
 get('/positions', new PositionController('list'));
-get('/positions/query', new PositionController('list'));
+get('/positions/query/$query', new PositionController('list'));
 get('/positions/users/$id', new PositionController('list_user'));
 post('/positions', new PositionController('create'));
 put('/positions/$id', new PositionController('update'));

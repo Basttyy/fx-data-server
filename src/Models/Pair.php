@@ -53,7 +53,7 @@ final class Pair extends Model
      * @var array
      */
     public $symbolinfos = [
-        'exchange', 'market', 'short_name', 'ticker', 'price_precision', 'volume_precision', 'price_currency', 'type', 'logo'
+        'description', 'exchange', 'market', 'short_name', 'ticker', 'price_precision', 'volume_precision', 'price_currency', 'type', 'logo'
     ];
 
     /**

@@ -43,7 +43,8 @@ final class PairController
                 $resp = $this->listonlypair();
                 break;
             case 'query':
-                $resp = $this->query();
+                $resp = $this->query($id);
+                break;
             case 'create':
                 $resp = $this->create();
                 break;
@@ -109,7 +110,7 @@ final class PairController
         }
     }
 
-    private function query()
+    private function query(string $id)
     {
         try {
             $params = sanitize_data($_GET);
@@ -125,7 +126,14 @@ final class PairController
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
-            if (!$pairs = $this->pair->findByArray(array_keys($params), array_values($params), $this->pair->pairinfos))
+            if ($id == 0)
+                $select = [];
+            else if ($id == 1)
+                $select = $this->pair->pairinfos;
+            else
+                $select = $this->pair->symbolinfos;
+
+            if (!$pairs = $this->pair->findByArray(array_keys($params), array_values($params), select: $select))
                 return JsonResponse::ok("no piar found in list", []);
 
             return JsonResponse::ok("pairs retrieved success", $pairs);
