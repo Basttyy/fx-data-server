@@ -78,3 +78,29 @@ if (! function_exists('logger')) {
         return $log->pushHandler(new StreamHandler($path, $level, $bubble, $filePermission, $useLocking));
     }
 }
+
+if (! function_exists('validate_data_structure')) {
+    /**
+     * Validate that an array data matches a given structure
+     * 
+     * @param object $data
+     * @param array $structure
+     * @return bool
+     */
+    function validate_data_structure($data, $structure)
+    {
+        foreach ($structure as $key => $value) {
+            if (!property_exists($data, $key)) {
+                return false;
+            }
+    
+            if (is_array($value)) {
+                if (!is_array($data->$key) || !validate_data_structure($data->$key, $value)) {
+                    return false;
+                }
+            }
+        }
+    
+        return true;
+    }
+}

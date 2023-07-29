@@ -107,6 +107,10 @@ class Validator {
                 $stat = is_array($paramval);
                 $resp = !$stat ? "{$param} should be an array" : '';
                 break;
+            case 'json':
+                $stat = Str::isJson($paramval);
+                $resp = !$stat ? "{$param} should be a valid json string" : '';
+                break;
             default:
                 $resp = $this->performAdvanceValidation($type, $param, $paramval);
         }
