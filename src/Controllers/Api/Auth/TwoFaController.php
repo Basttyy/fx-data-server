@@ -34,7 +34,7 @@ final class TwoFaController
         // $authMiddleware = new Guard($authenticator);
     }
 
-    public function __invoke(string $mode, int $status)
+    public function __invoke(string $mode, int $status = true)
     {
         switch ($this->method) {
             case 'generate':
@@ -166,6 +166,8 @@ final class TwoFaController
             }
 
             return JsonResponse::ok('twofa has been turned off for user', $this->user);
+        } else {
+            return JsonResponse::badRequest('feature not yet implemented');
         }
     }
 }
