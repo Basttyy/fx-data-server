@@ -300,6 +300,17 @@ class Str
     }
 
     /**
+     * Determine if a given string is a valid JSON.
+     * 
+     * @param string $value
+     * @return bool
+     */
+    public static function isJson($value)
+    {
+        return (json_decode($value) !== null && json_last_error() === JSON_ERROR_NONE);
+    }
+
+    /**
      * Convert a string to kebab case.
      *
      * @param  string  $value

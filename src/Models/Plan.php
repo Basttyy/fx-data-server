@@ -12,6 +12,7 @@ final class Plan extends Model
 
     //oject properties
     public $id;
+    public $name;
     public $description;
     public $price;
     public $status;
@@ -26,7 +27,7 @@ final class Plan extends Model
      * @var array
      */
     protected $fillable = [
-        'id', 'description', 'price', 'status', 'features', 'deleted_at', 'created_at', 'updated_at'
+        'id', 'name', 'description', 'price', 'status', 'features', 'deleted_at', 'created_at', 'updated_at'
     ];
     
     /**

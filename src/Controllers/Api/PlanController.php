@@ -111,6 +111,7 @@ final class PlanController
             $status = Plan::DISABLED.', '.Plan::ENABLED;
 
             if ($validated = Validator::validate($body, [
+                'name' => 'required|string',
                 'description' => 'required|string',
                 'price' => 'required|numeric',
                 'status' => "sometimes|string|in:$status",
@@ -164,6 +165,7 @@ final class PlanController
 
             $status = Plan::DISABLED.', '.Plan::ENABLED;
             if ($validated = Validator::validate($body, [
+                'name' => 'sometimes|string',
                 'description' => 'sometimes|string',
                 'price' => 'sometimes|numeric',
                 'status' => "sometimes|string|in:$status",

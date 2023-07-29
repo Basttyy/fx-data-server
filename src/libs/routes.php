@@ -119,6 +119,7 @@ delete('/positions/$id', new PositionController('delete'));
 get('/migrate', new MigrateController);
 get('/admin/logs/$id', new RequestLogController());
 get('/admin/logs', new RequestLogController('list'));
+post('/admin/landing/data', new MiscellaneousController('update_landing'));
 
 /// Historical Data Routes
 get('/fx/download/ticker/$ticker/from/$from/nums/$nums/faster/$faster', $downloadTickData);
@@ -129,6 +130,7 @@ get('/fx/tickers/query', new MiscellaneousController('search_ticker'));
 
 /// Others
 post('/misc/contact-us', new MiscellaneousController());
+get('/landing/data', new MiscellaneousController('fetch_landing'));
 
 any('/404', new NotFoundController);
 
