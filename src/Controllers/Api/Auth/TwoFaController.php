@@ -5,6 +5,7 @@ namespace Basttyy\FxDataServer\Controllers\Api\Auth;
 use Basttyy\FxDataServer\Auth\Guard;
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
+use Basttyy\FxDataServer\Console\Jobs\SendVerifyEmail;
 use Basttyy\FxDataServer\Exceptions\NotFoundException;
 use Basttyy\FxDataServer\Exceptions\QueryException;
 use Basttyy\FxDataServer\libs\Validator;
@@ -34,7 +35,7 @@ final class TwoFaController
         // $authMiddleware = new Guard($authenticator);
     }
 
-    public function __invoke(string $mode, int $status = true)
+    public function __invoke(string $mode, int $status = 1)
     {
         switch ($this->method) {
             case 'generate':
@@ -56,31 +57,32 @@ final class TwoFaController
     private function generate (string $mode)
     {
         try {
-            if (!$user = Guard::tryToAuthenticate($this->authenticator)) {
+            if (!Guard::tryToAuthenticate($this->authenticator)) {
                 return JsonResponse::unauthorized();
             }
             if ($mode == User::EMAIL) {
                 $code = implode([rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9)]);
-                if (!$user->update(['email2fa_token' => (string)$code, 'email2fa_expire' => time() + env('email2fa_expire')])) {  //TODO:: this token should be timeed and should expire
+                if (!$this->user->update(['email2fa_token' => (string)$code, 'email2fa_expire' => time() + env('EMAIL2FA_MAX_AGE')])) {  //TODO:: this token should be timeed and should expire
                     return JsonResponse::serverError("unable to generate token");
                 }
+
+                $mail_job = new SendVerifyEmail(array_merge($this->user->toArray(), ['email2fa_token' => (string)$code]));
+                $mail_job->init()->delay(5)->run();
                 //schdule job to send code to the user via email
                 return JsonResponse::ok("code sent to user email");
             } else {
                 $google2fa = new Google2FA();
-                $secret = $google2fa->generateSecretKey();
-                consoleLog(0, $secret);
+                $secret = $google2fa->generateSecretKey(32);
     
                 //store secret in user data
-                $user = $user->update(['twofa_secret' => $secret]);
-    
-                if ($user instanceof User) {
-                    $text = $google2fa->getQRCodeUrl(
-                        env('WEB_APP_NAME'),
-                        $user->email,
-                        $user->twofa_secret
-                    );
+                if (!$this->user->update(['twofa_secret' => $secret], is_protected: false)) {
+                    return JsonResponse::serverError('unable to generate token');
                 }
+                $text = $google2fa->getQRCodeUrl(
+                    env('WEB_APP_NAME'),
+                    $this->user->email,
+                    $this->user->twofa_secret
+                );
     
                 $image_url = 'https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl='.$text;
                 return JsonResponse::ok("qr url generated", ['image_url' => $image_url]);
@@ -93,7 +95,7 @@ final class TwoFaController
     private function verifyCode(string $mode)
     {
         try {            
-            if (!$user = Guard::tryToAuthenticate($this->authenticator)) {
+            if (!Guard::tryToAuthenticate($this->authenticator)) {
                 return JsonResponse::unauthorized();
             }
 
@@ -108,39 +110,37 @@ final class TwoFaController
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
-            if (!$user = $user->find()) {
+            if (!$this->user->find(is_protected: false)) {
                 return JsonResponse::serverError("unable to find logged in user");
             }
 
-            if ($user instanceof User) {
-                if ($mode == "email") {
-                    if ($user->email2fa_token === $body['code'] && $user->email2fa_expire > time()) { //TODO: verify token is not expired
-                        $values = ['email2fa_token' => null, 'email2fa_expire' => null];
-                        $values['status'] = isset($body['is_email_verification']) ? User::ACTIVE : $user->status;
-                        if (!isset($body['is_email_verification']) && !str_contains($user->twofa_types, User::EMAIL))
-                            $values['twofa_types'] = strlen($user->twofa_types) < 1 ? $user->twofa_types.User::EMAIL : $user->twofa_types.','.User::EMAIL;
-                        
-                        $user->update($values);
-                        return JsonResponse::ok("code is valid", ['status' => 'validated']);
-                    } else {
-                         return JsonResponse::badRequest("code is not valid", ['status' => 'failed']);
-                    }
+            if ($mode == "email") {
+                if ($this->user->email2fa_token === $body['code'] && $this->user->email2fa_expire > time()) { //TODO: verify token is not expired
+                    $values = ['email2fa_token' => null, 'email2fa_expire' => null];
+                    $values['status'] = isset($body['is_email_verification']) ? User::ACTIVE : $this->user->status;
+                    if (!isset($body['is_email_verification']) && !str_contains($this->user->twofa_types, User::EMAIL))
+                        $values['twofa_types'] = strlen($this->user->twofa_types) < 1 ? $this->user->twofa_types.User::EMAIL : $this->user->twofa_types.','.User::EMAIL;
+                    
+                    $this->user->update($values);
+                    return JsonResponse::ok("code is valid", ['status' => 'validated']);
                 } else {
-                    $google2fa = new Google2FA();
-                    if ($google2fa->verifyKey($user->twofa_secret, $body['code'])) {
-                        if (!str_contains($user->twofa_types, User::GOOGLE2FA))
-                            $values['twofa_types'] = strlen($user->twofa_types) < 1 ? $user->twofa_types.User::GOOGLE2FA : $user->twofa_types.','.User::GOOGLE2FA;
-                        
-                        $user->update($values);
-                        return JsonResponse::ok("code is valid", ['status' => 'validated']);
-                    } else {
-                         return JsonResponse::badRequest("code is not valid", ['status' => 'failed']);
-                    }
+                        return JsonResponse::badRequest("code is not valid", ['status' => 'failed']);
+                }
+            } else {
+                $google2fa = new Google2FA();
+                if ($google2fa->verifyKey($this->user->twofa_secret, $body['code'])) {
+                    if (!str_contains($this->user->twofa_types, User::GOOGLE2FA))
+                        $values['twofa_types'] = strlen($this->user->twofa_types) < 1 ? $this->user->twofa_types.User::GOOGLE2FA : $this->user->twofa_types.','.User::GOOGLE2FA;
+                    
+                    $this->user->update($values);
+                    return JsonResponse::ok("code is valid", ['status' => 'validated']);
+                } else {
+                        return JsonResponse::badRequest("code is not valid", ['status' => 'failed']);
                 }
             }
         } catch (Exception $e) {
             if (env('APP_ENV') === "local")
-                consoleLog(0, $e->getMessage() . "   " . $e->getTraceAsString());
+                logger()->info($e->getMessage(), $e->getTrace());
             return JsonResponse::serverError("something happened try again ");
         }
     }
