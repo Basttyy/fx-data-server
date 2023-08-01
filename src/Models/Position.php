@@ -28,6 +28,8 @@ final class Position extends Model
     public $exitpoint;
     public $stoploss;
     public $takeprofit;
+    public $lotsize;
+    public $pips;
     public $pl;
     public $entrytime;
     public $exittime;
@@ -43,7 +45,7 @@ final class Position extends Model
      * @var array
      */
     protected $fillable = [
-        'id', 'test_session_id', 'user_id', 'action', 'entrypoint', 'exitpoint', 'stoploss', 'takeprofit', 'pl', 'entrytime', 'exittime', 'partials', 'exittype', 'deleted_at', 'created_at', 'updated_at'
+        'id', 'test_session_id', 'user_id', 'action', 'entrypoint', 'exitpoint', 'stoploss', 'takeprofit', 'lotsize', 'pips', 'pl', 'entrytime', 'exittime', 'partials', 'exittype', 'deleted_at', 'created_at', 'updated_at'
     ];
     
     /**

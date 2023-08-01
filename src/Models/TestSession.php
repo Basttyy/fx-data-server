@@ -18,7 +18,6 @@ final class TestSession extends Model
     public $chart_timestamp;
     public $start_date;
     public $end_date;
-    public $present_date;
     public $deleted_at;
     public $created_at;
     public $updated_at;
@@ -29,7 +28,7 @@ final class TestSession extends Model
      * @var array
      */
     protected $fillable = [
-        'id', 'starting_bal', 'current_bal', 'strategy_id', 'user_id', 'pair', 'chart', 'chart_timestamp', 'start_date', 'end_date', 'present_date', 'deleted_at', 'created_at', 'updated_at'
+        'id', 'starting_bal', 'current_bal', 'strategy_id', 'user_id', 'pair', 'chart', 'chart_timestamp', 'start_date', 'end_date', 'deleted_at', 'created_at', 'updated_at'
     ];
     
     /**
