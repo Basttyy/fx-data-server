@@ -155,12 +155,13 @@ final class TestSessionController
             $body = sanitize_data(json_decode($inputJSON, true));
 
             if ($validated = Validator::validate($body, [
-                'starting_bal' => 'required|numeric',
-                'current_bal' => 'required|numeric',
+                'starting_bal' => 'required|float',
+                'current_bal' => 'required|float',
                 'strategy_id' => 'required|int',
                 'pair' => 'required|string',
                 'start_date' => 'required|string',
-                'end_date' => 'required|string'
+                'end_date' => 'required|string',
+                'chart_timestamp' => 'required|int'
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
@@ -170,7 +171,6 @@ final class TestSessionController
             }
 
             $body['user_id'] = $this->user->id;
-            $body['present_date'] = $body['start_date'];
 
             if (!$session = $this->session->create($body)) {
                 return JsonResponse::serverError("unable to create test session");
@@ -178,7 +178,7 @@ final class TestSessionController
 
             return JsonResponse::ok("test session creation successful", $session);
         } catch (PDOException $e) {
-            if (env("APP_ENV") === "local")
+            if (env("APP_ENV") === "dev")
                 $message = $e->getMessage();
             else if (str_contains($e->getMessage(), 'Duplicate entry'))
                 return JsonResponse::badRequest('test session already exist');
@@ -186,7 +186,7 @@ final class TestSessionController
             
             return JsonResponse::serverError($message);
         } catch (Exception $e) {
-            $message = env("APP_ENV") === "local" ? $e->getMessage() : "we encountered a problem";
+            $message = env("APP_ENV") === "dev" ? $e->getMessage() : "we encountered a problem";
             return JsonResponse::serverError("we got some error here".$message);
         }
     }
@@ -213,15 +213,14 @@ final class TestSessionController
             $id = sanitize_data($id);
 
             if ($validated = Validator::validate($body, [
-                'starting_bal' => 'sometimes|numeric',
-                'current_bal' => 'sometimes|numeric',
+                'starting_bal' => 'sometimes|float',
+                'current_bal' => 'sometimes|float',
                 'strategy_id' => 'sometimes|int',
                 'pair' => 'sometimes|string',
                 'chart' => 'sometimes|string',
                 'chart_timestamp' => 'sometimes|integer',
                 'start_date' => 'sometimes|string',
-                'end_date' => 'sometimes|string',
-                'current_date' => 'sometimes|string'
+                'end_date' => 'sometimes|string'
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }

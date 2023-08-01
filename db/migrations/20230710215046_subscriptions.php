@@ -21,7 +21,7 @@ final class Subscriptions extends AbstractMigration
     {
         $table = $this->table($this::TABLE_NAME);
         $table->addColumn('duration', 'integer')
-            ->addColumn('total_cost', 'decimal')
+            ->addColumn('total_cost', 'decimal', ['precision' => 9, 'scale' => 2])
             ->addColumn('user_id', 'integer', ['signed' => false])
             ->addColumn('plan_id', 'integer', ['signed' => false])
             ->addColumn('deleted_at', 'timestamp', ['null' => true])

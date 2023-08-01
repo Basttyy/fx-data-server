@@ -60,6 +60,16 @@ final class TwoFaController
             if (!Guard::tryToAuthenticate($this->authenticator)) {
                 return JsonResponse::unauthorized();
             }
+            $mode = sanitize_data($mode);
+
+            $modes = [User::EMAIL, User::GOOGLE2FA];
+
+            if ($validated = Validator::validate(['mode' => $mode], [
+                'mode' => "required|in:$modes",
+                'is_email_verification' => 'sometimes|bool'
+            ])) {
+                return JsonResponse::badRequest('errors in request', $validated);
+            }
             if ($mode == User::EMAIL) {
                 $code = implode([rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9)]);
                 if (!$this->user->update(['email2fa_token' => (string)$code, 'email2fa_expire' => time() + env('EMAIL2FA_MAX_AGE')])) {  //TODO:: this token should be timeed and should expire
@@ -129,10 +139,10 @@ final class TwoFaController
             } else {
                 $google2fa = new Google2FA();
                 if ($google2fa->verifyKey($this->user->twofa_secret, $body['code'])) {
-                    if (!str_contains($this->user->twofa_types, User::GOOGLE2FA))
+                    if (!str_contains($this->user->twofa_types, User::GOOGLE2FA)) {
                         $values['twofa_types'] = strlen($this->user->twofa_types) < 1 ? $this->user->twofa_types.User::GOOGLE2FA : $this->user->twofa_types.','.User::GOOGLE2FA;
-                    
-                    $this->user->update($values);
+                        $this->user->update($values);
+                    }
                     return JsonResponse::ok("code is valid", ['status' => 'validated']);
                 } else {
                         return JsonResponse::badRequest("code is not valid", ['status' => 'failed']);

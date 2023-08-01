@@ -9,6 +9,7 @@ use Basttyy\FxDataServer\Models\Position;
 use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\TestSession;
 use Basttyy\FxDataServer\Models\User;
+use DateTime;
 use Exception;
 use LogicException;
 use PDOException;
@@ -158,14 +159,15 @@ final class PositionController
             $body = sanitize_data(json_decode($inputJSON, true));
             $actions = Position::BUY.', '.Position::SELL.', '. Position::BUY_LIMIT.', '. Position::BUY_STOP.', '. Position::SELL_LIMIT.', '. Position::SELL_STOP;
 
+            logger()->info("the body is", $body);
             if ($validated = Validator::validate($body, [
                 'test_session_id' => 'required|int',
                 'action' => "required|string|in:$actions",
-                'entrypoint' => 'required|string',
-                'stoploss' => 'sometimes|int',
-                'takeprofit' => 'sometimes|string',
-                'pl' => 'sometimes|string',
-                'entrytime' => 'required|string'
+                'lotsize' => 'required|float',
+                'entrypoint' => 'required|float',
+                'stoploss' => 'sometimes|float',
+                'takeprofit' => 'sometimes|float',
+                'pl' => 'sometimes|double'
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
@@ -175,6 +177,11 @@ final class PositionController
             }
 
             $body['user_id'] = $this->user->id;
+            if (in_array($body['action'], [Position::BUY, Position::SELL])) {
+                $date = new DateTime();
+                $body['entrytime'] = $date->format('Y-m-d H:i:s.u');
+            }
+            logger()->info("the body is now", $body);
 
             if (!$position = $this->position->create($body)) {
                 return JsonResponse::serverError("unable to create position");
@@ -182,7 +189,7 @@ final class PositionController
 
             return JsonResponse::ok("position creation successful", $position);
         } catch (PDOException $e) {
-            if (env("APP_ENV") === "local")
+            if (env("APP_ENV") === "dev")
                 $message = $e->getMessage();
             else if (str_contains($e->getMessage(), 'Duplicate entry'))
                 return JsonResponse::badRequest('position already exist');
@@ -190,7 +197,7 @@ final class PositionController
             
             return JsonResponse::serverError($message);
         } catch (Exception $e) {
-            $message = env("APP_ENV") === "local" ? $e->getMessage() : "we encountered a problem";
+            $message = env("APP_ENV") === "dev" ? $e->getMessage() : "we encountered a problem";
             return JsonResponse::serverError("we got some error here".$message);
         }
     }
@@ -220,15 +227,15 @@ final class PositionController
 
             if ($validated = Validator::validate($body, [
                 'action' => "sometimes|string|in:$actions",
-                'entrypoint' => 'sometimes|string',
-                'exitpoint' => 'sometimes|string',
-                'stoploss' => 'sometimes|int',
-                'takeprofit' => 'sometimes|string',
-                'pl' => 'sometimes|numeric',
+                'entrypoint' => 'sometimes|float',
+                'exitpoint' => 'sometimes|float',
+                'stoploss' => 'sometimes|float',
+                'takeprofit' => 'sometimes|float',
+                'pl' => 'sometimes|double',
                 'entrytime' => 'sometimes|string',
                 'exittime' => 'sometimes|int',
                 'partials' => 'sometimes|string',
-                'closetype' => "sometimes|string|in:$closetypes"
+                'exittype' => "sometimes|string|in:$closetypes"
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
