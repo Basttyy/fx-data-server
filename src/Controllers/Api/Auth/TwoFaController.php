@@ -145,7 +145,7 @@ final class TwoFaController
                     }
                     return JsonResponse::ok("code is valid", ['status' => 'validated']);
                 } else {
-                        return JsonResponse::badRequest("code is not valid", ['status' => 'failed']);
+                    return JsonResponse::badRequest("code is not valid", ['status' => 'failed']);
                 }
             }
         } catch (Exception $e) {

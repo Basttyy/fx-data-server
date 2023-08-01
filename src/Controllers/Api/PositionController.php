@@ -189,7 +189,7 @@ final class PositionController
 
             return JsonResponse::ok("position creation successful", $position);
         } catch (PDOException $e) {
-            if (env("APP_ENV") === "dev")
+            if (env("APP_ENV") === "local")
                 $message = $e->getMessage();
             else if (str_contains($e->getMessage(), 'Duplicate entry'))
                 return JsonResponse::badRequest('position already exist');
@@ -197,7 +197,7 @@ final class PositionController
             
             return JsonResponse::serverError($message);
         } catch (Exception $e) {
-            $message = env("APP_ENV") === "dev" ? $e->getMessage() : "we encountered a problem";
+            $message = env("APP_ENV") === "local" ? $e->getMessage() : "we encountered a problem";
             return JsonResponse::serverError("we got some error here".$message);
         }
     }
