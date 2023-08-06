@@ -64,11 +64,10 @@ final class TwoFaController
 
             $modes = [User::EMAIL, User::GOOGLE2FA];
 
-            if ($validated = Validator::validate(['mode' => $mode], [
-                'mode' => "required|in:$modes",
-                'is_email_verification' => 'sometimes|bool'
-            ])) {
-                return JsonResponse::badRequest('errors in request', $validated);
+            if (!in_array($mode, $modes)) {
+                return JsonResponse::badRequest('errors in request', [
+                    'mode should be one of email or google2fa'
+                ]);
             }
             if ($mode == User::EMAIL) {
                 $code = implode([rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9)]);

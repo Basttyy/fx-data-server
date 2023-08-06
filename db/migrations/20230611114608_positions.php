@@ -21,8 +21,8 @@ final class Positions extends AbstractMigration
     public function change(): void
     {
         $table = $this->table($this::TABLE_NAME);
-        $table->addColumn('action', 'enum', ['values' => Position::BUY. "," .Position::SELL])
-            ->addColumn('entrypoint', 'decimal', ['precision' => 10, 'scale' => 5])
+        $table->addColumn('action', 'enum', ['values' => Position::BUY.','.Position::SELL.','. Position::BUY_LIMIT.','. Position::BUY_STOP.','. Position::SELL_LIMIT.','. Position::SELL_STOP])
+            ->addColumn('entrypoint', 'decimal', ['precision' => 15, 'scale' => 5])
             ->addColumn('exitpoint', 'decimal', ['null' => true, 'precision' => 10, 'scale' => 5])
             ->addColumn('stoploss', 'decimal', ['null' => true, 'precision' => 10, 'scale' => 5])
             ->addColumn('takeprofit', 'decimal', ['null' => true, 'precision' => 10, 'scale' => 5])
