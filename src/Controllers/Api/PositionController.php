@@ -172,6 +172,29 @@ final class PositionController
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
+            if (str_contains($body['action'], 'buy')) {
+                if (isset($body['takeprofit']) && $body['takeprofit'] <= $body['entrypoint']) {
+                    return JsonResponse::badRequest('invalid entry or takeprofit or stoploss levels');
+                }
+                if (isset($body['stoploss']) && $body['stoploss'] >= $body['entrypoint']) {
+                    return JsonResponse::badRequest('invalid entry or takeprofit or stoploss levels');
+                }
+                if (isset($body['takeprofit']) && isset($body['stoploss']) && $body['stoploss'] > $body['takeprofit']) {
+                    return JsonResponse::badRequest('invalid entry or takeprofit or stoploss levels');
+                }
+            }
+            if (str_contains($body['action'], 'sell')) {
+                if (isset($body['takeprofit']) && $body['takeprofit'] >= $body['entrypoint']) {
+                    return JsonResponse::badRequest('invalid entry or takeprofit or stoploss levels');
+                }
+                if (isset($body['stoploss']) && $body['stoploss'] <= $body['entrypoint']) {
+                    return JsonResponse::badRequest('invalid entry or takeprofit or stoploss levels');
+                }
+                if (isset($body['takeprofit']) && isset($body['stoploss']) && $body['stoploss'] < $body['takeprofit']) {
+                    return JsonResponse::badRequest('invalid entry or takeprofit or stoploss levels');
+                }
+            }
+
             if (!$this->session->find($body['test_session_id'])) {
                 return JsonResponse::badRequest('selected test session does not exist');
             }
@@ -231,8 +254,9 @@ final class PositionController
                 'exitpoint' => 'sometimes|float',
                 'stoploss' => 'sometimes|float',
                 'takeprofit' => 'sometimes|float',
+                'lotsize' => 'sometimes|float',
+                'pips' => 'sometimes|float',
                 'pl' => 'sometimes|double',
-                'entrytime' => 'sometimes|string',
                 'exittime' => 'sometimes|int',
                 'partials' => 'sometimes|string',
                 'exittype' => "sometimes|string|in:$closetypes"
@@ -246,6 +270,11 @@ final class PositionController
 
             if ($this->position->user_id !== $this->user->id) {
                 return JsonResponse::unauthorized("you can't update this position");
+            }
+
+            if (isset($body['action']) && in_array($body['action'], [Position::BUY, Position::SELL])) {
+                $date = new DateTime();
+                $body['entrytime'] = $date->format('Y-m-d H:i:s.u');
             }
 
             if (!$this->position->update($body, (int)$id)) {
