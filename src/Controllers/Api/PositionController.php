@@ -99,11 +99,21 @@ final class PositionController
                 return JsonResponse::unauthorized();
             }
             $is_admin = $this->authenticator->verifyRole($this->user, 'admin');
+            $query = isset($_GET) ? sanitize_data($_GET): [];
 
             if ($is_admin) {
-                $positions = $this->position->all();
+                if (count($query))
+                    $positions = $this->position->findByArray(array_keys($query), array_values($query), 'OR');
+                else
+                    $positions = $this->position->all();
             } else {
-                $positions = $this->position->findBy("user_id", $this->user->id);
+                if (count($query)) {
+                    $keys = array_merge(array_keys($query), ['user_id']);
+                    $values = array_merge(array_values($query), [$this->user->id]);
+                    $positions = $this->position->findByArray($keys, $values, 'OR');
+                } else {
+                    $positions = $this->position->findBy("user_id", $this->user->id);
+                }
             }
             if (!$positions)
                 return JsonResponse::ok("no position found in list", []);
@@ -257,7 +267,6 @@ final class PositionController
                 'lotsize' => 'sometimes|float',
                 'pips' => 'sometimes|float',
                 'pl' => 'sometimes|double',
-                'exittime' => 'sometimes|int',
                 'partials' => 'sometimes|string',
                 'exittype' => "sometimes|string|in:$closetypes"
             ])) {
@@ -276,6 +285,13 @@ final class PositionController
                 $date = new DateTime();
                 $body['entrytime'] = $date->format('Y-m-d H:i:s.u');
             }
+            if (isset($body['exittype']) && isset($body['exitpoint'])) {
+                $date = new DateTime();
+                $body['exittime'] = $date->format('Y-m-d H:i:s.u');
+            }
+            // if (isset($body['pips'])) {
+            //     $body['pl'] = 
+            // }
 
             if (!$this->position->update($body, (int)$id)) {
                 return JsonResponse::notFound("unable to update position");

@@ -21,7 +21,6 @@ final class Pair extends Model
     public $name;
     public $description;
     public $status;
-    public $dollar_per_pip;
     public $history_start;
     public $history_end;
     public $deleted_at;
@@ -36,6 +35,7 @@ final class Pair extends Model
     public $price_precision;
     public $volume_precision;
     public $price_currency;
+    public $dollar_per_pip;
     public $type;
     public $logo;
 
@@ -45,7 +45,7 @@ final class Pair extends Model
      * @var array
      */
     public $pairinfos = [
-        'id', 'name', 'description', 'price_precision', 'status', 'dollar_per_pip', 'history_start', 'history_end'
+        'id', 'name', 'description', 'price_precision', 'status', 'history_start', 'history_end'
     ];
     /**
      * object properties that are used by SymbolInfo in Klinecharts only
@@ -53,7 +53,7 @@ final class Pair extends Model
      * @var array
      */
     public $symbolinfos = [
-        'description', 'exchange', 'market', 'short_name', 'ticker', 'price_precision', 'volume_precision', 'price_currency', 'type', 'logo'
+        'description', 'exchange', 'market', 'short_name', 'ticker', 'price_precision', 'volume_precision', 'price_currency', 'dollar_per_pip', 'type', 'logo'
     ];
 
     /**

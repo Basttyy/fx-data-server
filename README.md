@@ -18,3 +18,7 @@ src/Gregwar/Captcha/CaptchaBuilder.php
 
 src/pragmarx/google2fa/src/Google2FA.php
 268: if (strlen((string)$secret) < 8) {
+
+# TODO
+
+implement web scrapping on https://www.x-rates.com/table/?from=USD&amount=1 to get current exchange rates
