@@ -57,23 +57,15 @@ class FxController
             return JsonResponse::notFound("ticker does not exist");
         }
     
-        $data = false;
         if (!$files = getMinutesFilesList($ticker, $period, $from, $incr, $nums)) {
             return JsonResponse::notFound('file not found or datetime not in range');
         }
     
         // https://stackoverflow.com/questions/45179337/mime-content-type-returning-text-plain-for-css-and-js-files-only
         // https://stackoverflow.com/questions/7236191/how-to-create-a-custom-magic-file-database
-        // Otherwise, you can use custom rules :
-        $customMappings = [
-            'js' => 'text/javascript', //'application/javascript',
-            'css' => 'text/css',
-        ];
+        // Otherwise, you can use custom rules 
+
         $ext = pathinfo($files[0], PATHINFO_EXTENSION);
-        if (array_key_exists($ext, $customMappings)) {
-            $mime = $customMappings[$ext];
-        }
-        $mime = mime_content_type($files[0]);
         header("Content-type: $ext");
         $i = 1;
         

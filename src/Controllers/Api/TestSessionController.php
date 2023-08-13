@@ -171,6 +171,7 @@ final class TestSessionController
             }
 
             $body['user_id'] = $this->user->id;
+            $body['equity'] = $body['current_bal'];
 
             if (!$session = $this->session->create($body)) {
                 return JsonResponse::serverError("unable to create test session");
@@ -215,6 +216,7 @@ final class TestSessionController
             if ($validated = Validator::validate($body, [
                 'starting_bal' => 'sometimes|float',
                 'current_bal' => 'sometimes|float',
+                'equity' => 'sometimes|float',
                 'strategy_id' => 'sometimes|int',
                 'pair' => 'sometimes|string',
                 'chart' => 'sometimes|string',

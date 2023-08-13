@@ -113,6 +113,7 @@ get('/positions/query/$query', new PositionController('list'));
 get('/positions/users/$id', new PositionController('list_user'));
 post('/positions', new PositionController('create'));
 put('/positions/$id', new PositionController('update'));
+put('/positions/$id/unset/$tporsl', new PositionController('unsetslortp'));
 delete('/positions/$id', new PositionController('delete'));
 
 /// Admin Routes

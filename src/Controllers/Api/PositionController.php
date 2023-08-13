@@ -33,7 +33,7 @@ final class PositionController
         $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
     }
 
-    public function __invoke(string $id = null)
+    public function __invoke(string $id = null, string $tporsl = null)
     {
         switch ($this->method) {
             case 'show':
@@ -50,6 +50,9 @@ final class PositionController
                 break;
             case 'update':
                 $resp = $this->update($id);
+                break;
+            case 'tporsl':
+                $resp = $this->unsetSLorTP($id, $tporsl);
                 break;
             case 'delete':
                 $resp = $this->delete($id);
@@ -235,6 +238,46 @@ final class PositionController
         }
     }
 
+    private function unsetSLorTP(string $id, string $tporsl)
+    {
+        try {
+            $id = sanitize_data($id);
+            $tporsl = sanitize_data($tporsl);
+            $types = ['tp', 'sl'];
+
+            if ($validated = Validator::validate(['tporsl' => $tporsl], [
+                'action' => "required|string|in:$types"
+            ])) {
+                return JsonResponse::badRequest('errors in request', $validated);
+            }
+
+            if (!$this->position->find($id)) {
+                return JsonResponse::notFound("position does not exist");
+            }
+
+            if ($this->position->user_id !== $this->user->id) {
+                return JsonResponse::unauthorized("you can't update this position");
+            }
+
+            if (!$this->position->update([$tporsl => null], (int)$id)) {
+                return JsonResponse::notFound("unable to unset position $tporsl");
+            }
+
+            return JsonResponse::ok("position $tporsl unset successfully", $this->position->toArray());
+        } catch (PDOException $e) {
+            if (env("APP_ENV") === "local")
+                $message = $e->getMessage();
+            else if (str_contains($e->getMessage(), 'Unknown column'))
+                return JsonResponse::badRequest('column does not exist');
+            else $message = "we encountered a problem";
+            
+            return JsonResponse::serverError($message);
+        } catch (Exception $e) {
+            $message = env("APP_ENV") === "local" ? $e->getMessage() : "we encountered a problem";
+            return JsonResponse::serverError("we got some error here".$message);
+        }
+    }
+
     private function update(string $id)
     {
         try {
@@ -256,7 +299,7 @@ final class PositionController
             $body = sanitize_data(json_decode($inputJSON, true));
             $id = sanitize_data($id);
             $actions = Position::BUY.', '.Position::SELL.', '. Position::BUY_LIMIT.', '. Position::BUY_STOP.', '. Position::SELL_LIMIT.', '. Position::SELL_STOP;
-            $closetypes = Position::SL.', '. Position::TP.', '. Position::BE.', '. Position::MANUAL_CLOSE;
+            $closetypes = Position::SL.', '. Position::TP.', '. Position::BE.', '. Position::MANUAL_CLOSE.', '.Position::CANCEL;
 
             if ($validated = Validator::validate($body, [
                 'action' => "sometimes|string|in:$actions",
@@ -293,9 +336,18 @@ final class PositionController
             //     $body['pl'] = 
             // }
 
+            /** there should be a trasaction between here */
+
             if (!$this->position->update($body, (int)$id)) {
                 return JsonResponse::notFound("unable to update position");
             }
+            // if (isset($body['exittype']) && isset($body['action']) && in_array($body['action'], [Position::BUY, Position::SELL])) {
+            //     if ($this->session->find($this->position->test_session_id)) {
+            //         $balance = $this->session->current_bal + $body['pl'];
+            //         $this->session->update(['balance' => $balance]);
+            //     }
+            // }
+            /** and here */
 
             return JsonResponse::ok("position updated successfully", $this->position->toArray());
         } catch (PDOException $e) {
