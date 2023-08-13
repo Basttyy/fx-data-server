@@ -28,11 +28,11 @@ final class Positions extends AbstractMigration
             ->addColumn('takeprofit', 'decimal', ['null' => true, 'precision' => 10, 'scale' => 5])
             ->addColumn('lotsize', 'decimal', ['precision' => 5, 'scale' => 2])
             ->addColumn('pips', 'decimal', ['default' => 0, 'precision' => 6, 'scale' => 2])
-            ->addColumn('pl', 'decimal', ['null' => true, 'precision' => 9, 'scale' => 2])
+            ->addColumn('pl', 'decimal', ['default' => 0, 'precision' => 9, 'scale' => 2])
             ->addColumn('entrytime', 'timestamp', ['null' => true, 'precision' => 3])
             ->addColumn('exittime', 'timestamp', ['null' => true, 'precision' => 3])
             ->addColumn('partials', 'blob', ['null' => true])       //this should store information about partial closes
-            ->addColumn('exittype', 'enum', ['values' => Position::MANUAL_CLOSE. "," .Position::BE. "," .Position::SL. "," .Position::TP, 'null' => true])
+            ->addColumn('exittype', 'enum', ['values' => Position::MANUAL_CLOSE.','.Position::CANCEL. "," .Position::BE. "," .Position::SL. "," .Position::TP, 'null' => true])
             ->addColumn('test_session_id', 'integer', ['signed' => false])
             ->addColumn('user_id', 'integer', ['signed' => false])
             ->addColumn('deleted_at', 'timestamp', ['default' => null])

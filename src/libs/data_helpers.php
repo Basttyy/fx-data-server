@@ -191,7 +191,7 @@ function getMinutesFilesList(string $ticker, int $timeframe, int &$from, int $in
         }
         $file_path = "{$_SERVER['DOCUMENT_ROOT']}/minute_data/{$timeframe}mins/$ticker/{$datetime->format('Y/m')}/{$datetime->format('Y-m-d')}_data.csv";
         if (!file_exists($file_path)) {
-            $datetime = $increment === 1 ? $datetime->addDay() : $datetime->subDay();
+            $datetime = (bool)$increment === 1 ? $datetime->addDay() : $datetime->subDay();
             continue;
         }
         if ($from === 0)
@@ -199,6 +199,8 @@ function getMinutesFilesList(string $ticker, int $timeframe, int &$from, int $in
         array_unshift($files, $file_path);
         $datetime = (bool)$increment ? $datetime->addDay() : $datetime->subDay();
         $i++;
+        if ($i > $nums+10)
+            break;
     }
     if (count($files))
         return $files;

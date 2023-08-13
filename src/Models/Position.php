@@ -14,6 +14,7 @@ final class Position extends Model
     const TP = 'takeprofit';
     const BE = 'breakeven';
     const MANUAL_CLOSE = 'manualclose';
+    const CANCEL = 'cancel';
 
     protected $softdeletes = true;
     protected $table = 'positions';
