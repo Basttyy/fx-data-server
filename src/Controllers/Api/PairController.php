@@ -164,7 +164,7 @@ final class PairController
 
             $body = sanitize_data(json_decode($inputJSON, true));
             $status = Pair::DISABLED.', '.Pair::ENABLED;
-            $markets = Pair::FX.','.Pair::COMODITY.','.Pair::CRYPTO.','.Pair::STOCKS.','.Pair::INDICES;
+            $markets = Pair::FX.', '.Pair::COMODITY.', '.Pair::CRYPTO.', '.Pair::STOCKS.', '.Pair::INDICES;
 
             if ($validated = Validator::validate($body, [
                 'name' => 'required|string',
@@ -226,7 +226,7 @@ final class PairController
             $body = sanitize_data(json_decode($inputJSON, true));
             $id = sanitize_data($id);
             $status = Pair::DISABLED.', '.Pair::ENABLED;
-            $markets = Pair::FX.','.Pair::COMODITY.','.Pair::CRYPTO.','.Pair::STOCKS.','.Pair::INDICES;
+            $markets = Pair::FX.', '.Pair::COMODITY.', '.Pair::CRYPTO.', '.Pair::STOCKS.', '.Pair::INDICES;
 
             if ($validated = Validator::validate($body, [
                 'name' => 'sometimes|string',

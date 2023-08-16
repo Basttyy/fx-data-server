@@ -46,10 +46,10 @@ if (! function_exists('sanitize_data')) {
     {
         if (is_iterable($data)) {
             foreach ($data as $key => $dat) {
-                $data[$key] = is_int($dat) ? $dat : htmlspecialchars(strip_tags($dat));
+                $data[$key] = is_int($dat) || is_null($dat) ? $dat : htmlspecialchars(strip_tags($dat));
             }
         } else {
-            $data = is_int($data) ? $data : htmlspecialchars(strip_tags($data));
+            $data = is_int($data) || is_null($data) ? $data : htmlspecialchars(strip_tags($data));
         }
 
         return $data;

@@ -32,7 +32,7 @@ require_once __DIR__."/src/libs/helpers.php";
 //     return false;
 // }
 
-return 0;
+// return 0;
 
 use Carbon\Carbon;
 $command = $argv[1]; /// compress|parse
