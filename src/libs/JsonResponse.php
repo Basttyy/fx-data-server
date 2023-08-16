@@ -9,6 +9,7 @@ class JsonResponse
     public const STATUS_OK = 200;
     public const STATUS_NO_CONTENT = 204;
     public const STATUS_CREATED = 201;
+    public const NOT_MODIFIED = 304;
     public const STATUS_BAD_REQUEST = 400;
     public const STATUS_NOT_FOUND = 404;
     public const STATUS_UNAUTHORIZED = 401;

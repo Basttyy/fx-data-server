@@ -231,7 +231,7 @@ final class TestSessionController
             }
 
             if (!$this->session->update($body, (int)$id)) {
-                return JsonResponse::serverError("unable to update test session");
+                return JsonResponse::noContent("test session was not updated");
             }
 
             return JsonResponse::ok("test session updated successfully", $this->session->toArray());
