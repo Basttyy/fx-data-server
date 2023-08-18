@@ -333,7 +333,6 @@ function compoundMinute(string $ticker, Carbon $datetime, string $result_path, i
             break;
         }
         // print_r($csv_row);
-        $datetime = (float)$csv_row[0]*1000;
         
         if ($minutes_count === 0 || $minutes_count >= $timeframe) {
             // $firsttime = 1;
@@ -344,6 +343,7 @@ function compoundMinute(string $ticker, Carbon $datetime, string $result_path, i
                 // fwrite($f_result, "$timestamp,$open,$close,$high,$low,$volume\n");
             }
             $canpush = true;
+            $datetime = (float)$csv_row[0];
             $open = (float) $csv_row[1];
             $close = (float) $csv_row[2];
             $high = (float) $csv_row[3];

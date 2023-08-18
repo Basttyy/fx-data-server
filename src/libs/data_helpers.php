@@ -189,7 +189,7 @@ function getMinutesFilesList(string $ticker, int $timeframe, int &$from, int $in
         if ($datetime->greaterThan(Carbon::now()) || $datetime->lessThan(Carbon::createFromFormat('Y/m/d', '2016/01/01'))) {
             return false;
         }
-        $file_path = "{$_SERVER['DOCUMENT_ROOT']}/minute_data/{$timeframe}mins/$ticker/{$datetime->format('Y/m')}/{$datetime->format('Y-m-d')}_data.csv";
+        $file_path = "{$_SERVER['DOCUMENT_ROOT']}/minute_data/gziped/{$timeframe}mins/$ticker/{$datetime->format('Y/m')}/{$datetime->format('Y-m-d')}_data.csv";
         if (!file_exists($file_path)) {
             $datetime = (bool)$increment === 1 ? $datetime->addDay() : $datetime->subDay();
             continue;

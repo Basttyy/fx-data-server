@@ -29,9 +29,9 @@ class ContactUs
             $content = ["Hello Support"];
             $content = array_push($content, explode("\n", $data["message"]));
             $html = Templater::view('verify.html', '/Mail/html/', [
-                'title' => "Contact Us",
-                'header' => "User Enquiry",
-                'sender_email' => "noreply@backtestfx.com",  //$sender->email,
+                'title' => "User Enquiry",
+                'header' => $data['firstname'] .' '.$data['lastname']. ' ('. $data['subject'].')',
+                'sender_email' => $data['email'],  //$sender->email,
                 'contents' => $content,
                 'links' => []
             ], true);
