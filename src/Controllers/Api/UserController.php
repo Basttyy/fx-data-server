@@ -4,7 +4,6 @@ namespace Basttyy\FxDataServer\Controllers\Api;
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\Console\Jobs\SendVerifyEmail;
-use Basttyy\FxDataServer\Exceptions\NotFoundException;
 use Basttyy\FxDataServer\libs\Arr;
 use Basttyy\FxDataServer\libs\JsonResponse;
 use Basttyy\FxDataServer\libs\Validator;

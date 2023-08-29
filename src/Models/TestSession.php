@@ -23,6 +23,9 @@ final class TestSession extends Model
     public $created_at;
     public $updated_at;
 
+    public $listkeys = [
+        'id', 'starting_bal', 'current_bal', 'equity', 'strategy_id', 'user_id', 'pair', 'chart_timestamp', 'start_date', 'end_date', 'deleted_at', 'created_at', 'updated_at'
+    ];
     /**
      * Indicates what database attributes of the model can be filled at once
      * 

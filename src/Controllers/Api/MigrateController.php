@@ -3,7 +3,6 @@ namespace Basttyy\FxDataServer\Controllers\Api;
 
 use Basttyy\FxDataServer\libs\JsonResponse;
 use Exception;
-use Phinx\Console\PhinxApplication;
 use Phinx\Wrapper\TextWrapper;
 
 final class MigrateController

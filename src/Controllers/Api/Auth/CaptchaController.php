@@ -1,15 +1,7 @@
 <?php
 namespace Basttyy\FxDataServer\Controllers\Api\Auth;
-// require_once __DIR__."/../../../libs/helpers.php";
-
-use Basttyy\FxDataServer\Auth\JwtAuthenticator;
-use Basttyy\FxDataServer\Auth\JwtEncoder;
-use Basttyy\FxDataServer\Exceptions\NotFoundException;
-use Basttyy\FxDataServer\Exceptions\QueryException;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\libs\JsonResponse;
-use Basttyy\FxDataServer\Models\Role;
-use Basttyy\FxDataServer\Models\User;
 use Exception;
 use Gregwar\Captcha\CaptchaBuilder;
 use Gregwar\Captcha\PhraseBuilder;

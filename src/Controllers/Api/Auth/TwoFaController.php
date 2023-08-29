@@ -1,22 +1,15 @@
 <?php
 namespace Basttyy\FxDataServer\Controllers\Api\Auth;
-// require_once __DIR__."/../../../libs/helpers.php";
 
 use Basttyy\FxDataServer\Auth\Guard;
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\Console\Jobs\SendVerifyEmail;
-use Basttyy\FxDataServer\Exceptions\NotFoundException;
-use Basttyy\FxDataServer\Exceptions\QueryException;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\libs\JsonResponse;
-use Basttyy\FxDataServer\libs\mysqly;
 use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\User;
-use DateTime;
 use Exception;
-use Gregwar\Captcha\CaptchaBuilder;
-use Gregwar\Captcha\PhraseBuilder;
 use PragmaRX\Google2FA\Google2FA;
 
 final class TwoFaController
@@ -32,7 +25,6 @@ final class TwoFaController
         $encoder = new JwtEncoder(env('APP_KEY'));
         $role = new Role();
         $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
-        // $authMiddleware = new Guard($authenticator);
     }
 
     public function __invoke(string $mode, int $status = 1)

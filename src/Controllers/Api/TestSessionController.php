@@ -75,8 +75,10 @@ final class TestSessionController
             if ($is_admin === false && $user->id != $this->session->user_id) {
                 return JsonResponse::unauthorized("you can't view this session");
             }
+            $session = $this->session->toArray();
+            $session['chart'] = is_null($session['chart']) | $session['chart'] === '' ? $session['chart'] : gzuncompress($session['chart']);
 
-            return JsonResponse::ok("session retrieved success", $this->session->toArray());
+            return JsonResponse::ok("session retrieved success", $session);
         } catch (PDOException $e) {
             return JsonResponse::serverError("we encountered a problem");
         } catch (LogicException $e) {
@@ -97,7 +99,7 @@ final class TestSessionController
             if ($is_admin) {
                 $sessions = $this->session->all();
             } else {
-                $sessions = $this->session->findBy("user_id", $this->user->id);
+                $sessions = $this->session->findBy("user_id", $this->user->id, select: $this->session->listkeys);
             }
             if (!$sessions)
                 return JsonResponse::ok("no testsession found in list", []);
@@ -121,7 +123,7 @@ final class TestSessionController
                 return JsonResponse::unauthorized("you can't view this user's test sessions");
             }
             $id = sanitize_data($id);
-            $sessions = $this->session->findBy("user_id", $id);
+            $sessions = $this->session->findBy("user_id", $id, select: $this->session->listkeys);
             
             if (!$sessions)
                 return JsonResponse::ok("no testsession found in list", []);
@@ -179,7 +181,7 @@ final class TestSessionController
 
             return JsonResponse::ok("test session creation successful", $session);
         } catch (PDOException $e) {
-            if (env("APP_ENV") === "dev")
+            if (env("APP_ENV") === "local")
                 $message = $e->getMessage();
             else if (str_contains($e->getMessage(), 'Duplicate entry'))
                 return JsonResponse::badRequest('test session already exist');
@@ -187,7 +189,7 @@ final class TestSessionController
             
             return JsonResponse::serverError($message);
         } catch (Exception $e) {
-            $message = env("APP_ENV") === "dev" ? $e->getMessage() : "we encountered a problem";
+            $message = env("APP_ENV") === "local" ? $e->getMessage() : "we encountered a problem";
             return JsonResponse::serverError("we got some error here".$message);
         }
     }
@@ -229,12 +231,16 @@ final class TestSessionController
             if (isset($body['strategy_id']) && !$this->strategy->find($body['strategy_id'])) {
                 return JsonResponse::badRequest('this strategy does not exist');
             }
-
-            if (!$this->session->update($body, (int)$id)) {
-                return JsonResponse::noContent("test session was not updated");
+            if (isset($body['chart'])) {
+                $body['chart'] = gzcompress($body['chart']);
             }
 
-            return JsonResponse::ok("test session updated successfully", $this->session->toArray());
+            if (!$this->session->update($body, (int)$id)) {
+                return JsonResponse::noContent();
+            }
+            $session = $this->session->toArray(select: $this->session->listkeys);
+
+            return JsonResponse::ok("test session updated successfully", $session);
         } catch (PDOException $e) {
             if (env("APP_ENV") === "local")
                 $message = $e->getMessage();

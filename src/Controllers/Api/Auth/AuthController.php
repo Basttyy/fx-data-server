@@ -1,14 +1,12 @@
 <?php
 
 namespace Basttyy\FxDataServer\Controllers\Api\Auth;
-// require_once __DIR__."/../../../libs/helpers.php";
 
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\Exceptions\NotFoundException;
 use Basttyy\FxDataServer\Exceptions\QueryException;
 use Basttyy\FxDataServer\libs\Arr;
-use Basttyy\FxDataServer\libs\DbStorage;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\libs\JsonResponse;
 use Basttyy\FxDataServer\Models\Role;
@@ -39,7 +37,6 @@ final class AuthController
         $encoder = new JwtEncoder(env('APP_KEY'));
         $role = new Role;
         $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
-        // $authMiddleware = new Guard($authenticator);
     }
 
     public function __invoke()
@@ -244,20 +241,6 @@ final class AuthController
 
     private function refreshToken()
     {
-        // $keys =  array_keys($request->getHeaders());
-        // $headers =  Arr::flatten($request->getHeaders());
-        // $headers =  array_combine($keys, $headers);
-
-        // if ($validated = Validator::validate($headers, [
-        //     'firebase_token' => 'required|string'
-        // ])) {
-        //     return JsonResponse::badRequest('errors in request', $validated);
-        // }
-        // if ($validated = Validator::validate($_SERVER, [
-        //     'refresh_token' => 'required|string'
-        // ])) {
-        //     return JsonResponse::badRequest('errors in request', $validated);
-        // }
         try {
             if (!$this->authenticator->validate()) {
                 return JsonResponse::unauthorized("invalid auth token");
