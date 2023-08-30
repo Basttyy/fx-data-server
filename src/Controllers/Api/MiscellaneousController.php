@@ -159,15 +159,17 @@ final class MiscellaneousController
             $body = sanitize_data(json_decode($inputJSON, true));
 
             if ($validated = Validator::validate($body, [
-                'firstname' => 'required|string',
-                'lastname' => 'required|string',
+                'fullname' => 'required|string',
                 'email' => 'required|string',
                 'message' => 'required|string',
-                'subject' => 'required|string'
+                'subject' => 'sometimes|string'
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
-            $contact = new SendContactUs($body, ['firstname', 'lastname', 'email', 'subject', 'message']);
+
+            if (!isset($body['enquiry']))
+                $body['subject'] = 'I have an enquiry';
+            $contact = new SendContactUs($body, ['fullname', 'email', 'subject', 'message']);
 
             $contact->init()->delay(5)->run();
 
