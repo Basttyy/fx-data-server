@@ -116,6 +116,16 @@ put('/positions/$id', new PositionController('update'));
 put('/positions/$id/unset/$tporsl', new PositionController('unsetslortp'));
 delete('/positions/$id', new PositionController('delete'));
 
+/// Feedbacks Routes
+get('/feedbacks/$id', new PositionController());
+get('/feedbacks', new PositionController('list'));
+get('/feedbacks/query/$query', new PositionController('list'));
+get('/feedbacks/users/$id', new PositionController('list_user'));
+post('/feedbacks', new PositionController('create'));
+put('/feedbacks/$id', new PositionController('update'));
+put('/feedbacks/$id/unset/$tporsl', new PositionController('unsetslortp'));
+delete('/feedbacks/$id', new PositionController('delete'));
+
 /// Admin Routes
 get('/migrate', new MigrateController);
 get('/admin/logs/$id', new RequestLogController());
