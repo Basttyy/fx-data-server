@@ -243,7 +243,7 @@ final class PositionController
         try {
             $id = sanitize_data($id);
             $tporsl = sanitize_data($tporsl);
-            $types = ['tp', 'sl'];
+            $types = 'tp, sl';
 
             if ($validated = Validator::validate(['tporsl' => $tporsl], [
                 'tporsl' => "required|string|in:$types"
