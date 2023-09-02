@@ -246,7 +246,7 @@ final class PositionController
             $types = ['tp', 'sl'];
 
             if ($validated = Validator::validate(['tporsl' => $tporsl], [
-                'action' => "required|string|in:$types"
+                'tporsl' => "required|string|in:$types"
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
