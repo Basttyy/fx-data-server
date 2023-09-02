@@ -51,7 +51,7 @@ final class PositionController
             case 'update':
                 $resp = $this->update($id);
                 break;
-            case 'tporsl':
+            case 'unsetslortp':
                 $resp = $this->unsetSLorTP($id, $tporsl);
                 break;
             case 'delete':
