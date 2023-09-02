@@ -241,6 +241,14 @@ final class PositionController
     private function unsetSLorTP(string $id, string $tporsl)
     {
         try {
+            if (!$this->authenticator->validate()) {
+                return JsonResponse::unauthorized();
+            }
+
+            if (!$this->authenticator->verifyRole($this->user, 'user')) {
+                return JsonResponse::unauthorized("only users can update position");
+            }
+
             $id = sanitize_data($id);
             $tporsl = sanitize_data($tporsl);
             $types = 'tp, sl';
