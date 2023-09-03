@@ -51,7 +51,7 @@ final class PositionController
             case 'update':
                 $resp = $this->update($id);
                 break;
-            case 'tporsl':
+            case 'unsetslortp':
                 $resp = $this->unsetSLorTP($id, $tporsl);
                 break;
             case 'delete':
@@ -241,12 +241,20 @@ final class PositionController
     private function unsetSLorTP(string $id, string $tporsl)
     {
         try {
+            if (!$this->authenticator->validate()) {
+                return JsonResponse::unauthorized();
+            }
+
+            if (!$this->authenticator->verifyRole($this->user, 'user')) {
+                return JsonResponse::unauthorized("only users can update position");
+            }
+
             $id = sanitize_data($id);
             $tporsl = sanitize_data($tporsl);
-            $types = ['tp', 'sl'];
+            $types = 'tp, sl';
 
             if ($validated = Validator::validate(['tporsl' => $tporsl], [
-                'action' => "required|string|in:$types"
+                'tporsl' => "required|string|in:$types"
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
