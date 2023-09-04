@@ -152,6 +152,7 @@ final class FeedbackController
             $body = sanitize_data(json_decode($inputJSON, true));
 
             if ($validated = Validator::validate($body, [
+                'title' => 'required|string',
                 'description' => 'required|string',
                 'pair' => 'required|string',
                 'image' => 'required|string',
@@ -161,6 +162,16 @@ final class FeedbackController
             }
 
             $body['user_id'] = $this->user->id;
+            $image = base64_decode($body['image']);
+            $path = storage_path(). 'files/uploads/feedbacks/';
+            
+            if (!file_exists($path))
+                mkdir($path, 0777, true);
+            
+            $target_file = uniqid(). '.jpg';
+            $body['image'] = "/storage/uploads/feedbacks/".$target_file;
+
+            file_put_contents($path . $target_file, $image);
 
             if (!$feedback = $this->feedback->create($body)) {
                 return JsonResponse::serverError("unable to create feedback");
@@ -192,10 +203,6 @@ final class FeedbackController
             if (!$this->authenticator->validate()) {
                 return JsonResponse::unauthorized();
             }
-
-            if (!$this->authenticator->verifyRole($this->user, 'user')) {
-                return JsonResponse::unauthorized("only users can create feedback");
-            }
             
             $inputJSON = file_get_contents('php://input');
 
@@ -204,6 +211,7 @@ final class FeedbackController
             $status = Feedback::PENDING.', '.Feedback::REOPENED.', '.Feedback::RESOLVED.', '.Feedback::RESOLVING.', '.Feedback::STALED;
 
             if ($validated = Validator::validate($body, [
+                'title' => 'sometimes|string',
                 'description' => 'sometimes|string',
                 'pair' => 'sometimes|string',
                 'image' => 'sometimes|string',
@@ -211,6 +219,24 @@ final class FeedbackController
                 'status' => "sometimes|string|in:$status"
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
+            }
+            if (!$this->feedback->find($id)) {
+                return JsonResponse::notFound('feedback not found');
+            }
+            if (isset($body['image'])) {
+                $prev_image = $this->feedback->image;
+                $image = base64_decode($body['image']);
+                $path = storage_path(). 'files/uploads/feedbacks/';
+                
+                if (!file_exists($path))
+                    mkdir($path, 0777, true);
+                
+                $target_file = uniqid(). '.jpg';
+    
+                if (file_put_contents($path . $target_file, $image)) {
+                    unlink(storage_path().'files'. str_replace('/storage', '', $prev_image));
+                    $body['image'] = "/storage/uploads/feedbacks/".$target_file;
+                }
             }
 
             if (!$this->feedback->update($body, (int)$id)) {

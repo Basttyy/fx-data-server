@@ -15,11 +15,14 @@ final class Feedback extends Model
 
     //oject properties
     public $id;
-    public $name;
+    public $title;
     public $description;
-    public $logo;
+    public $image;
     public $user_id;
-    public $pairs;
+    public $pair;
+    public $resolve_count;
+    public $status;
+    public $date;
     public $deleted_at;
     public $created_at;
     public $updated_at;
@@ -30,7 +33,7 @@ final class Feedback extends Model
      * @var array
      */
     protected $fillable = [
-        'id', 'description', 'pair', 'user_id', 'image', 'resolve_count', 'status', 'date', 'deleted_at', 'created_at', 'updated_at'
+        'id', 'title', 'description', 'pair', 'user_id', 'image', 'resolve_count', 'status', 'date', 'deleted_at', 'created_at', 'updated_at'
     ];
     
     /**

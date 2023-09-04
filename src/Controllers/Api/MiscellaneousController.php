@@ -190,7 +190,7 @@ final class MiscellaneousController
 
     private function fetchLanding()
     {
-        if (! $data = file_get_contents(storage_path().'landing.json')) {
+        if (! $data = file_get_contents(storage_path().'files/landing.json')) {
             return JsonResponse::notFound('landing page data not found');
         }
         header("Content-type: application/json");

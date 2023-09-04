@@ -22,6 +22,7 @@ final class Feedbacks extends AbstractMigration
     {
         $table = $this->table($this::TABLE_NAME);
         $table->addColumn('description', 'string')
+            ->addColumn('title', 'string')
             ->addColumn('pair', 'string', ['null' => true])
             ->addColumn('user_id', 'integer', ['signed' => false])
             ->addColumn('resolve_count', 'integer', ['default' => 0])
