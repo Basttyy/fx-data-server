@@ -170,7 +170,7 @@ $landingarray = [
 
 $json_data = json_encode($landingarray);
 
-$file = fopen("storage/landing.json", "w") or die("Unable to open file!");
+$file = fopen("storage/files/landing.json", "w") or die("Unable to open file!");
 fwrite($file, $json_data);
 
 fclose($file);

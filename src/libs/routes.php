@@ -9,6 +9,7 @@ require_once __DIR__.'/../MinuteController.php';
 use Basttyy\FxDataServer\Controllers\Api\Auth\AuthController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\CaptchaController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\TwoFaController;
+use Basttyy\FxDataServer\Controllers\Api\FeedbackController;
 use Basttyy\FxDataServer\Controllers\Api\FxController;
 use Basttyy\FxDataServer\Controllers\Api\MigrateController;
 use Basttyy\FxDataServer\Controllers\Api\MiscellaneousController;
@@ -115,6 +116,15 @@ post('/positions', new PositionController('create'));
 put('/positions/$id', new PositionController('update'));
 put('/positions/$id/unset/$tporsl', new PositionController('unsetslortp'));
 delete('/positions/$id', new PositionController('delete'));
+
+/// Feedbacks Routes
+get('/feedbacks/$id', new FeedbackController());
+get('/feedbacks', new FeedbackController('list'));
+get('/feedbacks/query/$query', new FeedbackController('list'));
+get('/feedbacks/users/$id', new FeedbackController('list_user'));
+post('/feedbacks', new FeedbackController('create'));
+put('/feedbacks/$id', new FeedbackController('update'));
+delete('/feedbacks/$id', new FeedbackController('delete'));
 
 /// Admin Routes
 get('/migrate', new MigrateController);
