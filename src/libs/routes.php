@@ -23,28 +23,12 @@ use Basttyy\FxDataServer\Controllers\Api\TestSessionController;
 use Basttyy\FxDataServer\Controllers\Api\UserController;
 use Basttyy\FxDataServer\Controllers\Api\UserExplicitController;
 use Basttyy\FxDataServer\Controllers\NotFoundController;
-use Basttyy\FxDataServer\libs\MysqlSessionHandler;
 
 // ##################################################
 // ##################################################
 // ##################################################
-
-if (strtolower($_SERVER["REQUEST_METHOD"]) !== "options") {
-  session_destroy();
-  if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_set_save_handler(new MysqlSessionHandler, true);
-    session_start();
-  }
-}
 
 call_user_func(new RequestLogController('create'));
-
-/// frontend route
-// get('/', function () {
-//   header('Content-Type: text/html', true, 200);
-//   echo file_get_contents($_SERVER["DOCUMENT_ROOT"]."/index.html");
-//   return true;
-// });
 
 /// Auth routes
 post('/login', new AuthController());
