@@ -3,10 +3,8 @@
 /vendor/
 /node_modules/
 /minute_data/
-/storage/
-public/*
-!public/.htaccess
-!public/server.php
+/storage
+public
 
 .env
 minute_data.zip
