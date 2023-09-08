@@ -57,7 +57,8 @@ class FxController
             return JsonResponse::notFound("ticker does not exist");
         }
     
-        if (!$files = getMinutesFilesList($ticker, $period, $from, $incr, $nums)) {
+        // if (!$files = getMinutesFilesList($ticker, $period, $from, $incr, $nums)) {
+        if (!$files = getWeeksMinuteList($ticker, $period, $from)) {
             return JsonResponse::notFound('file not found or datetime not in range');
         }
     
@@ -67,12 +68,13 @@ class FxController
 
         $ext = pathinfo($files[0], PATHINFO_EXTENSION);
         header("Content-type: $ext");
-        $i = 1;
         
+        $data = '';
         foreach ($files as $filePath) {
-            echo gzuncompress(file_get_contents($filePath));
-            $i++;
+            if (file_exists($filePath))
+                $data .= gzuncompress(file_get_contents($filePath));
         }
+        echo $data;
         return true;
     }
 

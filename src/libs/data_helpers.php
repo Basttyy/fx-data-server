@@ -206,3 +206,71 @@ function getMinutesFilesList(string $ticker, int $timeframe, int &$from, int $in
         return $files;
     return false;
 }
+
+function getWeeksMinuteList(string $ticker, int $timeframe, int &$from): bool|array
+{
+    $files = array();
+
+    $days = getWeekDates($from);
+
+    foreach ($days as $day) {
+        $file_path = "{$_SERVER['DOCUMENT_ROOT']}/minute_data/gziped/{$timeframe}mins/$ticker/" . str_replace('-', '/', substr($day, 0, 7)) . "/{$day}_data.csv";
+        array_push($files, $file_path);
+    }
+
+    if (count($files))
+        return $files;
+    return false;
+}
+
+function getWeekDates($timestamp, $includeSat = false) {
+    $date = new DateTime();
+    $date->setTimestamp($timestamp);
+
+    // Find the start (Sunday) and end (Saturday) of the week
+    $date->modify('this week -1 day');
+    $startOfWeek = $date->format('Y-m-d');
+    $date->modify('+5 days');
+    if ($includeSat) {
+        $date->modify('+1 day'); // Include Saturday
+    }
+    $endOfWeek = $date->format('Y-m-d');
+
+    // Create an array of dates for each day of the week
+    $weekDates = [];
+    $currentDate = new DateTime($startOfWeek);
+
+    while ($currentDate <= new DateTime($endOfWeek)) {
+        $weekDates[] = $currentDate->format('Y-m-d');
+        $currentDate->modify('+1 day');
+    }
+
+    return $weekDates;
+}
+
+// function getWeekDates($timestamp, $include_sat = false) {
+//     $date = new DateTime();
+//     $date->setTimestamp($timestamp);
+
+//     // Find the start (Monday) and end (Sunday) of the week
+//     $date->modify('this week');
+//     $startOfWeek = $date->format('Y-m-d');
+//     $date->modify('this week +6 days');
+//     $endOfWeek = $date->format('Y-m-d');
+
+//     // Create an array of dates for each day of the week
+//     $weekDates = []; $i = 0;
+//     $currentDate = new DateTime($startOfWeek);
+
+//     while ($currentDate <= new DateTime($endOfWeek)) {
+//         $i++;
+//         if ($i == 6) {
+//             $currentDate->modify('+1 day');
+//             continue;
+//         }
+//         $weekDates[] = $currentDate->format('Y-m-d');
+//         $currentDate->modify('+1 day');
+//     }
+
+//     return $weekDates;
+// }
