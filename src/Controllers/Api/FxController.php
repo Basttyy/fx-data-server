@@ -69,10 +69,13 @@ class FxController
         $ext = pathinfo($files[0], PATHINFO_EXTENSION);
         header("Content-type: $ext");
         
-        $data = '';
+        $data = ''; $len = sizeof($files);
         foreach ($files as $filePath) {
-            if (file_exists($filePath))
+            if (file_exists($filePath)) {
+                // $len--;
                 $data .= gzuncompress(file_get_contents($filePath));
+                // $data .= $len ? "\n" : '';
+            }
         }
         echo $data;
         return true;
