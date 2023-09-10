@@ -104,3 +104,28 @@ if (! function_exists('validate_data_structure')) {
         return true;
     }
 }
+
+if (! function_exists('get_weeks_in_year')) {
+    /**
+     * Get the number of weeks in a given year
+     * 
+     * @param string $year
+     * 
+     * @return int
+     */
+    function get_weeks_in_year($year) {
+        // Create a DateTime object for January 4th of the year
+        $date = new DateTime($year . '-01-04');
+    
+        // Get the week number of January 4th
+        $january4WeekNumber = (int)$date->format('W');
+    
+        // If January 4th falls on or before Thursday, it's week 1 of the year
+        if ($date->format('N') <= 4) {
+            return $january4WeekNumber;
+        } else {
+            // Otherwise, the week containing January 1st belongs to the previous year
+            return $january4WeekNumber - 1;
+        }
+    }
+}
