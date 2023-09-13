@@ -28,7 +28,8 @@ final class MigrateController
             $command = sanitize_data($_GET['command']) ?? null;
 
             if (!$command) {
-                $command = 'status';
+                // $command = 'status';
+                return JsonResponse::notFound("requested url is not found");
             }
 
             // Verify that the command exists, or list available commands.
