@@ -4,21 +4,24 @@ RewriteEngine On
 RewriteCond %{REQUEST_METHOD} ^(HEAD|TRACE|CONNECT)$ [NC]
 RewriteRule ^ - [F]
 
-#<IfModule mod_headers.c>
-#    SetEnvIf Origin "http(s)?://(www\.)?(dev.backtestfx.com|backtestfx.test:5553)$" AccessControlAllowOrigin=$0$1
-#    Header add Access-Control-Allow-Origin %{AccessControlAllowOrigin}e env=AccessControlAllowOrigin
-#    Header always set Access-Control-Allow-Credentials "true"
-#    Header always set Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Range, Content-Disposition, Content-Type, Accept, Authorization"
-#    Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-#</IfModule>
+<IfModule mod_headers.c>
+   SetEnvIf Origin "http(s)?://(www\.)?(backtestfx\.test:5533|dev\.backtestfx\.com)$" AccessControlAllowOrigin=$0
+   Header add Access-Control-Allow-Origin %{AccessControlAllowOrigin}e
+   Header always set Access-Control-Allow-Credentials "true"
+   Header always set Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Range, Content-Disposition, Content-Type, Accept, Authorization"
+   Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+</IfModule>
 
 Options -Indexes
 <FilesMatch "^\.|\/\.">
     Require all denied
 </FilesMatch>
 
+RewriteCond %{REQUEST_URI} ^/public/.*\.(html|png|jpg|ico|woff2|ico|webp|gif|jpeg|zip|css|svg|js|json|pdf)$ [NC]
+RewriteRule ^ - [L]
+
 RewriteCond %{HTTP:Authorization} ^(.*)
 RewriteRule .* - [e=HTTP_AUTHORIZATION:%1]
 
-RewriteCond %{REQUEST_URI}  !(\.html|\.png|\.jpg|\.ico|\.woff2|\.ico|\.webp|\.gif|\.jpeg|\.zip|\.css|\.svg|\.js|\.pdf)$
+#RewriteCond %{REQUEST_URI}  !^/public/.*\.(html|png|jpg|ico|woff2|ico|webp|gif|jpeg|zip|css|svg|js|json|pdf)$ [NC]
 RewriteRule (.*) server.php [QSA,L]

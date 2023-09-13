@@ -9,6 +9,7 @@ require_once __DIR__.'/../MinuteController.php';
 use Basttyy\FxDataServer\Controllers\Api\Auth\AuthController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\CaptchaController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\TwoFaController;
+use Basttyy\FxDataServer\Controllers\Api\FeedbackController;
 use Basttyy\FxDataServer\Controllers\Api\FxController;
 use Basttyy\FxDataServer\Controllers\Api\MigrateController;
 use Basttyy\FxDataServer\Controllers\Api\MiscellaneousController;
@@ -22,28 +23,12 @@ use Basttyy\FxDataServer\Controllers\Api\TestSessionController;
 use Basttyy\FxDataServer\Controllers\Api\UserController;
 use Basttyy\FxDataServer\Controllers\Api\UserExplicitController;
 use Basttyy\FxDataServer\Controllers\NotFoundController;
-use Basttyy\FxDataServer\libs\MysqlSessionHandler;
 
 // ##################################################
 // ##################################################
 // ##################################################
-
-if (strtolower($_SERVER["REQUEST_METHOD"]) !== "options") {
-  session_destroy();
-  if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_set_save_handler(new MysqlSessionHandler, true);
-    session_start();
-  }
-}
 
 call_user_func(new RequestLogController('create'));
-
-/// frontend route
-// get('/', function () {
-//   header('Content-Type: text/html', true, 200);
-//   echo file_get_contents($_SERVER["DOCUMENT_ROOT"]."/index.html");
-//   return true;
-// });
 
 /// Auth routes
 post('/login', new AuthController());
@@ -115,6 +100,15 @@ post('/positions', new PositionController('create'));
 put('/positions/$id', new PositionController('update'));
 put('/positions/$id/unset/$tporsl', new PositionController('unsetslortp'));
 delete('/positions/$id', new PositionController('delete'));
+
+/// Feedbacks Routes
+get('/feedbacks/$id', new FeedbackController());
+get('/feedbacks', new FeedbackController('list'));
+get('/feedbacks/query/$query', new FeedbackController('list'));
+get('/feedbacks/users/$id', new FeedbackController('list_user'));
+post('/feedbacks', new FeedbackController('create'));
+put('/feedbacks/$id', new FeedbackController('update'));
+delete('/feedbacks/$id', new FeedbackController('delete'));
 
 /// Admin Routes
 get('/migrate', new MigrateController);

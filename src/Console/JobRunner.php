@@ -34,13 +34,13 @@ $pdo = new PDO("$dbtype:dbname=$dbname;host=$dbhost", $dbuser, $dbpass);
 $job_Queue->addQueueConnection($pdo);
 $job_Queue->watchPipeline('default');
 
+$empty = false;
 while ($end_time > time()) {
-    ///TODO: Job_Queue class db based methods should use 
+    // Process Pending Jobs
     $job = $job_Queue->getNextJobAndReserve();
     
     if(empty($job)) {
-        sleep(1);
-        continue;
+        $empty = true;
     }
 
     $payload = $job['payload'];
@@ -55,5 +55,31 @@ while ($end_time > time()) {
         }
     } catch(Exception $e) {
         $job_Queue->buryJob($job, $job_obj->getDelay());
+    }
+
+    // Process Pending Buried Jobs
+    $job = $job_Queue->getNextBuriedJob();
+    if (empty($job)) {
+        $empty = true;
+    }
+
+    $payload = $job['payload'];
+
+    try {
+        $job_obj = unserialize($payload);
+
+        if ($job_obj instanceof QueueInterface) {
+            $job_obj->setJob($job);
+            $job_obj->setQueue($job_Queue);
+            $resp = $job_obj->handle();
+        }
+    } catch (Exception $e) {
+        $job_Queue->buryJob($job, $job_obj->getDelay());
+    }
+    
+    if ($empty) {
+        sleep(1);
+        $empty = false;
+        continue;
     }
 }

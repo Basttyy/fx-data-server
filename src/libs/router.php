@@ -1,5 +1,14 @@
 <?php
-session_start();
+use Basttyy\FxDataServer\libs\MysqlSessionHandler;
+
+if (strtolower($_SERVER["REQUEST_METHOD"]) !== "options") {
+  // session_destroy();
+  //if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_set_save_handler(new MysqlSessionHandler, true);
+    session_start();
+  //}
+}
+
 function get($route, $path_to_include){
   if( $_SERVER['REQUEST_METHOD'] == 'GET' ){ route($route, $path_to_include); }  
 }

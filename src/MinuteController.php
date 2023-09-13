@@ -7,7 +7,6 @@ $downloadMinuteData = function (string $ticker, int $period, int $from, int $inc
     if (!count(searchTicker($ticker))) {
         header("Content-type: application/json");
         http_response_code(404);
-        consoleLog(0, "request ticker does not exist");
         echo(json_encode(["message" => "ticker does not exist"]));
         return true;
     }
@@ -21,26 +20,6 @@ $downloadMinuteData = function (string $ticker, int $period, int $from, int $inc
         return true;
     }
 
-        //$filePath = __DIR__."/../download/$ticker/temp/".(string)time().".csv";
-        // if (!$data = joinCsvFast($files, $filePath, $faster)) {
-        //     consoleLog(0, "someting happend, couldn't join csv");
-        //     http_response_code(500);
-        //     out(json_encode(["message" => "unable to join csv files"]));
-        //     return true;
-        // }
-    // } else {
-    //     $filePath = "{$_SERVER['']}/..{$_SERVER["REQUEST_URI"]}";
-    // }
-    
-    // if (!$data && !file_exists($filePath)) {
-    //     consoleLog('info', "File not found Error for : " . $_SERVER["REQUEST_URI"]);
-    //     // return false;
-    //     http_response_code(404);
-    //     header("Content-type: application/json");
-    //     echo "File not Found : {$filePath}";
-    //     return true;
-    // }
-
     // https://stackoverflow.com/questions/45179337/mime-content-type-returning-text-plain-for-css-and-js-files-only
     // https://stackoverflow.com/questions/7236191/how-to-create-a-custom-magic-file-database
     // Otherwise, you can use custom rules :
@@ -52,15 +31,10 @@ $downloadMinuteData = function (string $ticker, int $period, int $from, int $inc
     $mime = mime_content_type($files[0]);
     header("Content-type: text/csv");
     // header("Content-encoding: deflate");
-    // consoleLog('info', "CORS added to file {$mime} : {$filePath}");
     $i = 1;
     
     foreach ($files as $filePath) {
-        if ($nums === 3) {
-            logger()->info("file is: $filePath");
-        }
         // $ext = pathinfo($filePath, PATHINFO_EXTENSION);
-        // consoleLog('Debug', $ext);
         if (array_key_exists($ext, $customMappings)) {
             $mime = $customMappings[$ext];
         }
@@ -71,7 +45,6 @@ $downloadMinuteData = function (string $ticker, int $period, int $from, int $inc
             echo gzuncompress(file_get_contents($filePath));
             // if ($i < $nums)
             //     echo "*----*";
-            // consoleLog('info', "file $filePath sent");
             $i++;
             //unlink($filePath);
         // }
