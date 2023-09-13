@@ -7,4 +7,5 @@
 public
 
 .env
+.htaccess
 minute_data.zip
