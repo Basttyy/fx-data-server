@@ -154,8 +154,11 @@ function getFilesList(string $ticker, int $from, int $nums): bool|array
     $datetime = $datetime->setTimestamp($from);
     $files = array(); $i = 0; $s = 0;
     while ($i < $nums) {
-        $file_path = "{$_SERVER['DOCUMENT_ROOT']}/download/$ticker/{$datetime->format('Y/m')}/{$datetime->format('Y-m-d')}--{$datetime->format('H')}h_ticks.csv";
-        // str_replace('/', "\\", $file_path);
+        $file_path =
+            env('APP_ENV') === 'local' ?
+            "{$_SERVER['DOCUMENT_ROOT']}/../../download/$ticker/{$datetime->format('Y/m')}/{$datetime->format('Y-m-d')}--{$datetime->format('H')}h_ticks.csv" :
+            "{$_SERVER['DOCUMENT_ROOT']}/../../download/$ticker/{$datetime->format('Y/m')}/{$datetime->format('Y-m-d')}--{$datetime->format('H')}h_ticks.csv";
+        
         if (!file_exists($file_path)) {
             $datetime = $datetime->sub(new DateInterval('PT1H'));
             continue;
@@ -180,7 +183,11 @@ function getMinutesFilesList(string $ticker, int $timeframe, int &$from, int $in
         if ($datetime->greaterThan(Carbon::now()) || $datetime->lessThan(Carbon::createFromFormat('Y/m/d', '2016/01/01'))) {
             return false;
         }
-        $file_path = "{$_SERVER['DOCUMENT_ROOT']}/minute_data/gziped/{$timeframe}mins/$ticker/{$datetime->format('Y/m')}/{$datetime->format('Y-m-d')}_data.csv";
+        $file_path =
+            env('APP_ENV') === 'local' ?
+            "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/gziped/{$timeframe}mins/$ticker/{$datetime->format('Y/m')}/{$datetime->format('Y-m-d')}_data.csv" :
+            "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/gziped/{$timeframe}mins/$ticker/{$datetime->format('Y/m')}/{$datetime->format('Y-m-d')}_data.csv";
+        
         if (!file_exists($file_path)) {
             $datetime = (bool)$increment === 1 ? $datetime->addDay() : $datetime->subDay();
             continue;
@@ -205,7 +212,11 @@ function getWeeksMinuteList(string $ticker, int $timeframe, int &$from): bool|ar
     $days = getWeekDates($from);
 
     foreach ($days as $day) {
-        $file_path = "{$_SERVER['DOCUMENT_ROOT']}/minute_data/gziped/{$timeframe}mins/$ticker/" . str_replace('-', '/', substr($day, 0, 7)) . "/{$day}_data.csv";
+        $file_path =
+            env('APP_ENV') === 'local' ?
+            "{$_SERVER['DOCUMENT_ROOT']}/minute_data/gziped/{$timeframe}mins/$ticker/" . str_replace('-', '/', substr($day, 0, 7)) . "/{$day}_data.csv" :
+            "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/gziped/{$timeframe}mins/$ticker/" . str_replace('-', '/', substr($day, 0, 7)) . "/{$day}_data.csv";
+        
         array_push($files, $file_path);
     }
 
