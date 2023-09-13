@@ -86,7 +86,6 @@ final class PositionController
 
             return JsonResponse::ok("position retrieved success", $this->position->toArray());
         } catch (PDOException $e) {
-            consoleLog(0, $e->getMessage().'  '. $e->getTraceAsString());
             return JsonResponse::serverError("we encountered a problem");
         } catch (LogicException $e) {
             return JsonResponse::serverError("we encountered a runtime problem");
@@ -172,7 +171,6 @@ final class PositionController
             $body = sanitize_data(json_decode($inputJSON, true));
             $actions = Position::BUY.', '.Position::SELL.', '. Position::BUY_LIMIT.', '. Position::BUY_STOP.', '. Position::SELL_LIMIT.', '. Position::SELL_STOP;
 
-            logger()->info("the body is", $body);
             if ($validated = Validator::validate($body, [
                 'test_session_id' => 'required|int',
                 'action' => "required|string|in:$actions",
@@ -217,7 +215,6 @@ final class PositionController
                 $date = new DateTime();
                 $body['entrytime'] = $date->format('Y-m-d H:i:s.u');
             }
-            logger()->info("the body is now", $body);
 
             if (!$position = $this->position->create($body)) {
                 return JsonResponse::serverError("unable to create position");
