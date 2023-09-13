@@ -62,7 +62,5 @@ if (preg_match('/^.*$/i', $_SERVER["REQUEST_URI"])) {
     //register controllers
     require_once __DIR__.'/src/libs/routes.php';
 } else {
-    consoleLog('info', "Not catched by routing, Transparent serving for : "
-    . $_SERVER["REQUEST_URI"]);
     return false; // Let php bultin server serve
 }

@@ -57,7 +57,6 @@ class WebSocketServer implements MessageComponentInterface {
                     if (is_callable($handler)) {
                         $handler($from, $data);
                     } else {
-                        consoleLog('error', "the handler is not a valid callable");
                     }
                 } else {
                     echo "Unknown route: {$route}\n";

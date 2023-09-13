@@ -89,7 +89,6 @@ class FxController
 
             $filePath = __DIR__."/../download/$ticker/temp/".(string)time().".csv";
             if (!$data = joinCsvFast($files, $filePath, $faster)) {
-                consoleLog(0, "someting happend, couldn't join csv");
                 out(json_encode(["message" => "unable to join csv files"]));
                 return true;
             }
@@ -98,7 +97,6 @@ class FxController
         }
         
         if (!$data && !file_exists($filePath)) {
-            consoleLog('info', "File not found Error for : " . $_SERVER["REQUEST_URI"]);
             // return false;
             http_response_code(404);
             header("Content-type: application/json");
@@ -115,11 +113,9 @@ class FxController
             'css' => 'text/css',
         ];
         $ext = pathinfo($filePath, PATHINFO_EXTENSION);
-        // consoleLog('Debug', $ext);
         if (array_key_exists($ext, $customMappings)) {
             $mime = $customMappings[$ext];
         }
-        consoleLog('info', "CORS added to file {$mime} : {$filePath}");
         header("Content-type: {$mime}");
         header("Content-encoding: deflate");
         if ($data) {

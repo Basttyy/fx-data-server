@@ -63,7 +63,6 @@ final class PlanController
 
             return JsonResponse::ok("plan retrieved success", $this->plan->toArray());
         } catch (PDOException $e) {
-            consoleLog(0, $e->getMessage(). '   '.$e->getTraceAsString());
             return JsonResponse::serverError("we encountered a db problem");
         } catch (LogicException $e) {
             return JsonResponse::serverError("we encountered a runtime problem");

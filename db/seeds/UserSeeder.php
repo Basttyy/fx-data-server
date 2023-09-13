@@ -28,8 +28,8 @@ class UserSeeder extends AbstractSeed
                 'email' => env('TEST_USER'),
                 'password' => password_hash(env('TEST_PASS'), PASSWORD_BCRYPT),
                 'phone' => '08123456789',
-                'firstname' => 'John',
-                'lastname' => 'Doe',
+                'firstname' => 'Jhony',
+                'lastname' => 'Basttyy',
                 'status' => 'active',
                 'role_id' => $id
             ]

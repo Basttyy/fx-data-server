@@ -48,7 +48,7 @@ class BaseMailer extends PHPMailer
         $this->Subject = $this->Subject;
         $r = parent::send();
         if (env('APP_ENV') === 'local')
-            logger(storage_path()."logs/email.log")->info('I sent a message with subject ' . $this->Subject);
+            // logger(storage_path()."logs/email.log")->info('I sent a message with subject ' . $this->Subject);
 
         return $r;
     }

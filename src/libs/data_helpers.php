@@ -65,9 +65,7 @@ function processCandles(array $files, int $from, int $timeframe)
     $firsttime = 0; $minutes = 0; $canpush = false;
     $timestamp = 0; $open = 0; $close = 0; $high = 0; $low = 0; $turnover = 0; $volume = 0;
     foreach ($files as $file) {
-        //consoleLog('info', "foreach");
         if (!$fh = fopen($file, 'r')) {
-            //consoleLog('info', "unable to open file");
             return $fh;
         }
         
@@ -75,7 +73,6 @@ function processCandles(array $files, int $from, int $timeframe)
         while (($csv_row = fgetcsv($fh, 60, ',')) !== false) {
             //date_time,bid,ask,volume,turnover
             // if (!$csv_row = fgetcsv($fh)) {
-            //     consoleLog('info', "unable to read csv line");
             //     return $csv_row;
             // }
             // $datetime = $datetime->createFromFormat("Y.m.d H:i:s", $csv_row[0]);
@@ -85,9 +82,7 @@ function processCandles(array $files, int $from, int $timeframe)
             $minutes = $datetime/60;
             
             if ($firsttime === 0 || ($minutes - $firsttime) >= $timeframe) {
-                // consoleLog("info", "firsttime or timeframe full");
                 if ($canpush) {
-                    // consoleLog("info", "canpush");
                     $data = [
                         'timestamp' => $timestamp*1000,
                         'open' => $open,
@@ -111,7 +106,6 @@ function processCandles(array $files, int $from, int $timeframe)
                 $high = (float) $csv_row[1];
                 $low = (float) $csv_row[1];
             } else {
-                // consoleLog("info", "not firsttime or not timeframe full");
                 $canpush = true;
                 $high = $high > (float) $csv_row[1] ? $high : (float) $csv_row[1];
                 $low = $low < (float) $csv_row[1] ? $low : (float) $csv_row[1];
@@ -154,7 +148,6 @@ function getCandles(string $ticker, int $from, int $nums, int $timeframe): bool|
 
 function getFilesList(string $ticker, int $from, int $nums): bool|array
 {
-    // consoleLog("info", "the vars are $ticker:  $from:   $nums");
     // return true;
     $datetime = new DateTimeImmutable();
     // $datetime->setTimestamp($from);
@@ -163,10 +156,8 @@ function getFilesList(string $ticker, int $from, int $nums): bool|array
     while ($i < $nums) {
         $file_path = "{$_SERVER['DOCUMENT_ROOT']}/download/$ticker/{$datetime->format('Y/m')}/{$datetime->format('Y-m-d')}--{$datetime->format('H')}h_ticks.csv";
         // str_replace('/', "\\", $file_path);
-        consoleLog(0, $file_path.PHP_EOL);
         if (!file_exists($file_path)) {
             $datetime = $datetime->sub(new DateInterval('PT1H'));
-            consoleLog('info', "File not found Error for : " . $file_path);
             continue;
         }
         array_unshift($files, $file_path);
