@@ -75,6 +75,8 @@ class FxController
                 // $len--;
                 $data .= gzuncompress(file_get_contents($filePath));
                 // $data .= $len ? "\n" : '';
+            } else {
+                logger()->error("file does not exist: $filePath");
             }
         }
         echo $data;
