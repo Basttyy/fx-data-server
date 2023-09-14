@@ -46,12 +46,12 @@ class FxController
 
     private function downloadMinuteData (string $ticker, string $period, int $from, int $incr, int $nums)
     {
-        if (!$this->authenticator->validate()) {
-            return JsonResponse::unauthorized();
-        }
-        if (!$is_admin = $this->authenticator->verifyRole($this->user, 'user')) {
-            return JsonResponse::unauthorized('you are not authorized to access this resource');
-        }
+        // if (!$this->authenticator->validate()) {
+        //     return JsonResponse::unauthorized();
+        // }
+        // if (!$is_admin = $this->authenticator->verifyRole($this->user, 'user')) {
+        //     return JsonResponse::unauthorized('you are not authorized to access this resource');
+        // }
 
         if (!count(searchTicker($ticker))) {
             return JsonResponse::notFound("ticker does not exist");
