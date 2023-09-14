@@ -70,7 +70,7 @@ $landingarray = [
         'description' => 'Meet the brilliant team that are working effortlessly to put together this masterpiece',
         'members' => [
             [
-                'img' => '/src/assets/img/team-1-800x800.jpg',
+                'img' => '/assets/team-1-800x800-fdfd85ef.jpg',
                 'name' => 'Abdulbasit Mamman',
                 'role' => 'Senior Software Engineer',
                 'socials' => [
