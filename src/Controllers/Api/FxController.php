@@ -69,7 +69,7 @@ class FxController
         $ext = pathinfo($files[0], PATHINFO_EXTENSION);
         header("Content-type: $ext");
         
-        $data = ''; $len = sizeof($files);
+        $data = '';// $len = sizeof($files);
         foreach ($files as $filePath) {
             if (file_exists($filePath)) {
                 // $len--;
