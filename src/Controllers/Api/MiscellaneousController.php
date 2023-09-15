@@ -169,7 +169,7 @@ final class MiscellaneousController
 
             if (!isset($body['enquiry']))
                 $body['subject'] = 'I have an enquiry';
-            $contact = new SendContactUs($body, ['fullname', 'email', 'subject', 'message']);
+            $contact = new SendContactUs($body);
 
             $contact->init()->delay(5)->run();
 
