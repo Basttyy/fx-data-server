@@ -98,18 +98,20 @@ final class RequestLogController
 
     private function create()
     {
-        try {            
-            $data['ip'] = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : "";
-            $data['method'] = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : "";
-            $data['origin'] = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : "";
-            $data['uripath'] = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : "";
-
-            if (isset($_SERVER['CONTENT_LENGTH']) && $_SERVER['CONTENT_LENGTH'] > env('CONTENT_LENGTH_MIN')) {
-                $inputJSON = file_get_contents('php://input');
-                $data['body'] = gzdeflate(serialize(sanitize_data(json_decode($inputJSON, true))));
+        try {
+            if (strtolower($_SERVER['REQUEST_METHOD']) !== "options") {
+                $data['ip'] = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : "";
+                $data['method'] = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : "";
+                $data['origin'] = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : "";
+                $data['uripath'] = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : "";
+    
+                if (isset($_SERVER['CONTENT_LENGTH']) && $_SERVER['CONTENT_LENGTH'] > env('CONTENT_LENGTH_MIN')) {
+                    $inputJSON = file_get_contents('php://input');
+                    $data['body'] = gzdeflate(serialize(sanitize_data(json_decode($inputJSON, true))));
+                }
+    
+                $this->log->create($data);
             }
-
-            $this->log->create($data);
         } catch (PDOException $e) {
             consoleLog(0, $e->getMessage(). '   '.$e->getTraceAsString());
         } catch (Exception $e) {
