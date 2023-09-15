@@ -35,7 +35,7 @@ class VerifyEmail
                     "If it wasn't you please simply disregard this email. If it was you, then <span style='font-weight: 400;'>use this code <strong>$code</strong> to verify your email or click the “Verify Email Button” below to Verify Your Account.</span>"
                 ],
                 'links' => [
-                    'Verify Email' => "https://backtestfx.com/account/verify?code=$code"
+                    'Verify Email' => "https://backtestfx.com/auth/verify?email=$address&code=$code"
                 ]
             ], true);
 
