@@ -15,7 +15,7 @@ class ContactUs
 
         self::$mail->addAddress(env('SUPPORT_EMAIL_USER'), env('SUPPORT_EMAIL_NAME'));
         self::$mail->setFrom(env('NOREPLY_EMAIL_USER'), env('NOREPLY_EMAIL_NAME'));
-        self::$mail->addReplyTo($data['email'], $data['firstname'].' '. $data['lastname']);
+        self::$mail->addReplyTo($data['email'], $data['fullname']);
 
         self::$mail->Subject = $data['subject']; // 'Verify Your Email';
         // $mail->addAttachment(__FILE__, 'images/logo.png');
@@ -30,7 +30,7 @@ class ContactUs
             $content = array_push($content, explode("\n", $data["message"]));
             $html = Templater::view('verify.html', '/Mail/html/', [
                 'title' => "User Enquiry",
-                'header' => $data['firstname'] .' '.$data['lastname']. ' ('. $data['subject'].')',
+                'header' => $data['fullname'] . ' ('. $data['subject'].')',
                 'sender_email' => $data['email'],  //$sender->email,
                 'contents' => $content,
                 'links' => []
