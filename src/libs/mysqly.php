@@ -17,7 +17,7 @@ class mysqly {
   /* Internal implementation */
   
   private static function filter($filter, string|array $or_ands = "AND", string|array $operators = '=') {
-    $bind = $query = []; $incr_operator = false;
+    $bind = []; $query = []; $incr_operator = false;
     if ( is_array($filter) ) {
 
 
@@ -29,8 +29,8 @@ class mysqly {
         else
           $or_and = is_array($or_ands) ? "$or_ands[$j]" : "$or_ands";
         
-        $operator = is_array($operators) ? $operators[$i] : $operators; 
-        static::condition($k, $v, $where, $bind, $incr_operator, $or_and, $operator);
+        $operator = is_array($operators) ? $operators[$i] : $operators;
+        static::condition($k, $v, $query, $bind, $incr_operator, $or_and, $operator);
         $j++;
         if ($incr_operator)
           $i++;
