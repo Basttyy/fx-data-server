@@ -175,7 +175,6 @@ function getFilesList(string $ticker, int $from, int $nums): bool|array
 function getMinutesFilesList(string $ticker, int $timeframe, int &$from, int $increment, int $nums): bool|array
 {
     $datetime = new Carbon();
-    // $datetime->setTimestamp($from);
     $datetime = $datetime->setTimestamp($from);
     $from = 0;
     $files = array(); $i = 0;

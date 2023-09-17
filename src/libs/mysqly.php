@@ -16,22 +16,48 @@ class mysqly {
   
   /* Internal implementation */
   
-  private static function filter($filter) {
-    $bind = $query = [];
-    
+  private static function filter($filter, string|array $or_ands = "AND", string|array $operators = '=') {
+    $bind = $query = []; $incr_operator = false;
     if ( is_array($filter) ) {
-      foreach ( $filter as $k => $v ) {
-        static::condition($k, $v, $query, $bind);
+
+
+      $i = 0; $j = 0; $len = count($filter);
+
+      foreach ( $filter as $k => $v ) {    
+        if ($len - $j === 1)
+          $or_and = '';
+        else
+          $or_and = is_array($or_ands) ? "$or_ands[$j]" : "$or_ands";
+        
+        $operator = is_array($operators) ? $operators[$i] : $operators; 
+        static::condition($k, $v, $where, $bind, $incr_operator, $or_and, $operator);
+        $j++;
+        if ($incr_operator)
+          $i++;
+        $incr_operator = false;
       }
     }
     else {
-      static::condition('id', $filter, $query, $bind);
+      static::condition('id', $filter, $query, $bind, $incr_operator);
     }
     
-    return [$query ? (' WHERE ' . implode(' AND ', $query)) : '', $bind];
+    return [$query ? ('WHERE ' . implode(' ', $query)) : '', $bind];
   }
   
-  private static function condition($k, $v, &$where, &$bind, $_operator = '=') {
+  /**
+   * Prepare conditions
+   * 
+   * @param string $k
+   * @param string|array $v
+   * @param string $or_and
+   * @param array $where
+   * @param bool &$incr_operator
+   * @param string $_operator
+   * 
+   * @return void
+   */
+  private static function condition($k, $v, &$where, &$bind, &$incr_operator, $or_and = '', $_operator = '=') {
+    $or_and = $or_and !== '' ? ' ' . $or_and : $or_and;
     if ( is_array($v) ) {
       $in = [];
       
@@ -41,17 +67,19 @@ class mysqly {
       }
       
       $in = implode(', ', $in);
-      $where[] = "`{$k}` IN ($in)";
+      $where[] = "`{$k}` IN ($in){$or_and}";
     }
     else if ($v !== null && str_contains((string)$v, 'NULL')) {
-      $where[] = "`{$k}` $v";
+      $where[] = "`{$k}` {$v}{$or_and}";
     }
     else if ($v !== null && is_string($v) && str_contains($v, 'now')) {
-      $where[] = "`{$k}` = now()";
+      $where[] = "`{$k}` $_operator now(){$or_and}";
+      $incr_operator = true;
     }
     else {
-      $where[] = "`{$k}` = :{$k}";
+      $where[] = "`{$k}` $_operator :{$k}{$or_and}";
       $bind[":{$k}"] = $v;
+      $incr_operator = true;
     }
   }
   
@@ -137,7 +165,7 @@ class mysqly {
   public static function now() {
     return static::fetch('SELECT NOW() now')[0]['now'];
   }
-  
+
   
   
   /**
@@ -166,7 +194,7 @@ class mysqly {
    * @return \PDOStatement|false
    */
   
-  public static function fetch_cursor($sql_or_table, $bind_or_filter = [], $select_what = '*', $operators = [], $or_and = "AND") {
+  public static function fetch_cursor($sql_or_table, $bind_or_filter = [], $select_what = '*', string|array $operators = "=", string|array $or_ands = "AND") {
     if ( strpos($sql_or_table, ' ') || (strpos($sql_or_table, 'SELECT ') === 0) ) {
       $sql = $sql_or_table;
       $bind = $bind_or_filter;
@@ -178,17 +206,30 @@ class mysqly {
       
       if ( $bind_or_filter ) {
         if ( is_array($bind_or_filter) ) {
+          $i = 0; $j = 0; $len = count($bind_or_filter);
+          if (array_key_exists('order_by', $bind_or_filter))
+            $len--;
           foreach ( $bind_or_filter as $k => $v ) {
             if ( $k == 'order_by' ) {
               $order = ' ORDER BY ' . $v;
+              $j++;
               continue;
             }
+            if ($len - $j === 1)
+              $or_and = '';
+            else
+              $or_and = is_array($or_ands) ? "$or_ands[$j]" : "$or_ands";
             
-            static::condition($k, $v, $where, $bind, $operators);
+            $operator = is_array($operators) ? $operators[$i] : $operators;
+            static::condition($k, $v, $where, $bind, $incr_operator, $or_and, $operator);
+            $j++;
+            if ($incr_operator)
+              $i++;
+            $incr_operator = false;
           }
-          
+
           if ( $where ) {
-            $sql .= ' WHERE ' . implode(" $or_and ", $where);
+            $sql .= ' WHERE ' . implode( " ", $where);
           }
         }
         else {
@@ -199,7 +240,7 @@ class mysqly {
       
       $sql .= $order;
     }
-    // echo $sql.PHP_EOL;
+    
     $res = isset($bind) ? static::exec($sql, $bind) : static::exec($sql);
     return $res;
   }
@@ -213,9 +254,9 @@ class mysqly {
    * 
    * @return array
    */
-  public static function fetch($sql_or_table, $bind_or_filter = [], $select_what = '*', $operators = [], $or_and = "AND") {
+  public static function fetch($sql_or_table, $bind_or_filter = [], $select_what = '*', array|string $operators = '=', array|string $or_ands = "AND") {
     
-    $statement = static::fetch_cursor($sql_or_table, $bind_or_filter, $select_what, $operators, $or_and);
+    $statement = static::fetch_cursor($sql_or_table, $bind_or_filter, $select_what, $operators, $or_ands);
     $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
 
     $list = [];
@@ -232,43 +273,44 @@ class mysqly {
     return $list;
   }
 
-  /**
-   * fetchOr() fetch one or mor row from a table
-   * 
-   * @param string $sql_or_table
-   * @param array $bind_or_filter
-   * @param array|string $select_what
-   * 
-   * @return array
-   */
-  public static function fetchOr($sql_or_table, $bind_or_filter = [], $select_what = '*', $operators = [])
-  {
-    return static::fetch($sql_or_table, $bind_or_filter, $select_what, $operators, "OR");
-  }
+  // /**
+  //  * fetchOr() fetch one or mor row from a table
+  //  * 
+  //  * @param string $sql_or_table
+  //  * @param array $bind_or_filter
+  //  * @param array|string $select_what
+  //  * 
+  //  * @return array
+  //  */
+  // public static function fetchOr($sql_or_table, $bind_or_filter = [], $select_what = '*', array|string $operators = '=', array|string $or_ands = "AND")
+  // {
+  //   return static::fetch($sql_or_table, $bind_or_filter, $select_what, $operators, "OR");
+  // }
   
-  public static function array($sql_or_table, $bind_or_filter = [])
+  public static function array($sql_or_table, $bind_or_filter = [], $select_what = '*', array|string $operators = '=', array|string $or_ands = "AND")
   {
-    $rows = static::fetch($sql_or_table, $bind_or_filter);
+    $rows = static::fetch($sql_or_table, $bind_or_filter, $select_what, $operators, $or_ands);
     foreach ( $rows as $row ) $list[] = array_shift($row);
     return $list;
   }
   
-  public static function key_vals($sql_or_table, $bind_or_filter = [])
+  public static function key_vals($sql_or_table, $bind_or_filter = [], $select_what = '*', array|string $operators = '=', array|string $or_ands = "AND")
   {
-    $rows = static::fetch($sql_or_table, $bind_or_filter);
+    $rows = static::fetch($sql_or_table, $bind_or_filter, $select_what, $operators, $or_ands);
     foreach ( $rows as $row ) $list[array_shift($row)] = array_shift($row);
     return $list;
   }
   
-  public static function count($sql_or_table, $bind_or_filter = [])
+  public static function count($sql_or_table, $bind_or_filter = [], array|string $operators = '=', array|string $or_ands = "AND")
   {
-    $rows = static::fetch($sql_or_table, $bind_or_filter, 'count(*)');
-    return intval(array_shift(array_shift($rows)));
+    $rows = static::fetch($sql_or_table, $bind_or_filter, 'count(*)', $operators, $or_ands);
+    $val = array_shift($rows);
+    return intval(array_shift($val));
   }
   
-  public static function random($table, $filter = [])
+  public static function random($table, $filter = [], string|array $operators = '=', string|array $or_ands = "AND")
   {
-    list($where, $bind) = static::filter($filter);
+    list($where, $bind) = static::filter($filter, $or_ands, $operators);
     $sql = 'SELECT * FROM `' . $table . '` ' . $where . ' ORDER BY RAND() LIMIT 1';
     return static::fetch($sql, $bind)[0];
   }
@@ -277,20 +319,34 @@ class mysqly {
   
   /* --- Atomic increments/decrements --- */
   
-  public static function increment($column, $table, $filters, $step = 1) {
+  public static function increment($column, $table, $filters, string|array $operators = '=', string|array $or_ands = "AND", $step = 1) {
     $bind = $where = [];
+
+    $i = 0; $j = 0; $len = count($filters);
     foreach ( $filters as $k => $v ) {
-      static::condition($k, $v, $where, $bind);
+      if ($len - $j === 1)
+        $or_and = '';
+      else
+        $or_and = is_array($or_ands) ? "$or_ands[$j]" : "$or_ands";
+
+      $operator = is_array($operators) ? $operators[$i] : $operators;
+      static::condition($k, $v, $where, $bind, $incr_operator, $or_and, $operator);
+      $j++;
+      if ($incr_operator)
+        $i++;
+      $incr_operator = false;
     }
-    
-    $where = implode(' AND ', $where);
+
+    if ( $where ) {
+      $where_sql = 'WHERE ' . implode( " ", $where);
+    }
     
     $step = intval($step);
     if ( $step > 0 ) {
       $step = "+{$step}";
     }
     
-    return static::exec("UPDATE `{$table}` SET `{$column}` = `{$column}` {$step} WHERE {$where}", $bind);
+    return static::exec("UPDATE `{$table}` SET `{$column}` = `{$column}` {$step} {$where_sql}", $bind);
   }
   
   public static function decrement($column, $table, $filters) {
@@ -301,19 +357,33 @@ class mysqly {
   
   /* --- Toggle column value --- */
   
-  public static function toggle($table, $filters, $column, $if, $then) {
+  public static function toggle($table, $filters, $column, $if, $then, string|array $operators = '=', string|array $or_ands = "AND") {
     $bind = $where = [];
-    foreach ( $filters as $k => $v ) {
-      static::condition($k, $v, $where, $bind);
+    $i = 0; $j = 0; $len = count($filters);
+
+    foreach ( $filters as $k => $v ) {    
+      if ($len - $j === 1)
+        $or_and = '';
+      else
+        $or_and = is_array($or_ands) ? "$or_ands[$j]" : "$or_ands";
+      
+      $operator = is_array($operators) ? $operators[$i] : $operators; 
+      static::condition($k, $v, $where, $bind, $incr_operator, $or_and, $operator);
+      $j++;
+      if ($incr_operator)
+        $i++;
+      $incr_operator = false;
+    }
+
+    if ( $where ) {
+      $where_sql = 'WHERE ' . implode( " ", $where);
     }
     
     $bind[':if'] = $if;
     $bind[':v'] = $if;
     $bind[':then'] = $then;
     
-    $where = implode(' AND ', $where);
-    
-    return static::exec("UPDATE `{$table}` SET `{$column}` = IF(`{$column}` = :if, :then, :v) WHERE {$where}", $bind);
+    return static::exec("UPDATE `{$table}` SET `{$column}` = IF(`{$column}` = :if, :then, :v) {$where_sql}", $bind);
   }
   
   
@@ -389,8 +459,8 @@ class mysqly {
   
   /* Data export */
   
-  public static function export_csv($file, $sql_or_table, $bind_or_filter = [], $select_what = '*') {
-    $cursor = static::fetch_cursor($sql_or_table, $bind_or_filter, $select_what);
+  public static function export_csv($file, $sql_or_table, $bind_or_filter = [], $select_what = '*', $operators = [], $or_and = "AND") {
+    $cursor = static::fetch_cursor($sql_or_table, $bind_or_filter, $select_what, $or_and, $operators);
     $f = fopen($file, 'w');
     while ( $row = $cursor->fetch() ) {
       fputcsv($f, $row);
@@ -399,8 +469,8 @@ class mysqly {
     fclose($f);
   }
   
-  public static function export_tsv($file, $sql_or_table, $bind_or_filter = [], $select_what = '*') {
-    $cursor = static::fetch_cursor($sql_or_table, $bind_or_filter, $select_what);
+  public static function export_tsv($file, $sql_or_table, $bind_or_filter = [], $select_what = '*', $operators = [], $or_and = "AND", ) {
+    $cursor = static::fetch_cursor($sql_or_table, $bind_or_filter, $select_what, $or_and, $operators);
     $f = fopen($file, 'w');
     while ( $row = $cursor->fetch() ) {
       fputcsv($f, $row, "\t");
@@ -413,8 +483,8 @@ class mysqly {
 
   /* Data update */  
 
-  public static function update($table, $filter, $data) {
-    list($where, $bind) = static::filter($filter);
+  public static function update($table, $filter, $data, string|array $operators = '=', string|array $or_ands = "AND") {
+    list($where, $bind) = static::filter($filter, $or_ands, $operators);
     $values = static::values($data, $bind);
     
     $sql = "UPDATE `{$table}` SET {$values} {$where}";
@@ -428,8 +498,8 @@ class mysqly {
     }
   }
   
-  public static function remove($table, $filter): bool {
-    list($where, $bind) = static::filter($filter);
+  public static function remove($table, $filter, string|array $operators = '=', string|array $or_ands = "AND"): bool {
+    list($where, $bind) = static::filter($filter, $or_ands, $operators);
     if (!$statement = static::exec("DELETE FROM `{$table}` " . $where, $bind)) {
       return false;
     }

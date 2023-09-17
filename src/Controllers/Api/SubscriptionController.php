@@ -38,6 +38,9 @@ final class SubscriptionController
             case 'show':
                 $resp = $this->show($id);
                 break;
+            case 'count':
+                $resp = $this->count();
+                break;
             case 'list':
                 $resp = $this->list();
                 break;
@@ -70,6 +73,39 @@ final class SubscriptionController
             return JsonResponse::serverError("we encountered a db problem");
         } catch (LogicException $e) {
             return JsonResponse::serverError("we encountered a runtime problem");
+        } catch (Exception $e) {
+            return JsonResponse::serverError("we encountered a problem");
+        }
+    }
+    
+    private function count()
+    {
+        try {
+            if (!$this->authenticator->validate()) {
+                return JsonResponse::unauthorized();
+            }
+            
+            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+                return JsonResponse::unauthorized("you can't view subscriptions");
+            }
+            
+            $query = isset($_GET) ? sanitize_data($_GET): [];
+
+            if (count($query)) {
+                foreach ($query as $k => $v) {
+                    $this->subscription->where($k, value: $v);
+                }
+                $count = $this->subscription->count();
+            } else {
+                $count = $this->subscription->count();
+            }
+
+            if (!$count)
+                return JsonResponse::ok("no subscription found in list", 0);
+
+            return JsonResponse::ok("subscriptions count retrieved success", $count);
+        } catch (PDOException $e) {
+            return JsonResponse::serverError("we encountered a problem");
         } catch (Exception $e) {
             return JsonResponse::serverError("we encountered a problem");
         }
