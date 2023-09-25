@@ -1,4 +1,29 @@
 <?php
+require_once __DIR__."/vendor/autoload.php";
+
+use Carbon\Carbon;
+
+use Basttyy\FxDataServer\libs\NumberConverter;
+
+// for ($i = 0; $i < 53; $i++) {
+//     echo NumberConverter::toWordOrdinal($i)."  __  ";
+// } first week of 2016
+
+// exit(0);
+
+$tz = "Africa/Lagos";
+
+for ($i = 2016; $i <= 2023; $i++) {
+    $time = Carbon::parse("last day of December $i");//->sub('day', 5);
+    echo $time->isoWeek.PHP_EOL;
+    echo $time->dayOfWeekIso .PHP_EOL;
+    echo $time->dayOfWeek .PHP_EOL;
+    echo $time.PHP_EOL;
+    echo $time->isoWeeksInYear.PHP_EOL.PHP_EOL;
+}
+
+exit(0);
+
 function getWeekDates($timestamp, $includeSat = false) {
     $date = new DateTime();
     $date->setTimestamp($timestamp);

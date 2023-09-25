@@ -79,6 +79,17 @@ if (! function_exists('logger')) {
     }
 }
 
+if (! function_exists('format_int_leading_zero')) {
+    function format_int_leading_zero(int $number): string
+    {
+        if (is_numeric($number) && $number < 10) {
+            return "0" . $number;
+        } else {
+            return strval($number); // Convert to string without leading zero
+        }
+    }
+}
+
 if (! function_exists('validate_data_structure')) {
     /**
      * Validate that an array data matches a given structure
