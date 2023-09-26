@@ -2,9 +2,10 @@
 require_once __DIR__."/vendor/autoload.php";
 require_once __DIR__."/src/libs/helpers.php";
 
-// php ticktominutes.php parse xauusd 2016,2017,2018,2019,2020,2021,2022,2023 2,5,15,30,60,120
-// php ticktominutes.php compress xauusd 2016,2017,2018,2019,2020,2021,2022,2023 2,5,15,30,60,120
-// php ticktominutes.php compact_week xauusd 2016 2023 1,2,5,15,30,60,120
+// php dataprocessor.php parse xauusd 2016,2017,2018,2019,2020,2021,2022,2023 2,5,15,30,60,120
+// php dataprocessor.php compress xauusd 2016,2017,2018,2019,2020,2021,2022,2023 2,5,15,30,60,120
+// php dataprocessor.php compact_week xauusd 2016 2023 1,2,5,15,30,60,120
+// php dataprocessor.php compact_month xauusd 2016 2023 1440
 
 use Carbon\Carbon;
 use Basttyy\FxDataServer\libs\NumberConverter;
@@ -46,9 +47,9 @@ if ($command === 'parse') {
                     }
 
                     if ((int)$min >= 2) {
-                        if ($datetime->dayOfWeekIso === 7) {
-                            echo "data started with sunday, skipping this day".PHP_EOL;
-                        } else if ($datetime->dayOfWeekIso === 5) {
+                        if ((int)$min > 120 && $datetime->dayOfWeekIso === 7) {
+                            // echo "data started with sunday, skipping this day".PHP_EOL;
+                        } else if ((int)$min > 120 && $datetime->dayOfWeekIso === 5) {
                             $path2 = __DIR__."/minute_data/1mins/$ticker/$year/$mn/";
                             $date = $datetime;
                             $result_path = $path."$year-$mn-{$dy}_data.csv";
@@ -62,7 +63,7 @@ if ($command === 'parse') {
                             $path2 = __DIR__."/minute_data/1mins/$ticker/$year/$mn/";
     
                             $paths[] = $path2."$year-$mn-{$dy}_data.csv";
-                            print_r($paths); echo PHP_EOL;
+                            // print_r($paths); echo PHP_EOL;
                             compoundMinute($ticker, $datetime, $result_path, (int)$min, 1, $paths);
                             $paths = [];
                         } else {
@@ -70,6 +71,7 @@ if ($command === 'parse') {
                             echo $path.PHP_EOL;
                             compoundMinute($ticker, $datetime, $path, (int)$min, 1);
                         }
+                        $datetime->addDays();
                     } else {
                         if (!$files = getFilesList2($ticker, $datetime)) {
                             echo "failed to get file list for $year-$month-$day".PHP_EOL;
@@ -77,59 +79,16 @@ if ($command === 'parse') {
                             // return $files;
                         }
                         $path = $path."$year-$mn-{$dy}_data.csv";
-                        echo $path.PHP_EOL;
-                        compoundMinute($ticker, $datetime, $path, (int)$min, 1);
+                        // echo $path.PHP_EOL;
+                        generateMinuteData($files, $path, (int)$min);
                     }
                     
-                    $datetime->addDay();
+                    // $datetime->addDays();
                     usleep(100000);
                 }
-                echo "got here".PHP_EOL;
-                sleep(1);
-                continue;
 
-                for ($month = 1; $month <= 12; $month++) {
-                    $days = $datetime->month($month)->daysInMonth;
-                    $datetime->setDate((int)$year, $month, 1);
-                    sleep(1);
-                    continue;
-                    for ($day = 1; $day <= $days; $day++) {
-                        $datetime->setDate((int)$year, $month, $day);
-                        $datetime->setTime(0, 0);
-                        
-                        $mn = $month < 10 ? "0$month" : "$month";
-                        $dy = $day < 10 ? "0$day" : "$day";
-                        $path = __DIR__."/minute_data/{$min}mins/$ticker/$year/$mn/";
-                
-                        if (!is_dir($path)) {
-                            mkdir($path, 0777, true);
-                        }
-    
-                        if ((int)$min >= 2 && $datetime->dayOfWeekIso === 5) {
-                            $paths[] = $path."$year-$mn-{$dy}_data.csv";
-
-                            $day++;
-                            $mn = $month < 10 ? "0$month" : "$month";
-                            $dy = $day < 10 ? "0$day" : "$day";
-
-                            $paths[] = $path."$year-$mn-{$dy}_data.csv";
-                        } else {
-                            if (!$files = getFilesList2($ticker, $datetime)) {
-                                echo "failed to get file list for $year-$month-$day".PHP_EOL;
-                                continue;
-                                // return $files;
-                            }
-                            $path = $path."$year-$mn-{$dy}_data.csv";
-                        }
-
-                        (int)$min >= 2 ? compoundMinute($ticker, $datetime, $path, (int)$min, 1) : generateMinuteData($files, $path, (int)$min);
-                        //sleep(1);
-                    }
-                    consoleLog("info", "done with month: $mn");
-                    //sleep(1);
-                }
                 consoleLog("info", "done with year: $year");
-                //sleep(2);
+                usleep(300000);
             }
             consoleLog("info", "done with {$min}mins timeframe");
         }
@@ -140,8 +99,8 @@ if ($command === 'parse') {
     foreach ($tickers as $ticker) {
         foreach ($mins as $min) {
             // Define the source directory and destination directory
-            $sourceDir = __DIR__."/minute_data/{$min}mins/GBPUSD";
-            $destinationDir = __DIR__."/minute_data/weekly/{$min}mins/GBPUSD";
+            $sourceDir = __DIR__."/minute_data/{$min}mins/$ticker";
+            $destinationDir = __DIR__."/minute_data/weekly/{$min}mins/$ticker";
         
             $date = Carbon::create($starty);
         
@@ -149,7 +108,7 @@ if ($command === 'parse') {
                 $date->addDay();
             }
         
-            while ($date->lte(Carbon::parse("last day of December $endy"))) {
+            while ($date->lte(Carbon::create($endy, 9, 24))) {
                 $destyear = $date->year;
         
                 // Create the destination directory if it doesn't exist
@@ -161,6 +120,19 @@ if ($command === 'parse') {
                 echo $weeks.PHP_EOL;
                 // logger(__DIR__."/storage/logs/console.log")->info("$weeks weeks in $destyear");
                 for ($i = 1; $i <= $weeks;  $i++) {
+                    
+                    // Construct the destination file path for the week
+                    $destinationFilePath = "{$destinationDir}/{$destyear}/week{$i}_data.csv";
+
+                    if (file_exists($destinationFilePath)) {
+                        echo "$destinationFilePath exists, skipping".PHP_EOL;
+                        $date->addWeek();
+                        continue;
+                    }
+
+                    echo PHP_EOL;
+                    echo $destinationFilePath.PHP_EOL.PHP_EOL;
+
                     $weekStartDate = $date->startOfWeek()->toDateString();
                     $weekEndDate = $date->endOfWeek()->toDateString();
         
@@ -174,7 +146,7 @@ if ($command === 'parse') {
                         $year = $currentDate->year; $day = format_int_leading_zero($currentDate->day);
                         $sourceFilePath = "{$sourceDir}/{$year}/$month/{$year}-{$month}-{$day}_data.csv";
                         echo $sourceFilePath.PHP_EOL;
-                        logger(__DIR__."/storage/logs/console.log")->info($sourceFilePath);
+                        // logger(__DIR__."/storage/logs/console.log")->info($sourceFilePath);
             
                         if (file_exists($sourceFilePath)) {
                             $dailyData = file_get_contents($sourceFilePath);
@@ -187,10 +159,6 @@ if ($command === 'parse') {
                         $date->addDay();
                     }
             
-                    // Construct the destination file path for the week
-                    $destinationFilePath = "{$destinationDir}/{$destyear}/week{$i}_data.csv";
-                    echo PHP_EOL;
-                    echo $destinationFilePath.PHP_EOL.PHP_EOL;
                     // logger(__DIR__."/storage/logs/console.log")->info($destinationFilePath);
                     // logger(__DIR__."/storage/logs/console.log")->info("  ");
                     // logger(__DIR__."/storage/logs/console.log")->info("  ");
@@ -202,11 +170,180 @@ if ($command === 'parse') {
                         }
                         file_put_contents($destinationFilePath, $compressed);
                     }
-                    usleep(200000);
+                    usleep(400000);
                 }
             }
-            echo "CSV files have been compounded into weekly files.";
-            return;
+            echo "done with {$min}mins of ticker $ticker.";
+        }
+    }  
+} else if ($command === 'compact_month') {
+    foreach ($tickers as $ticker) {
+        foreach ($mins as $min) {
+            // Define the source directory and destination directory
+            $sourceDir = __DIR__."/minute_data/{$min}mins/$ticker";
+            $destinationDir = __DIR__."/minute_data/monthly/{$min}mins/$ticker";
+        
+            $date = Carbon::create($starty);
+        
+            // while ($date->isoWeek !== 1) {
+            //     $date->addDay();
+            // }
+        
+            while ($date->lte(Carbon::create($endy, 9, 24))) {
+                $destyear = $date->year;
+        
+                // Create the destination directory if it doesn't exist
+                if (!file_exists($destinationDir."/$destyear")) {
+                    mkdir($destinationDir."/$destyear", 0777, true);
+                }
+        
+                $month = $date->month;
+                echo $month.PHP_EOL;
+                // logger(__DIR__."/storage/logs/console.log")->info("$weeks weeks in $destyear");
+                // for ($i = 1; $i <= 12;  $i++) {
+                    
+                    // Construct the destination file path for the week
+                    $destinationFilePath = "{$destinationDir}/{$destyear}/month{$month}_data.csv";
+
+                    if (file_exists($destinationFilePath)) {
+                        echo "$destinationFilePath exists, skipping".PHP_EOL;
+                        $date->addMonth();
+                        continue;
+                    }
+
+                    echo PHP_EOL;
+                    echo $destinationFilePath.PHP_EOL.PHP_EOL;
+
+                    $monthStartDate = $date->startOfMonth()->toDateString();
+                    $monthEndDate = $date->endOfMonth()->toDateString();
+        
+                    // Create an array to hold daily data for the week
+                    $monthlyData = [];
+            
+                    // Iterate through days within the week
+                    $currentDate = Carbon::parse($monthStartDate);
+                    while ($currentDate->lte(Carbon::parse($monthEndDate))) {
+                        $month = format_int_leading_zero($currentDate->month);
+                        $year = $currentDate->year; $day = format_int_leading_zero($currentDate->day);
+                        $sourceFilePath = "{$sourceDir}/{$year}/$month/{$year}-{$month}-{$day}_data.csv";
+                        echo $sourceFilePath.PHP_EOL;
+                        // logger(__DIR__."/storage/logs/console.log")->info($sourceFilePath);
+            
+                        if (file_exists($sourceFilePath)) {
+                            $dailyData = file_get_contents($sourceFilePath);
+                            // echo $dailyData;
+                            $monthlyData[] = $dailyData;
+                        }
+            
+                        // Move to the next day
+                        $currentDate->addDay();
+                        // $date->addDay();
+                        if ($currentDate->greaterThan(Carbon::create($endy, 9, 24))) {
+                            break;
+                        }
+                    }
+                    $date = $currentDate;
+            
+                    // logger(__DIR__."/storage/logs/console.log")->info($destinationFilePath);
+                    // logger(__DIR__."/storage/logs/console.log")->info("  ");
+                    // logger(__DIR__."/storage/logs/console.log")->info("  ");
+                    // Write the weekly data to the destination CSV file
+                    if (!empty($monthlyData)) {
+                        // if (!$compressed = gzdeflate(implode("", $monthlyData), encoding: ZLIB_ENCODING_DEFLATE)) {
+                        //     consoleLog('error', "unable to compress file");
+                        //     return false;
+                        // }
+                        file_put_contents($destinationFilePath, implode("", $monthlyData));
+                    }
+                    usleep(400000);
+                // }
+            }
+            echo "done with {$min}mins of ticker $ticker.";
+        }
+    }  
+} else if ($command === 'compact_year') {
+    foreach ($tickers as $ticker) {
+        foreach ($mins as $min) {
+            // Define the source directory and destination directory
+            $sourceDir = __DIR__."/minute_data/{$min}mins/$ticker";
+            $destinationDir = __DIR__."/minute_data/yearly/{$min}mins/$ticker";
+        
+            $date = Carbon::create($starty);
+        
+            // while ($date->isoWeek !== 1) {
+            //     $date->addDay();
+            // }
+        
+            while ($date->lte(Carbon::create($endy, 9, 24))) {
+                $destyear = $date->year;
+        
+                // Create the destination directory if it doesn't exist
+                if (!file_exists($destinationDir."/$destyear")) {
+                    mkdir($destinationDir."/$destyear", 0777, true);
+                }
+        
+                $month = $date->month;
+                echo $month.PHP_EOL;
+                // logger(__DIR__."/storage/logs/console.log")->info("$weeks weeks in $destyear");
+                // for ($i = 1; $i <= 12;  $i++) {
+                    
+                    // Construct the destination file path for the week
+                    $destinationFilePath = "{$destinationDir}/{$destyear}_{$min}_data.csv";
+
+                    if (file_exists($destinationFilePath)) {
+                        echo "$destinationFilePath exists, skipping".PHP_EOL;
+                        $date->addMonth();
+                        continue;
+                    }
+
+                    echo PHP_EOL;
+                    echo $destinationFilePath.PHP_EOL.PHP_EOL;
+
+                    $yearStartDate = $date->startOfMonth()->toDateString();
+                    $yearEndDate = $date->endOfMonth()->toDateString();
+        
+                    // Create an array to hold daily data for the week
+                    $yearlyData = [];
+            
+                    // Iterate through days within the week
+                    $currentDate = Carbon::parse($yearStartDate);
+                    while ($currentDate->lte(Carbon::parse($yearEndDate))) {
+                        $month = format_int_leading_zero($currentDate->month);
+                        $year = $currentDate->year; $day = format_int_leading_zero($currentDate->day);
+                        $sourceFilePath = "{$sourceDir}/{$year}/$month/{$year}-{$month}-{$day}_data.csv";
+                        echo $sourceFilePath.PHP_EOL;
+                        // logger(__DIR__."/storage/logs/console.log")->info($sourceFilePath);
+            
+                        if (file_exists($sourceFilePath)) {
+                            $dailyData = file_get_contents($sourceFilePath);
+                            // echo $dailyData;
+                            $yearlyData[] = $dailyData;
+                        }
+            
+                        // Move to the next day
+                        $currentDate->addDay();
+                        // $date->addDay();
+                        if ($currentDate->greaterThan(Carbon::create($endy, 9, 24))) {
+                            break;
+                        }
+                    }
+                    $date = $currentDate;
+            
+                    // logger(__DIR__."/storage/logs/console.log")->info($destinationFilePath);
+                    // logger(__DIR__."/storage/logs/console.log")->info("  ");
+                    // logger(__DIR__."/storage/logs/console.log")->info("  ");
+                    // Write the weekly data to the destination CSV file
+                    if (!empty($yearlyData)) {
+                        // if (!$compressed = gzdeflate(implode("", $yearlyData), encoding: ZLIB_ENCODING_DEFLATE)) {
+                        //     consoleLog('error', "unable to compress file");
+                        //     return false;
+                        // }
+                        file_put_contents($destinationFilePath, implode("", $yearlyData));
+                    }
+                    usleep(400000);
+                // }
+            }
+            echo "done with {$min}mins of ticker $ticker.";
         }
     }  
 } else if ($command === 'compress') {
@@ -267,7 +404,7 @@ function getFilesList3(string $ticker, Carbon &$datetime, int $mins): bool|array
 
 function getFilesList2(string $ticker, Carbon &$datetime): bool|array
 {
-    echo $datetime->toString().PHP_EOL;
+    // echo $datetime->toString().PHP_EOL;
     $files = array(); $i = 0; $s = 0; $date_valid = true;
     while ($date_valid) {
         $date_valid = $datetime->hour < 23 && !$datetime->isToday();
