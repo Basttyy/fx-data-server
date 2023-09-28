@@ -23,6 +23,7 @@ $datetime = new Carbon();
 ///SATURDAY 1min candles count is 0
 ///OTHERS 1min candles count is 1440
 ///FRIDAY and SUNDAY forms one day
+///It's also possible that SUNDAY and MONDAY forms one day in this case, a part of monday goes to teu and a part of teu goes to wed and so on
 
 // echo "$ticker : $year";
 // exit(0);
@@ -249,11 +250,11 @@ if ($command === 'parse') {
                     // logger(__DIR__."/storage/logs/console.log")->info("  ");
                     // Write the weekly data to the destination CSV file
                     if (!empty($monthlyData)) {
-                        // if (!$compressed = gzdeflate(implode("", $monthlyData), encoding: ZLIB_ENCODING_DEFLATE)) {
-                        //     consoleLog('error', "unable to compress file");
-                        //     return false;
-                        // }
-                        file_put_contents($destinationFilePath, implode("", $monthlyData));
+                        if (!$compressed = gzdeflate(implode("\n", $monthlyData), encoding: ZLIB_ENCODING_DEFLATE)) {
+                            consoleLog('error', "unable to compress file");
+                            return false;
+                        }
+                        file_put_contents($destinationFilePath, $compressed);
                     }
                     usleep(400000);
                 // }
@@ -278,8 +279,8 @@ if ($command === 'parse') {
                 $destyear = $date->year;
         
                 // Create the destination directory if it doesn't exist
-                if (!file_exists($destinationDir."/$destyear")) {
-                    mkdir($destinationDir."/$destyear", 0777, true);
+                if (!file_exists($destinationDir)) {
+                    mkdir($destinationDir, 0777, true);
                 }
         
                 $month = $date->month;
@@ -334,11 +335,11 @@ if ($command === 'parse') {
                     // logger(__DIR__."/storage/logs/console.log")->info("  ");
                     // Write the weekly data to the destination CSV file
                     if (!empty($yearlyData)) {
-                        // if (!$compressed = gzdeflate(implode("", $yearlyData), encoding: ZLIB_ENCODING_DEFLATE)) {
-                        //     consoleLog('error', "unable to compress file");
-                        //     return false;
-                        // }
-                        file_put_contents($destinationFilePath, implode("", $yearlyData));
+                        if (!$compressed = gzdeflate(implode("", $yearlyData), encoding: ZLIB_ENCODING_DEFLATE)) {
+                            consoleLog('error', "unable to compress file");
+                            return false;
+                        }
+                        file_put_contents($destinationFilePath, $compressed);
                     }
                     usleep(400000);
                 // }

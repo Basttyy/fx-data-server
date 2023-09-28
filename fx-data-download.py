@@ -297,7 +297,7 @@ class Dukascopy:
             if not os.path.exists(os.path.dirname(self.path)):
                 os.makedirs(os.path.dirname(self.path))
             i = 1
-            while i <= 10:
+            while i <= 40:
                 try:
                     urllib.request.urlretrieve(self.url, filename=self.path)
                     break
@@ -498,6 +498,22 @@ if __name__ == "__main__":
         help="Determine if .bi5 files should be deleted or kept (true for delete)",
         default="true"
     )
+    parser.add_argument(
+        "-s",
+        "--sunday",
+        action="store_true",
+        dest="sunday",
+        help="If sunday data should be downloaded or not.",
+        # default="true"
+    )
+    parser.add_argument(
+        "-S",
+        "--saturday",
+        action="store_false",
+        dest="saturday",
+        help="Determine if saturday data should be included or not",
+        # default="true"
+    )
     args = parser.parse_args()
 
     curr_year = datetime.date.today().year
@@ -534,6 +550,24 @@ if __name__ == "__main__":
                                     unix > all_currencies.get(pair)
                                     and unix < time.time()
                                 ):
+                                    if (
+                                        args.sunday and dt.weekday() == 6
+                                    ):
+                                        continue
+                                    if (
+                                        args.saturday and dt.weekday() == 5
+                                    ):
+                                        continue
+                                    if (
+                                        dt.weekday() == 6
+                                        and hour < 20
+                                    ):
+                                        continue
+                                    # if (
+                                    #     dt.weekday() == 4
+                                    #     and hour > 21
+                                    # ):
+                                    #     continue
                                     # if args.months != "all":
                                     #     month -= 1
                                     ds = Dukascopy(
