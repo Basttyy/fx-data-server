@@ -23,7 +23,7 @@ class FxController
         $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
     }
 
-    public function __invoke(string $ticker = "", string $period = "", int $from = null, int $incr = null, int $nums = null, string $query = "", bool $faster = null)
+    public function __invoke(string $ticker = "", int $period = null, int $from = null, int $incr = null, int $nums = null, string $query = "", bool $faster = null)
     {
         switch ($this->method) {
             case 'download_minute_data':
@@ -87,7 +87,7 @@ class FxController
 
     
 
-    private function downloadMinutesData (string $ticker, string $period, int $from, int $incr, int $nums)
+    private function downloadMinutesData (string $ticker, int $period, int $from, int $incr, int $nums)
     {
         if (!$this->authenticator->validate()) {
             return JsonResponse::unauthorized();
@@ -99,45 +99,64 @@ class FxController
         if (!count(searchTicker($ticker))) {
             return JsonResponse::notFound("ticker does not exist");
         }
-    
-        // if (!$files = getMinutesFilesList($ticker, $period, $from, $incr, $nums)) {
-        // if (!$files = getWeeksMinuteList($ticker, $period, $from, $incr, $nums)) {
-        //     return JsonResponse::notFound('file not found or datetime not in range');
-        // }
 
         $files = [];
         $date = Carbon::createFromTimestamp($from);
         $data = ''; $file_path = '';
+        // ($period < 240 && $period > 0) ? $date->startOfWeek(1) : ($period === 240) ? $date->startOfMonth() : $date->startOfYear();
 
         for ($i = 0; $i < $nums; $i++) {
             $week = $date->isoWeek;
+            $month = $date->month;
             $year = $date->year;
-            $file_path =
-                env('APP_ENV') === 'local' ?
-                "{$_SERVER['DOCUMENT_ROOT']}/minute_data/weekly/{$period}mins/$ticker/$year/week$week"."_data.csv" :
-                "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/weekly/{$period}mins/$ticker/$year/week$week"."_data.csv";
             
-            logger()->info($file_path);
-            array_unshift($files, $file_path);
-            // $files[] = $files; // gzuncompress(file_get_contents($file_path));
-            // $data .= gzuncompress(file_get_contents($file_path));
-            // $data .= $i < $nums ? "\n" : '';
-            $incr ? $date->addWeek() : $date->subWeek();
-        }
-        logger()->info("");
-        logger()->info("");
-
-        $ext = pathinfo($file_path, PATHINFO_EXTENSION);
-        header("Content-type: $ext");
-        if (!empty($files)) {
-            foreach ($files as $file) {
-                $data .= gzuncompress(file_get_contents($file));
-                $data .= "\n";
+            if ($period < 240 && $period > 0) {
+                $file_path =
+                    env('APP_ENV') === 'local' ?
+                    "{$_SERVER['DOCUMENT_ROOT']}/minute_data/weekly/{$period}mins/$ticker/$year/week$week"."_data.csv" :
+                    "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/weekly/{$period}mins/$ticker/$year/week$week"."_data.csv";
+            
+                logger()->info($file_path);
+                $incr ? array_push($files, $file_path) : array_unshift($files, $file_path);
+                $incr ? $date->addWeek() : $date->subWeek();
+            } else if ($period === 240) {
+                $file_path =
+                    env('APP_ENV') === 'local' ?
+                    "{$_SERVER['DOCUMENT_ROOT']}/minute_data/monthly/{$period}mins/$ticker/$year/month$month"."_data.csv" :
+                    "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/monthly/{$period}mins/$ticker/$year/month$month"."_data.csv";
+            
+                logger()->info($file_path);
+                $incr ? array_push($files, $file_path) : array_unshift($files, $file_path);
+                $incr ? $date->addMonth() : $date->subMonth();
+            } else if ($period > 240) {
+                $file_path =
+                    env('APP_ENV') === 'local' ?
+                    "{$_SERVER['DOCUMENT_ROOT']}/minute_data/yearly/{$period}mins/$ticker/{$year}_$period"."_data.csv" :
+                    "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/yearly/{$period}mins/$ticker/{$year}_$period"."_data.csv";
+            
+                logger()->info($file_path);
+                $incr ? array_push($files, $file_path) : array_unshift($files, $file_path);
+                $incr ? $date->addYear() : $date->subYear();
+            } else {
+                return JsonResponse::badRequest("period $period invalid or out of range");
             }
-            // $data = implode("\n", $weeklyData);
         }
-        echo $data;
-        return true;
+
+        if (!empty($files)) {
+            $ext = pathinfo($file_path, PATHINFO_EXTENSION);
+            header("Content-Type: text/$ext; charset=utf-8");
+            foreach ($files as $file) {
+                if (file_exists($file)) {
+                    $data .= gzuncompress(file_get_contents($file))."\n";
+                    // $data .= "\n";
+                }
+            }
+            if ($data !== '') {
+                echo $data;
+                return true;
+            }
+        }
+        return JsonResponse::notFound("files not found or date $from out of range");
     }
 
     private function downloadTickData (string $ticker, int $from, int $nums, bool $faster)

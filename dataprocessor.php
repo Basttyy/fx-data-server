@@ -300,8 +300,8 @@ if ($command === 'parse') {
                     echo PHP_EOL;
                     echo $destinationFilePath.PHP_EOL.PHP_EOL;
 
-                    $yearStartDate = $date->startOfMonth()->toDateString();
-                    $yearEndDate = $date->endOfMonth()->toDateString();
+                    $yearStartDate = $date->startOfYear()->toDateString();
+                    $yearEndDate = $date->endOfYear()->toDateString();
         
                     // Create an array to hold daily data for the week
                     $yearlyData = [];
