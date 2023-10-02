@@ -34,6 +34,9 @@ final class RequestLogController
             case 'show':
                 $resp = $this->show($id);
                 break;
+            case 'count':
+                $resp = $this->count();
+                break;
             case 'list':
                 $resp = $this->list();
                 break;
@@ -73,6 +76,38 @@ final class RequestLogController
         }
     }
 
+    private function count()
+    {
+        try {
+            if (!$this->authenticator->validate()) {
+                return JsonResponse::unauthorized();
+            }
+
+            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+                return JsonResponse::unauthorized("you don't have this permission");
+            }
+
+            $query = isset($_GET) ? sanitize_data($_GET): [];
+
+            if (count($query)) {
+                foreach ($query as $k => $v) {
+                    $this->log->where($k, value: $v);
+                }
+                $count = $this->log->count();
+            } else {
+                $count = $this->log->count();
+            }
+            if (!$count)
+                return JsonResponse::ok("no log found in list", 0);
+
+            return JsonResponse::ok("logs count retrieved success", $count);
+        } catch (PDOException $e) {
+            return JsonResponse::serverError("we encountered a problem");
+        } catch (Exception $e) {
+            return JsonResponse::serverError("we encountered a problem");
+        }
+    }
+
     private function list()
     {
         try {
@@ -84,8 +119,7 @@ final class RequestLogController
                 return JsonResponse::unauthorized("you don't have this permission");
             }
 
-            $logs = $this->log->all();
-            if (!$logs)
+            if (!$logs = $this->log->all(select: $this->log->analytic))
                 return JsonResponse::ok("no log found in list", []);
 
             return JsonResponse::ok("logs retrieved success", $logs);
