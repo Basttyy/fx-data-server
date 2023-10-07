@@ -61,6 +61,8 @@ delete('/plans/$id', new PlanController('delete'));
 /// Subscription Routes
 get('/subscriptions/$id', new SubscriptionController());
 get('/subscriptions', new SubscriptionController('list'));
+get('/subscriptions/all/count', new SubscriptionController('count'));
+get('/subscriptions/all/count/$query', new SubscriptionController('count'));
 get('/subscriptions/query/$query', new SubscriptionController('list'));
 get('/subscriptions/palns/$id', new SubscriptionController('list_plan'));
 post('/subscriptions', new SubscriptionController('create'));
@@ -113,7 +115,10 @@ delete('/feedbacks/$id', new FeedbackController('delete'));
 /// Admin Routes
 get('/migrate', new MigrateController);
 get('/admin/logs/$id', new RequestLogController());
+get('/admin/logs/all/count', new RequestLogController('count'));
+get('/admin/logs/all/count/$query', new RequestLogController('count'));
 get('/admin/logs', new RequestLogController('list'));
+get('/admin/logs/query/$query', new RequestLogController('list'));
 post('/admin/landing/data', new MiscellaneousController('update_landing'));
 
 /// Historical Data Routes

@@ -6,6 +6,7 @@ use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\libs\JsonResponse;
 use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\User;
+use Carbon\Carbon;
 
 class FxController
 {
@@ -22,11 +23,11 @@ class FxController
         $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
     }
 
-    public function __invoke(string $ticker = "", string $period = "", int $from = null, int $incr = null, int $nums = null, string $query = "", bool $faster = null)
+    public function __invoke(string $ticker = "", int $period = null, int $from = null, int $incr = null, int $nums = null, string $query = "", bool $faster = null)
     {
         switch ($this->method) {
             case 'download_minute_data':
-                $resp = $this->downloadMinuteData($ticker, $period, $from, $incr, $nums);
+                $resp = $this->downloadMinutesData($ticker, $period, $from, $incr, $nums);
                 break;
             case 'download_tick_data':
                 $resp = $this->downloadTickData($ticker, $from, $nums, $faster);
@@ -58,7 +59,10 @@ class FxController
         }
     
         // if (!$files = getMinutesFilesList($ticker, $period, $from, $incr, $nums)) {
-        if (!$files = getWeeksMinuteList($ticker, $period, $from)) {
+        // if (!$files = getWeeksMinuteList($ticker, $period, $from, $incr, $nums)) {
+        //     return JsonResponse::notFound('file not found or datetime not in range');
+        // }
+        if (!$files = getWeeksMinuteList($ticker, $period, $from, $incr, $nums)) {
             return JsonResponse::notFound('file not found or datetime not in range');
         }
     
@@ -69,16 +73,90 @@ class FxController
         $ext = pathinfo($files[0], PATHINFO_EXTENSION);
         header("Content-type: $ext");
         
-        $data = '';// $len = sizeof($files);
+        $data = ''; $len = sizeof($files);
         foreach ($files as $filePath) {
             if (file_exists($filePath)) {
-                // $len--;
-                $data .= gzuncompress(file_get_contents($filePath));
-                // $data .= $len ? "\n" : '';
+                $len--;
+                $data .= file_get_contents($filePath);
+                $data .= $len ? "\n" : '';
             }
         }
         echo $data;
         return true;
+    }
+
+    
+
+    private function downloadMinutesData (string $ticker, int $period, int $from, int $incr, int $nums)
+    {
+        if (!$this->authenticator->validate()) {
+            return JsonResponse::unauthorized();
+        }
+        if (!$is_user = $this->authenticator->verifyRole($this->user, 'user')) {
+            return JsonResponse::unauthorized('you are not authorized to access this resource');
+        }
+
+        if (!count(searchTicker($ticker))) {
+            return JsonResponse::notFound("ticker does not exist");
+        }
+
+        $files = [];
+        $date = Carbon::createFromTimestamp($from);
+        $data = ''; $file_path = '';
+
+        for ($i = 0; $i < $nums; $i++) {
+            $week = $date->isoWeek;
+            $month = $date->month;
+            $year = $date->year;       
+            if ($period < 240 && $period > 0) {
+                if ($month === 1 && $week > 50) {
+                    $year--;
+                }
+                $file_path =
+                    env('APP_ENV') === 'local' ?
+                    "{$_SERVER['DOCUMENT_ROOT']}/minute_data/weekly/{$period}mins/$ticker/$year/week$week"."_data.csv" :
+                    "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/weekly/{$period}mins/$ticker/$year/week$week"."_data.csv";
+            
+                // logger()->info($file_path);
+                $incr ? array_push($files, $file_path) : array_unshift($files, $file_path);
+                $incr ? $date->addWeek() : $date->subWeek();
+            } else if ($period === 240) {
+                $file_path =
+                    env('APP_ENV') === 'local' ?
+                    "{$_SERVER['DOCUMENT_ROOT']}/minute_data/monthly/{$period}mins/$ticker/$year/month$month"."_data.csv" :
+                    "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/monthly/{$period}mins/$ticker/$year/month$month"."_data.csv";
+            
+                // logger()->info($file_path);
+                $incr ? array_push($files, $file_path) : array_unshift($files, $file_path);
+                $incr ? $date->addMonth() : $date->subMonth();
+            } else if ($period > 240) {
+                $file_path =
+                    env('APP_ENV') === 'local' ?
+                    "{$_SERVER['DOCUMENT_ROOT']}/minute_data/yearly/{$period}mins/$ticker/{$year}_$period"."_data.csv" :
+                    "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/yearly/{$period}mins/$ticker/{$year}_$period"."_data.csv";
+            
+                // logger()->info($file_path);
+                $incr ? array_push($files, $file_path) : array_unshift($files, $file_path);
+                $incr ? $date->addYear() : $date->subYear();
+            } else {
+                return JsonResponse::badRequest("period $period invalid or out of range");
+            }
+        }
+
+        if (!empty($files)) {
+            foreach ($files as $file) {
+                if (file_exists($file)) {
+                    $data .= gzuncompress(file_get_contents($file))."\n";
+                }
+            }
+            if ($data !== '') {
+                $ext = pathinfo($file_path, PATHINFO_EXTENSION);
+                header("Content-Type: text/$ext; charset=utf-8");
+                echo $data;
+                return true;
+            }
+        }
+        return JsonResponse::notFound("files not found or date $from out of range");
     }
 
     private function downloadTickData (string $ticker, int $from, int $nums, bool $faster)

@@ -12,20 +12,6 @@ use PDO;
 abstract class Model
 {
     /**
-     * The query builder instance for the model
-     * 
-     * @var QueryBuilder
-     */
-    protected $builder;
-
-    /**
-     * The connection query instance for the model
-     * 
-     * @var Connection
-     */
-    protected $connection;
-
-    /**
      * The table associated with the model.
      *
      * @var string
@@ -117,6 +103,27 @@ abstract class Model
      * @var object
      */
     private $child;
+
+    /**
+     * The operators for query
+     * 
+     * @var array|null
+     */
+    private $operators;
+
+    /**
+     * The booleans to add queries together
+     * 
+     * @var array|null
+     */
+    private $or_and;
+
+    /**
+     * The filter key values
+     * 
+     * @var array|null
+     */
+    private $bind_or_filter;
 
     /**
      * Create a new model instance.
@@ -276,6 +283,31 @@ abstract class Model
             return false;
         }
         return $fields;
+    }
+
+    /**
+     * Find and count elements of a model
+     * 
+     * @return int
+     */
+    public function count($keys = [], $values = [])
+    {
+        $query_arr = $this->bind_or_filter !== null ? $this->bind_or_filter : [];
+
+        $i = 0;
+        foreach ($keys as $key) {
+            $query_arr[$key] = $values[$i];
+            $i++;
+        }
+        if ($this->child->softdeletes) {
+            $query_arr['deleted_at'] = "IS NULL";
+            //$this->builder->useSoftDelete = true;
+        }
+
+        if (!$count = mysqly::count($this->table, $query_arr)) {
+            return false;
+        }
+        return $count;
     }
 
     /**
@@ -473,39 +505,39 @@ abstract class Model
         //return $this->update(['deleted_at', null], $id, true);
     }
 
-    public function where($column, $operator = null, $value = null, $boolean = 'and')
+    public function where(string $column, string $operator = null, $value = null, $boolean = "AND")
     {
-        if (is_null($value) && $boolean == 'and')
-            return $this->builder->where($column, $operator);
+        if (is_null($operator)) {
+            $this->or_and[] = $boolean;
+            $this->bind_or_filter[$column] = $value;
+            return $this->child;
+        }
             
-        if (!\is_null($operator) && !\is_null($value))
-            return $this->builder->where($column, $operator, $value);
-        
-        if (!\is_null($operator) && !\is_null($value) && $boolean != 'and')
-            return $this->builder->where($column, $operator, $value, $boolean);
+        if (!\is_null($operator) && !\is_null($value)) {
+            $this->or_and[] = $boolean;
+            $this->operators[] = $operator;
+            $this->bind_or_filter[$column] = $value;
+            return $this->child;
+        }
     }
     
     public function orWhere($column, $operator = null, $value = null)
     {
-        if (is_null($value))
-            return $this->builder->orWhere($column, $operator);
-            
-        if (!\is_null($operator) && !\is_null($value))
-            return $this->builder->orWhere($column, $operator, $value);
+        return $this->where($column, $operator, $value, "OR");
     }
 
-    public function beginTransaction()
-    {
-        $this->builder->beginTransaction();
-    }
+    // public function beginTransaction()
+    // {
+    //     $this->builder->beginTransaction();
+    // }
 
-    public function commit()
-    {
-        $this->builder->commit();
-    }
+    // public function commit()
+    // {
+    //     $this->builder->commit();
+    // }
 
-    public function rollback()
-    {
-        $this->builder->rollback();
-    }
+    // public function rollback()
+    // {
+    //     $this->builder->rollback();
+    // }
 }

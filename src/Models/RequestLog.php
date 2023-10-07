@@ -27,6 +27,15 @@ final class RequestLog extends Model
      * 
      * @var array
      */
+    public $analytic = [
+        'id', 'created_at'
+    ];
+
+    /**
+     * Indicates what database attributes of the model can be filled at once
+     * 
+     * @var array
+     */
     protected $fillable = [
         'id', 'ip', 'origin', 'method', 'uripath', 'body', 'created_at', 'updated_at'
     ];

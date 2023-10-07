@@ -175,7 +175,6 @@ function getFilesList(string $ticker, int $from, int $nums): bool|array
 function getMinutesFilesList(string $ticker, int $timeframe, int &$from, int $increment, int $nums): bool|array
 {
     $datetime = new Carbon();
-    // $datetime->setTimestamp($from);
     $datetime = $datetime->setTimestamp($from);
     $from = 0;
     $files = array(); $i = 0;
@@ -205,7 +204,7 @@ function getMinutesFilesList(string $ticker, int $timeframe, int &$from, int $in
     return false;
 }
 
-function getWeeksMinuteList(string $ticker, int $timeframe, int &$from): bool|array
+function getWeeksMinuteList(string $ticker, int $timeframe, int &$from, int $incr, int $nums): bool|array
 {
     $files = array();
 
@@ -214,8 +213,8 @@ function getWeeksMinuteList(string $ticker, int $timeframe, int &$from): bool|ar
     foreach ($days as $day) {
         $file_path =
             env('APP_ENV') === 'local' ?
-            "{$_SERVER['DOCUMENT_ROOT']}/minute_data/gziped/{$timeframe}mins/$ticker/" . str_replace('-', '/', substr($day, 0, 7)) . "/{$day}_data.csv" :
-            "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/gziped/{$timeframe}mins/$ticker/" . str_replace('-', '/', substr($day, 0, 7)) . "/{$day}_data.csv";
+            "{$_SERVER['DOCUMENT_ROOT']}/minute_data/{$timeframe}mins/$ticker/" . str_replace('-', '/', substr($day, 0, 7)) . "/{$day}_data.csv" :
+            "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/{$timeframe}mins/$ticker/" . str_replace('-', '/', substr($day, 0, 7)) . "/{$day}_data.csv";
         
         array_push($files, $file_path);
     }
