@@ -248,7 +248,7 @@ final class PositionController
 
             $id = sanitize_data($id);
             $tporsl = sanitize_data($tporsl);
-            $types = 'tp, sl';
+            $types = 'takeprofit, stoploss';
 
             if ($validated = Validator::validate(['tporsl' => $tporsl], [
                 'tporsl' => "required|string|in:$types"
@@ -265,10 +265,10 @@ final class PositionController
             }
 
             if (!$this->position->update([$tporsl => null], (int)$id)) {
-                return JsonResponse::notFound("unable to unset position $tporsl");
+                return JsonResponse::notFound("unable to removed position $tporsl");
             }
 
-            return JsonResponse::ok("position $tporsl unset successfully", $this->position->toArray());
+            return JsonResponse::ok("position $tporsl removed successfully", $this->position->toArray());
         } catch (PDOException $e) {
             if (env("APP_ENV") === "local")
                 $message = $e->getMessage();
