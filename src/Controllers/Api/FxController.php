@@ -89,12 +89,12 @@ class FxController
 
     private function downloadMinutesData (string $ticker, int $period, int $from, int $incr, int $nums)
     {
-        // if (!$this->authenticator->validate()) {
-        //     return JsonResponse::unauthorized();
-        // }
-        // if (!$is_user = $this->authenticator->verifyRole($this->user, 'user')) {
-        //     return JsonResponse::unauthorized('you are not authorized to access this resource');
-        // }
+        if (!$this->authenticator->validate()) {
+            return JsonResponse::unauthorized();
+        }
+        if (!$is_user = $this->authenticator->verifyRole($this->user, 'user')) {
+            return JsonResponse::unauthorized('you are not authorized to access this resource');
+        }
 
         if (!count(searchTicker($ticker))) {
             return JsonResponse::notFound("ticker does not exist");
@@ -117,7 +117,6 @@ class FxController
                     "{$_SERVER['DOCUMENT_ROOT']}/minute_data/weekly/{$period}mins/$ticker/$year/week$week"."_data.csv" :
                     "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/weekly/{$period}mins/$ticker/$year/week$week"."_data.csv";
             
-                // logger()->info($file_path);
                 $incr ? array_push($files, $file_path) : array_unshift($files, $file_path);
                 $incr ? $date->addWeek() : $date->subWeek();
             } else if ($period === 240) {
@@ -126,7 +125,6 @@ class FxController
                     "{$_SERVER['DOCUMENT_ROOT']}/minute_data/monthly/{$period}mins/$ticker/$year/month$month"."_data.csv" :
                     "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/monthly/{$period}mins/$ticker/$year/month$month"."_data.csv";
             
-                // logger()->info($file_path);
                 $incr ? array_push($files, $file_path) : array_unshift($files, $file_path);
                 $incr ? $date->addMonth() : $date->subMonth();
             } else if ($period > 240) {
@@ -135,7 +133,6 @@ class FxController
                     "{$_SERVER['DOCUMENT_ROOT']}/minute_data/yearly/{$period}mins/$ticker/{$year}_$period"."_data.csv" :
                     "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/yearly/{$period}mins/$ticker/{$year}_$period"."_data.csv";
             
-                // logger()->info($file_path);
                 $incr ? array_push($files, $file_path) : array_unshift($files, $file_path);
                 $incr ? $date->addYear() : $date->subYear();
             } else {
