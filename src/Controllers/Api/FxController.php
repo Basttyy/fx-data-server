@@ -45,56 +45,14 @@ class FxController
         $resp;
     }
 
-    private function downloadMinuteData (string $ticker, string $period, int $from, int $incr, int $nums)
-    {
-        if (!$this->authenticator->validate()) {
-            return JsonResponse::unauthorized();
-        }
-        if (!$is_admin = $this->authenticator->verifyRole($this->user, 'user')) {
-            return JsonResponse::unauthorized('you are not authorized to access this resource');
-        }
-
-        if (!count(searchTicker($ticker))) {
-            return JsonResponse::notFound("ticker does not exist");
-        }
-    
-        // if (!$files = getMinutesFilesList($ticker, $period, $from, $incr, $nums)) {
-        // if (!$files = getWeeksMinuteList($ticker, $period, $from, $incr, $nums)) {
-        //     return JsonResponse::notFound('file not found or datetime not in range');
-        // }
-        if (!$files = getWeeksMinuteList($ticker, $period, $from, $incr, $nums)) {
-            return JsonResponse::notFound('file not found or datetime not in range');
-        }
-    
-        // https://stackoverflow.com/questions/45179337/mime-content-type-returning-text-plain-for-css-and-js-files-only
-        // https://stackoverflow.com/questions/7236191/how-to-create-a-custom-magic-file-database
-        // Otherwise, you can use custom rules 
-
-        $ext = pathinfo($files[0], PATHINFO_EXTENSION);
-        header("Content-type: $ext");
-        
-        $data = ''; $len = sizeof($files);
-        foreach ($files as $filePath) {
-            if (file_exists($filePath)) {
-                $len--;
-                $data .= file_get_contents($filePath);
-                $data .= $len ? "\n" : '';
-            }
-        }
-        echo $data;
-        return true;
-    }
-
-    
-
     private function downloadMinutesData (string $ticker, int $period, int $from, int $incr, int $nums)
     {
-        if (!$this->authenticator->validate()) {
-            return JsonResponse::unauthorized();
-        }
-        if (!$is_user = $this->authenticator->verifyRole($this->user, 'user')) {
-            return JsonResponse::unauthorized('you are not authorized to access this resource');
-        }
+        // if (!$this->authenticator->validate()) {
+        //     return JsonResponse::unauthorized();
+        // }
+        // if (!$is_user = $this->authenticator->verifyRole($this->user, 'user')) {
+        //     return JsonResponse::unauthorized('you are not authorized to access this resource');
+        // }
 
         if (!count(searchTicker($ticker))) {
             return JsonResponse::notFound("ticker does not exist");
