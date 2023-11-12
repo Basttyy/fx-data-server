@@ -124,7 +124,8 @@ post('/admin/landing/data', new MiscellaneousController('update_landing'));
 /// Historical Data Routes
 get('/fx/download/ticker/$ticker/from/$from/nums/$nums/faster/$faster', $downloadTickData);
 get('/fx/candles/ticker/$ticker/from/$fro/nums/$num/timeframe/$timefram', $getTimeframeCandles);
-get('/fx/download/min/ticker/$ticker/period/$period/from/$from/incr/$incr/nums/$nums', new FxController());
+// get('/fx/download/min/ticker/$ticker/period/$period/from/$from/incr/$incr/nums/$nums', new FxController());
+get('/fx/download/min/ticker/$ticker/period/$period/yr/$year/mn/$month/wk/$week', new FxController());
 get('/fx/tickers/query/$query', new MiscellaneousController('search_ticker'));
 get('/fx/tickers/query', new MiscellaneousController('search_ticker'));
 
