@@ -6,7 +6,6 @@ use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\libs\JsonResponse;
 use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\User;
-use Carbon\Carbon;
 
 class FxController
 {
@@ -23,17 +22,17 @@ class FxController
         $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
     }
 
-    public function __invoke(string $ticker = "", int $period = null, int $from = null, int $incr = null, int $nums = null, string $query = "", bool $faster = null)
+    public function __invoke(string $ticker = "", int $period = null, int $year = 0, int $month = 0, int $week = 0, string $query = "", bool $faster = null)
     {
         switch ($this->method) {
             case 'download_minute_data':
-                $resp = $this->downloadMinutesData($ticker, $period, $from, $incr, $nums);
+                $resp = $this->downloadMinutesData($ticker, $period, $year, $month, $week);
                 break;
             case 'download_tick_data':
-                $resp = $this->downloadTickData($ticker, $from, $nums, $faster);
+                $resp = $this->downloadTickData($ticker, $year, $week, $faster);
                 break;
             case 'get_timeframe_candles':
-                $resp = $this->getTimeframeCandles($ticker, $from, $nums, $period);
+                $resp = $this->getTimeframeCandles($ticker, $year, $week, $period);
                 break;
             case 'search_ticker':
                 $resp = $this->searchTicker($query);
@@ -45,74 +44,130 @@ class FxController
         $resp;
     }
 
-    private function downloadMinutesData (string $ticker, int $period, int $from, int $incr, int $nums)
+    private function downloadMinutesData (string $ticker, int $period, int $year, int $month, int $week)
     {
-        // if (!$this->authenticator->validate()) {
-        //     return JsonResponse::unauthorized();
-        // }
-        // if (!$is_user = $this->authenticator->verifyRole($this->user, 'user')) {
-        //     return JsonResponse::unauthorized('you are not authorized to access this resource');
-        // }
-
         if (!count(searchTicker($ticker))) {
             return JsonResponse::notFound("ticker does not exist");
         }
-
-        $files = [];
-        $date = Carbon::createFromTimestamp($from);
-        $data = ''; $file_path = '';
-
-        for ($i = 0; $i < $nums; $i++) {
-            $week = $date->isoWeek;
-            $month = $date->month;
-            $year = $date->year;       
-            if ($period < 240 && $period > 0) {
-                if ($month === 1 && $week > 50) {
-                    $year--;
-                }
-                $file_path =
-                    env('APP_ENV') === 'local' ?
-                    "{$_SERVER['DOCUMENT_ROOT']}/minute_data/weekly/{$period}mins/$ticker/$year/week$week"."_data.csv" :
-                    "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/weekly/{$period}mins/$ticker/$year/week$week"."_data.csv";
-            
-                $incr ? array_push($files, $file_path) : array_unshift($files, $file_path);
-                $incr ? $date->addWeek() : $date->subWeek();
-            } else if ($period === 240) {
-                $file_path =
-                    env('APP_ENV') === 'local' ?
-                    "{$_SERVER['DOCUMENT_ROOT']}/minute_data/monthly/{$period}mins/$ticker/$year/month$month"."_data.csv" :
-                    "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/monthly/{$period}mins/$ticker/$year/month$month"."_data.csv";
-            
-                $incr ? array_push($files, $file_path) : array_unshift($files, $file_path);
-                $incr ? $date->addMonth() : $date->subMonth();
-            } else if ($period > 240) {
-                $file_path =
-                    env('APP_ENV') === 'local' ?
-                    "{$_SERVER['DOCUMENT_ROOT']}/minute_data/yearly/{$period}mins/$ticker/{$year}_$period"."_data.csv" :
-                    "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/yearly/{$period}mins/$ticker/{$year}_$period"."_data.csv";
-            
-                $incr ? array_push($files, $file_path) : array_unshift($files, $file_path);
-                $incr ? $date->addYear() : $date->subYear();
-            } else {
-                return JsonResponse::badRequest("period $period invalid or out of range");
-            }
+    
+        if ($period < 240 && $period > 0) {
+            $file_path =
+                env('APP_ENV') === 'local' ?
+                "{$_SERVER['DOCUMENT_ROOT']}/minute_data/weekly/{$period}mins/$ticker/$year/week$week"."_data.csv" :
+                "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/weekly/{$period}mins/$ticker/$year/week$week"."_data.csv";
+        } else if ($period === 240) {
+            $file_path =
+                env('APP_ENV') === 'local' ?
+                "{$_SERVER['DOCUMENT_ROOT']}/minute_data/monthly/{$period}mins/$ticker/$year/month$month"."_data.csv" :
+                "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/monthly/{$period}mins/$ticker/$year/month$month"."_data.csv";
+        } else if ($period > 240) {
+            $file_path =
+                env('APP_ENV') === 'local' ?
+                "{$_SERVER['DOCUMENT_ROOT']}/minute_data/yearly/{$period}mins/$ticker/{$year}_$period"."_data.csv" :
+                "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/yearly/{$period}mins/$ticker/{$year}_$period"."_data.csv";
+        } else {
+            return JsonResponse::badRequest("period $period invalid or out of range");
         }
 
-        if (!empty($files)) {
-            foreach ($files as $file) {
-                if (file_exists($file)) {
-                    $data .= gzuncompress(file_get_contents($file))."\n";
-                }
-            }
-            if ($data !== '') {
+        logger()->info($file_path);
+        if (file_exists($file_path)) {
+            $data = gzuncompress(file_get_contents($file_path))."\n";
+            if ($data) {
                 $ext = pathinfo($file_path, PATHINFO_EXTENSION);
                 header("Content-Type: text/$ext; charset=utf-8");
                 echo $data;
                 return true;
             }
         }
-        return JsonResponse::notFound("files not found or date $from out of range");
+
+        return JsonResponse::notFound("files not found or date $year/month_$month/week_$week out of range");
     }
+
+    // private function downloadMinutesData (string $ticker, int $period, int $from, int $incr, int $nums)
+    // {
+    //     // if (!$this->authenticator->validate()) {
+    //     //     return JsonResponse::unauthorized();
+    //     // }
+    //     // if (!$is_user = $this->authenticator->verifyRole($this->user, 'user')) {
+    //     //     return JsonResponse::unauthorized('you are not authorized to access this resource');
+    //     // }
+
+    //     if (!count(searchTicker($ticker))) {
+    //         return JsonResponse::notFound("ticker does not exist");
+    //     }
+
+    //     $files = [];
+    //     $date = Carbon::createFromTimestamp($from);
+    //     $data = ''; $file_path = ''; $meta = '';
+
+    //     for ($i = 0; $i < $nums; $i++) {
+    //         $week = $date->isoWeek;
+    //         $month = $date->month;
+    //         $year = $date->year;       
+    //         if ($period < 240 && $period > 0) {
+    //             if ($month === 1 && $week > 50) {
+    //                 $year--;
+    //             }
+    //             $file_path =
+    //                 env('APP_ENV') === 'local' ?
+    //                 "{$_SERVER['DOCUMENT_ROOT']}/minute_data/weekly/{$period}mins/$ticker/$year/week$week"."_data.csv" :
+    //                 "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/weekly/{$period}mins/$ticker/$year/week$week"."_data.csv";
+            
+    //             if ($i === 0) {
+    //                 $meta = "$week";
+    //             } else if ($i === $nums-1) {
+    //                 $meta = "$meta - $week";
+    //             }
+    //             $incr ? array_push($files, $file_path) : array_unshift($files, $file_path);
+    //             $incr ? $date->addWeek() : $date->subWeek();
+    //         } else if ($period === 240) {
+    //             $file_path =
+    //                 env('APP_ENV') === 'local' ?
+    //                 "{$_SERVER['DOCUMENT_ROOT']}/minute_data/monthly/{$period}mins/$ticker/$year/month$month"."_data.csv" :
+    //                 "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/monthly/{$period}mins/$ticker/$year/month$month"."_data.csv";
+            
+    //             if ($i === 0) {
+    //                 $meta = "$month";
+    //             } else if ($i === $nums-1) {
+    //                 $meta = "$meta - $month";
+    //             }
+    //             $incr ? array_push($files, $file_path) : array_unshift($files, $file_path);
+    //             $incr ? $date->addMonth() : $date->subMonth();
+    //         } else if ($period > 240) {
+    //             $file_path =
+    //                 env('APP_ENV') === 'local' ?
+    //                 "{$_SERVER['DOCUMENT_ROOT']}/minute_data/yearly/{$period}mins/$ticker/{$year}_$period"."_data.csv" :
+    //                 "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/yearly/{$period}mins/$ticker/{$year}_$period"."_data.csv";
+            
+    //             if ($i === 0) {
+    //                 $meta = "$week";
+    //             } else if ($i === $nums-1) {
+    //                 $meta = "$meta - $week";
+    //             }
+    //             $incr ? array_push($files, $file_path) : array_unshift($files, $file_path);
+    //             $incr ? $date->addYear() : $date->subYear();
+    //         } else {
+    //             return JsonResponse::badRequest("period $period invalid or out of range");
+    //         }
+    //     }
+
+    //     if (!empty($files)) {
+    //         foreach ($files as $file) {
+    //             logger()->info($file);
+    //             if (file_exists($file)) {
+    //                 $data .= gzuncompress(file_get_contents($file))."\n";
+    //             }
+    //         }
+    //         if ($data !== '') {
+    //             $ext = pathinfo($file_path, PATHINFO_EXTENSION);
+    //             header("Content-Type: text/$ext; charset=utf-8");
+    //             header("Filename: $meta");
+    //             echo $data;
+    //             return true;
+    //         }
+    //     }
+    //     return JsonResponse::notFound("files not found or date $from out of range");
+    // }
 
     private function downloadTickData (string $ticker, int $from, int $nums, bool $faster)
     {
