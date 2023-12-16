@@ -39,7 +39,7 @@ $http_origin = $_SERVER["HTTP_ORIGIN"] ?? "";
     // applyCorsHeaders($http_origin);
 // }
 
-if ($_ENV['APP_ENV'] === "local" && preg_match('/\.(?:js|css|svg|ico|woff2|ttf|webp|pdf|png|jpg|json|jpeg|gif)$/', $_SERVER["REQUEST_URI"])) {
+if ($_ENV['APP_ENV'] === "loc" && preg_match('/\.(?:js|css|svg|ico|woff2|ttf|webp|pdf|png|jpg|json|jpeg|gif)$/', $_SERVER["REQUEST_URI"])) {
     $path = $_SERVER['DOCUMENT_ROOT'].$_SERVER["REQUEST_URI"];
     if (file_exists($path)) {
         $mime = mime_content_type($path);

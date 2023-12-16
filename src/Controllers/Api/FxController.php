@@ -69,7 +69,6 @@ class FxController
             return JsonResponse::badRequest("period $period invalid or out of range");
         }
 
-        logger()->info($file_path);
         if (file_exists($file_path)) {
             $data = gzuncompress(file_get_contents($file_path))."\n";
             if ($data) {
