@@ -169,7 +169,7 @@ final class FeedbackController
                 mkdir($path, 0777, true);
             
             $target_file = uniqid(). '.jpg';
-            $body['image'] = "/storage/uploads/feedbacks/".$target_file;
+            $body['image'] = "/public/uploads/feedbacks/".$target_file;
 
             file_put_contents($path . $target_file, $image);
 
@@ -235,7 +235,7 @@ final class FeedbackController
     
                 if (file_put_contents($path . $target_file, $image)) {
                     unlink(storage_path().'files'. str_replace('/storage', '', $prev_image));
-                    $body['image'] = "/storage/uploads/feedbacks/".$target_file;
+                    $body['image'] = "/public/uploads/feedbacks/".$target_file;
                 }
             }
 

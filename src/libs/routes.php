@@ -9,6 +9,7 @@ require_once __DIR__.'/../MinuteController.php';
 use Basttyy\FxDataServer\Controllers\Api\Auth\AuthController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\CaptchaController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\TwoFaController;
+use Basttyy\FxDataServer\Controllers\Api\BlogController;
 use Basttyy\FxDataServer\Controllers\Api\FeedbackController;
 use Basttyy\FxDataServer\Controllers\Api\FxController;
 use Basttyy\FxDataServer\Controllers\Api\MigrateController;
@@ -120,6 +121,18 @@ get('/admin/logs/all/count/$query', new RequestLogController('count'));
 get('/admin/logs', new RequestLogController('list'));
 get('/admin/logs/query/$query', new RequestLogController('list'));
 post('/admin/landing/data', new MiscellaneousController('update_landing'));
+
+post('/admin/blog/posts', new BlogController('create'));
+put('/admin/blog/posts/$id', new BlogController('update'));
+delete('/admin/blog/posts/$id', new BlogController('delete'));
+
+get('/blog/posts', new BlogController('list'));
+get('/blog/posts/$id', new BlogController());
+
+// group('/admin', function() {
+//     get('/blogs', new BlogController('list'));
+//     get('/blogs/$id', new BlogController());
+// });
 
 /// Historical Data Routes
 get('/fx/download/ticker/$ticker/from/$from/nums/$nums/faster/$faster', $downloadTickData);
