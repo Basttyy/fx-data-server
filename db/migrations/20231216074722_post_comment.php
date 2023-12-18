@@ -22,8 +22,9 @@ final class PostComment extends AbstractMigration
         $table = $this->table($this::TABLE_NAME);
         $table->addColumn('post_id', 'integer', ['signed' => false])
             ->addColumn('post_comment_id', 'integer', ['signed' => false])
-            ->addColumn('username', 'string', ['limit' => 128])
+            ->addColumn('username', 'string', ['limit' => 128, 'default' => ''])
             ->addColumn('text', 'string', ['null' => false, 'limit' => 1024])
+            ->addColumn('status', 'string', ['null' => false])
             ->addColumn('deleted_at', 'timestamp', ['null' => true])
             ->addForeignKey('post_id', 'blogs', 'id', ['delete' => 'CASCADE', 'update' => 'NO_ACTION'])
             ->addForeignKey('post_comment_id', 'post_comments', 'id', ['delete' => 'CASCADE', 'update' => 'NO_ACTION'])

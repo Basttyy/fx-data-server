@@ -183,11 +183,11 @@ final class {$name}Controller
     private function list()
     {
         try {
-            \$$controller_str = \$this->{$controller_str}->all();
-            if (!\$$controller_str)
+            \${$controller_str}s = \$this->{$controller_str}->all();
+            if (!\${$controller_str}s)
                 return JsonResponse::ok('no $controller_str_spc found in list', []);
 
-            return JsonResponse::ok(\"$controller_str_spc's retrieved success\", \$$controller_str);
+            return JsonResponse::ok(\"$controller_str_spc's retrieved success\", \${$controller_str}s);
         } catch (PDOException \$e) {
             return JsonResponse::serverError('we encountered a problem');
         } catch (Exception \$e) {

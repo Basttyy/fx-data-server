@@ -22,6 +22,7 @@ final class  PostComment extends Model
     public $post_comment_id;
     public $username;
     public $text;
+    public $status;
     public $created_at;
     public $updated_at;
     public $deleted_at;
@@ -43,7 +44,7 @@ final class  PostComment extends Model
      * @var array
      */
     protected $guarded = [
-        'deleted_at', 'created_at', 'updated_at'
+        'deleted_at', 'updated_at'
         //add more guarded columns here
     ];
 

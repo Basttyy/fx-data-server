@@ -32,23 +32,23 @@ final class PostCommentController
         $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
     }
 
-    public function __invoke(string $id = null)
+    public function __invoke(string $post_id, string $id = null)
     {
         switch ($this->method) {
             case 'show':
-                $resp = $this->show($id);
+                $resp = $this->show($post_id, $id);
                 break;
             case 'list':
-                $resp = $this->list();
+                $resp = $this->list($post_id);
                 break;
             case 'create':
-                $resp = $this->create();
+                $resp = $this->create($post_id);
                 break;
             case 'update':
-                $resp = $this->update($id);
+                $resp = $this->update($post_id, $id);
                 break;
             case 'delete':
-                $resp = $this->delete($id);
+                $resp = $this->delete($post_id, $id);
                 break;
             default:
                 $resp = JsonResponse::serverError('bad method call');
@@ -57,7 +57,7 @@ final class PostCommentController
         $resp;
     }
 
-    private function show(string $id)
+    private function show(string $post_id, string $id)
     {
         $id = sanitize_data($id);
         try {
@@ -74,28 +74,31 @@ final class PostCommentController
         }
     }
 
-    private function list()
+    private function list(string $post_id)
     {
         try {
-            $post_comment = $this->post_comment->all();
-            if (!$post_comment)
+            if ($user = $this->authenticator->validate()) {
+                if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+                    $post_comments = $this->post_comment->all();
+                }
+            } else {
+                $post_comments = $this->post_comment->where('post_comment_id', value: $post_id)->where('status', PostComment::APPROVED)->all();
+            }
+            
+            if (!$post_comments)
                 return JsonResponse::ok('no post comment found in list', []);
 
-            return JsonResponse::ok('post comment retrieved success', $post_comment);
+            return JsonResponse::ok('post comment retrieved success', $post_comments);
         } catch (PDOException $e) {
-            return JsonResponse::serverError('we encountered a problem');
+            return JsonResponse::serverError('we encountered a problem'.$e->getMessage());
         } catch (Exception $e) {
-            return JsonResponse::serverError('we encountered a problem');
+            return JsonResponse::serverError('we encountered a problem'.$e->getMessage());
         }
     }
 
-    private function create()
+    private function create(string $post_id)
     {
-        try {
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
-            
+        try {            
             if ( $_SERVER['CONTENT_LENGTH'] <= env('CONTENT_LENGTH_MIN')) {
                 return JsonResponse::badRequest('bad request', 'body is required');
             }
@@ -103,12 +106,14 @@ final class PostCommentController
             $inputJSON = file_get_contents('php://input');
 
             $body = sanitize_data(json_decode($inputJSON, true));
+            $post_id = sanitize_data($post_id);
+            $body['post_id'] = $post_id;
 
             if ($validated = Validator::validate($body, [
-                'post_id' => 'required|int',
-                'post_comment_id' => 'required|int',
-                'username' => 'sometimes|string',
                 'text' => 'required|string',
+                'post_id' => 'required|int',
+                'username' => 'sometimes|string',
+                'post_comment_id' => 'sometimes|int',
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
@@ -116,6 +121,11 @@ final class PostCommentController
             if (!$this->post->find($body['post_id'])) {
                 return JsonResponse::badRequest("blog post with given id not found");
             }
+
+            if (!isset($body['username']) && $this->authenticator->validate()) {
+                $body['username'] = $this->user->username;
+            }
+            $body['status'] = PostComment::PENDING;
 
             if (!$post_comment = $this->post_comment->create($body)) {
                 return JsonResponse::serverError('unable to create post comment');
@@ -125,15 +135,15 @@ final class PostCommentController
         } catch (PDOException $e) {
             if (str_contains($e->getMessage(), 'Duplicate entry'))
                 return JsonResponse::badRequest('post comment already exist');
-            else $message = 'we encountered a problem';
+            else $message = 'we encountered a problem'.$e->getMessage();
             
             return JsonResponse::serverError($message);
         } catch (Exception $e) {
-            return JsonResponse::serverError('we encountered a problem');
+            return JsonResponse::serverError('we encountered a problem'.$e->getMessage());
         }
     }
 
-    private function update(string $id)
+    private function update(string $post_id, string $id)
     {
         try {
             if (!$user = $this->authenticator->validate()) {
@@ -142,6 +152,11 @@ final class PostCommentController
             
             if ( $_SERVER['CONTENT_LENGTH'] <= env('CONTENT_LENGTH_MIN')) {
                 return JsonResponse::badRequest('bad request', 'body is required');
+            }
+            
+            // Uncomment this for role authorization
+            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+                return JsonResponse::unauthorized("you can't update a post comment");
             }
 
             $id = sanitize_data($id);
@@ -174,7 +189,7 @@ final class PostCommentController
         }
     }
 
-    private function delete(int $id)
+    private function delete(string $post_id, int $id)
     {
         try {
             $id = sanitize_data($id);
