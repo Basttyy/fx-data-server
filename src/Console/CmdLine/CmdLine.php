@@ -224,7 +224,7 @@ final class {$name}Controller
                 return JsonResponse::serverError('unable to create $controller_str_spc');
             }
 
-            return JsonResponse::ok('$controller_str_spc creation successful', \$$controller_str);
+            return JsonResponse::created('$controller_str_spc creation successful', \$$controller_str);
         } catch (PDOException \$e) {
             if (str_contains(\$e->getMessage(), 'Duplicate entry'))
                 return JsonResponse::badRequest('$controller_str_spc already exist');

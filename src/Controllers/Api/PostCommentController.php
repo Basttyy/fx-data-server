@@ -32,11 +32,11 @@ final class PostCommentController
         $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
     }
 
-    public function __invoke(string $post_id, string $id = null)
+    public function __invoke(string $post_id, string $post_comment_id = null)
     {
         switch ($this->method) {
             case 'show':
-                $resp = $this->show($post_id, $id);
+                $resp = $this->show($post_id);
                 break;
             case 'list':
                 $resp = $this->list($post_id);
@@ -45,10 +45,10 @@ final class PostCommentController
                 $resp = $this->create($post_id);
                 break;
             case 'update':
-                $resp = $this->update($post_id, $id);
+                $resp = $this->update($post_id);
                 break;
             case 'delete':
-                $resp = $this->delete($post_id, $id);
+                $resp = $this->delete($post_id);
                 break;
             default:
                 $resp = JsonResponse::serverError('bad method call');
@@ -57,7 +57,7 @@ final class PostCommentController
         $resp;
     }
 
-    private function show(string $post_id, string $id)
+    private function show(string $id)
     {
         $id = sanitize_data($id);
         try {
@@ -77,12 +77,18 @@ final class PostCommentController
     private function list(string $post_id)
     {
         try {
-            if ($user = $this->authenticator->validate()) {
-                if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+            if ($this->authenticator->validate() && $this->authenticator->verifyRole($this->user, 'admin')) {
                     $post_comments = $this->post_comment->all();
-                }
             } else {
-                $post_comments = $this->post_comment->where('post_comment_id', value: $post_id)->where('status', PostComment::APPROVED)->all();
+                $params = count($_GET) ? sanitize_data($_GET) : [];
+                $post_comments = isset($params['post_comment_id']) ?
+                            $this->post_comment->where('status', value: PostComment::APPROVED)
+                                ->where('post_id', value: $post_id)
+                                ->where('post_comment_id', value: $params['post_comment_id'])->all() :
+                            $this->post_comment->where('status', value: PostComment::APPROVED)
+                                ->where('post_id', value: $post_id)
+                                ->where('post_comment_id', value: 'IS NULL')->all();
+
             }
             
             if (!$post_comments)
@@ -131,7 +137,7 @@ final class PostCommentController
                 return JsonResponse::serverError('unable to create post comment');
             }
 
-            return JsonResponse::ok('post comment creation successful', $post_comment);
+            return JsonResponse::created('post comment creation successful', $post_comment);
         } catch (PDOException $e) {
             if (str_contains($e->getMessage(), 'Duplicate entry'))
                 return JsonResponse::badRequest('post comment already exist');
@@ -143,7 +149,7 @@ final class PostCommentController
         }
     }
 
-    private function update(string $post_id, string $id)
+    private function update(string $id)
     {
         try {
             if (!$user = $this->authenticator->validate()) {
@@ -189,7 +195,7 @@ final class PostCommentController
         }
     }
 
-    private function delete(string $post_id, int $id)
+    private function delete(int $id)
     {
         try {
             $id = sanitize_data($id);

@@ -264,7 +264,6 @@ abstract class Model
 
         if ($this->child->softdeletes) {
             $query_arr['deleted_at'] = "IS NULL";
-            //$this->builder->useSoftDelete = true;
         }
         $query_arr['id'] = $id;
         
@@ -291,7 +290,6 @@ abstract class Model
 
         if ($this->child->softdeletes) {
             $query_arr['deleted_at'] = "IS NULL";
-            //$this->builder->useSoftDelete = true;
         }
 
         if (count($select)) {
@@ -324,7 +322,6 @@ abstract class Model
         }
         if ($this->child->softdeletes) {
             $query_arr['deleted_at'] = "IS NULL";
-            //$this->builder->useSoftDelete = true;
         }
 
         if (!$count = mysqly::count($this->table, $query_arr, $this->operators, $this->or_ands)) {
@@ -349,7 +346,6 @@ abstract class Model
 
         if ($this->child->softdeletes) {
             $query_arr['deleted_at'] = "IS NULL";
-            //$this->builder->useSoftDelete = true;
         }
         $query_arr[$key] = $value;
         if ($this->order !== "")
@@ -387,12 +383,10 @@ abstract class Model
 
         if ($this->child->softdeletes) {
             $query_arr['deleted_at'] = "IS NULL";
-            //$this->builder->useSoftDelete = true;
         }
 
         foreach ($keys as $pos => $key) {
             $query_arr[$key] = $values[$pos];
-            // $this->builder->where($key, $values[$pos]);
         }
         
         if (count($select)) {
@@ -418,7 +412,6 @@ abstract class Model
 
         if ($this->child->softdeletes) {
             $query_arr['deleted_at'] = "IS NULL";
-            //$this->builder->useSoftDelete = true;
         }
         $query_arr['username'] = $name;
 
@@ -448,7 +441,6 @@ abstract class Model
 
         if ($this->child->softdeletes) {
             $query_arr['deleted_at'] = "IS NULL";
-            //$this->builder->useSoftDelete = true;
         }
         $query_arr['email'] = $email;
 
@@ -482,7 +474,6 @@ abstract class Model
 
         if ($this->child->softdeletes && !$internal) {
             $query_arr['deleted_at'] = "IS NULL";
-            //$this->builder->useSoftDelete = true;
         }
         $query_arr['id'] = $id;
 
@@ -522,11 +513,11 @@ abstract class Model
             }
             $this->resetInstance();
             return true;
-            //$this->builder->useSoftDelete = true;
         }
 
+        $val = mysqly::remove($this->table, $query_arr, $this->operators, $this->or_ands);
         $this->resetInstance();
-        return mysqly::remove($this->table, $query_arr, $this->operators, $this->or_ands);
+        return $val;
     }
 
     /**
@@ -547,19 +538,17 @@ abstract class Model
 
     public function where(string $column, string $operator = null, $value = null, $boolean = "AND")
     {
-        if (is_null($operator)) {
-            $this->or_ands[] = $boolean;
-            $this->bind_or_filter[$column] = $value;
-            return $this;
+        is_string($this->or_ands) ? $this->or_ands = [$boolean] : array_push($this->or_ands, $boolean);
+        is_null($this->bind_or_filter) ? $this->bind_or_filter = array($column => $value) : $this->bind_or_filter[$column] = $value;
+        if (is_null($operator) && !is_null($value)) {
+            if (!str_contains($value, 'NULL'))
+                is_string($this->operators) ? $this->operators = ['='] : array_push($this->operators, '=');
         }
-            
-        if (!\is_null($operator) && !\is_null($value)) {
-            $this->or_ands[] = $boolean;
-            $this->operators[] = $operator;
-            $this->bind_or_filter[$column] = $value;
-            return $this;
-            // return $this->child;
+        else if (!\is_null($operator) && !\is_null($value)) {
+            if (!str_contains($value, 'NULL'))
+                is_string($this->operators) ? $this->operators = [$operator] : array_push($this->operators, $operator);
         }
+        return $this;
     }
     
     public function orWhere($column, $operator = null, $value = null)
@@ -569,8 +558,7 @@ abstract class Model
 
     public function beginTransaction()
     {
-        $this
-        // $this->builder->beginTransaction();
+        $this->use_transaction = true;
     }
 
     // public function commit()
