@@ -130,6 +130,7 @@ delete('/admin/blog/posts/$id', new BlogController('delete'));
 get('/blog/posts', new BlogController('list'));
 get('/blog/posts/$id', new BlogController());
 
+get('/blog/comments', new PostCommentController('listall'));
 get('/blog/posts/$id/comments', new PostCommentController('list'));
 get('/blog/posts/$id/comments/$id', new PostCommentController());
 get('/blog/posts/$id/comments/query/$query', new PostCommentController('list'));

@@ -32,11 +32,14 @@ final class PostCommentController
         $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
     }
 
-    public function __invoke(string $post_id, string $post_comment_id = null)
+    public function __invoke(string $post_id = null, string $post_comment_id = null)
     {
         switch ($this->method) {
             case 'show':
                 $resp = $this->show($post_id);
+                break;
+            case 'listall':
+                $resp = $this->listall();
                 break;
             case 'list':
                 $resp = $this->list($post_id);
@@ -45,7 +48,7 @@ final class PostCommentController
                 $resp = $this->create($post_id);
                 break;
             case 'update':
-                $resp = $this->update($post_id);
+                $resp = $this->update($post_comment_id);
                 break;
             case 'delete':
                 $resp = $this->delete($post_id);
@@ -74,6 +77,27 @@ final class PostCommentController
         }
     }
 
+    private function listall()
+    {
+        try {
+            if (!$this->authenticator->validate()) {
+                return JsonResponse::unauthorized();
+            }
+            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+                return JsonResponse::unauthorized('you are not allowed to update comment');
+            }
+            
+            if (!$post_comments = $this->post_comment->all())
+                return JsonResponse::ok('no post comment found in list', []);
+
+            return JsonResponse::ok('post comment retrieved success', $post_comments);
+        } catch (PDOException $e) {
+            return JsonResponse::serverError('we encountered a problem'.$e->getMessage());
+        } catch (Exception $e) {
+            return JsonResponse::serverError('we encountered a problem'.$e->getMessage());
+        }
+    }
+
     private function list(string $post_id)
     {
         try {
@@ -88,7 +112,6 @@ final class PostCommentController
                             $this->post_comment->where('status', value: PostComment::APPROVED)
                                 ->where('post_id', value: $post_id)
                                 ->where('post_comment_id', value: 'IS NULL')->all();
-
             }
             
             if (!$post_comments)
@@ -171,7 +194,7 @@ final class PostCommentController
 
             $body = sanitize_data(json_decode($inputJSON, true));
             
-            $statuses = PostComment::APPROVED .' '. PostComment::PENDING .' '. PostComment::REJECTED;
+            $statuses = PostComment::APPROVED .', '. PostComment::REJECTED;
             if ($validated = Validator::validate($body, [
                 'status' => "sometimes|string|in:$statuses",
                 // 'text' => 'sometimes|string',

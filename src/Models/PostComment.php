@@ -34,7 +34,7 @@ final class  PostComment extends Model
      * @var array
      */
     protected $fillable = [
-        'id', 'post_id', 'post_comment_id', 'username', 'text', 'created_at', 'updated_at', 'deleted_at',
+        'id', 'post_id', 'post_comment_id', 'username', 'text', 'status', 'created_at', 'updated_at', 'deleted_at',
         //add more fillable columns here
     ];
 
