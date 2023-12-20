@@ -13,7 +13,8 @@
         "pragmarx/google2fa": "^8.0",
         "firebase/php-jwt": "^6.5",
         "monolog/monolog": "^2.9",
-        "phpmailer/phpmailer": "^6.8"
+        "phpmailer/phpmailer": "^6.8",
+        "ezyang/htmlpurifier": "^4.17"
     },
     "license": "MIT",
     "autoload": {
@@ -43,6 +44,9 @@
         ],
         "queue-work": "php ./src/Console/JobRunner.php",
         "start": "php server.php 127.0.0.1:23458",
+        "add-model": "php ./src/Console/CmdLine/CmdLine.php create-model",
+        "add-controller": "php ./src/Console/CmdLine/CmdLine.php create-controller",
+        "add-api-controller": "php ./src/Console/CmdLine/CmdLine.php create-api-controller",
         "add-migration": "./vendor/bin/phinx create",
         "add-seed": "./vendor/bin/phinx seed:create",
         "migrate": "./vendor/bin/phinx migrate",

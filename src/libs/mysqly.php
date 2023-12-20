@@ -23,7 +23,7 @@ class mysqly {
 
       $i = 0; $j = 0; $len = count($filter);
 
-      foreach ( $filter as $k => $v ) {    
+      foreach ( $filter as $k => $v ) {
         if ($len - $j === 1)
           $or_and = '';
         else
@@ -68,9 +68,11 @@ class mysqly {
       
       $in = implode(', ', $in);
       $where[] = "`{$k}` IN ($in){$or_and}";
+      $incr_operator = false;
     }
     else if ($v !== null && str_contains((string)$v, 'NULL')) {
       $where[] = "`{$k}` {$v}{$or_and}";
+      $incr_operator = false;
     }
     else if ($v !== null && is_string($v) && str_contains($v, 'now')) {
       $where[] = "`{$k}` $_operator now(){$or_and}";
@@ -220,7 +222,7 @@ class mysqly {
             else
               $or_and = is_array($or_ands) ? "$or_ands[$j]" : "$or_ands";
             
-            $operator = is_array($operators) ? $operators[$i] : $operators;
+            $operator = is_array($operators) ? (str_contains($v, 'NULL') ? '' : $operators[$i]) : $operators;
             static::condition($k, $v, $where, $bind, $incr_operator, $or_and, $operator);
             $j++;
             if ($incr_operator)
