@@ -17,6 +17,7 @@ use Basttyy\FxDataServer\Controllers\Api\MiscellaneousController;
 use Basttyy\FxDataServer\Controllers\Api\PairController;
 use Basttyy\FxDataServer\Controllers\Api\PlanController;
 use Basttyy\FxDataServer\Controllers\Api\PositionController;
+use Basttyy\FxDataServer\Controllers\Api\PostCommentController;
 use Basttyy\FxDataServer\Controllers\Api\RequestLogController;
 use Basttyy\FxDataServer\Controllers\Api\StrategyController;
 use Basttyy\FxDataServer\Controllers\Api\SubscriptionController;
@@ -128,6 +129,14 @@ delete('/admin/blog/posts/$id', new BlogController('delete'));
 
 get('/blog/posts', new BlogController('list'));
 get('/blog/posts/$id', new BlogController());
+
+get('/blog/comments', new PostCommentController('listall'));
+get('/blog/posts/$id/comments', new PostCommentController('list'));
+get('/blog/posts/$id/comments/$id', new PostCommentController());
+get('/blog/posts/$id/comments/query/$query', new PostCommentController('list'));
+post('/blog/posts/$id/comments', new PostCommentController('create'));
+put('/blog/posts/$id/comments/$id', new PostCommentController('update'));
+delete('/blog/posts/$id/comments/$id', new PostCommentController('delete'));
 
 // group('/admin', function() {
 //     get('/blogs', new BlogController('list'));

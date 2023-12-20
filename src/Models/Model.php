@@ -107,16 +107,16 @@ abstract class Model
     /**
      * The operators for query
      * 
-     * @var array|null
+     * @var array|string
      */
     private $operators;
 
     /**
      * The booleans to add queries together
      * 
-     * @var array|null
+     * @var array|string
      */
-    private $or_and;
+    private $or_ands;
 
     /**
      * The filter key values
@@ -124,6 +124,13 @@ abstract class Model
      * @var array|null
      */
     private $bind_or_filter;
+
+    /**
+     * Wether to run queries as transaction
+     * 
+     * @var bool
+     */
+    private $use_transaction;
 
     /**
      * Create a new model instance.
@@ -141,7 +148,15 @@ abstract class Model
 
     protected function prepareModel()
     {
-        // $this->builder->from = $this->table;
+        $this->or_ands = 'AND';
+        $this->operators = '=';
+    }
+
+    private function resetInstance()
+    {
+        $this->bind_or_filter = null;
+        $this->or_ands = 'AND';
+        $this->operators = '=';
     }
 
     public function orderBy($column = "id", $direction = "ASC")
@@ -244,18 +259,21 @@ abstract class Model
     {
         $id = $id > 0 ? $id : $this->child->id;
         $query_arr = [];
+        if ($this->bind_or_filter)
+            $query_arr = $this->bind_or_filter;
 
         if ($this->child->softdeletes) {
             $query_arr['deleted_at'] = "IS NULL";
-            //$this->builder->useSoftDelete = true;
         }
         $query_arr['id'] = $id;
         
         $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
 
-        if (!$model = mysqly::fetch($this->table, $query_arr, $fields)) {
+        if (!$model = mysqly::fetch($this->table, $query_arr, $fields, $this->operators, $this->or_ands)) {
+            $this->resetInstance();
             return false;
         }
+        $this->resetInstance();
         return $this->fill($model[0]);
     }
 
@@ -267,10 +285,11 @@ abstract class Model
     public function all($is_protected = true, $select = [])
     {
         $query_arr = [];
+        if ($this->bind_or_filter)
+            $query_arr = $this->bind_or_filter;
 
         if ($this->child->softdeletes) {
             $query_arr['deleted_at'] = "IS NULL";
-            //$this->builder->useSoftDelete = true;
         }
 
         if (count($select)) {
@@ -279,9 +298,11 @@ abstract class Model
             $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
         }
 
-        if (!$fields = mysqly::fetch($this->table, $query_arr, $fields)) {
+        if (!$fields = mysqly::fetch($this->table, $query_arr, $fields, $this->operators, $this->or_ands)) {
+            $this->resetInstance();
             return false;
         }
+        $this->resetInstance();
         return $fields;
     }
 
@@ -292,7 +313,7 @@ abstract class Model
      */
     public function count($keys = [], $values = [])
     {
-        $query_arr = $this->bind_or_filter !== null ? $this->bind_or_filter : [];
+        $query_arr = $this->bind_or_filter === null ? [] : $this->bind_or_filter;
 
         $i = 0;
         foreach ($keys as $key) {
@@ -301,12 +322,13 @@ abstract class Model
         }
         if ($this->child->softdeletes) {
             $query_arr['deleted_at'] = "IS NULL";
-            //$this->builder->useSoftDelete = true;
         }
 
-        if (!$count = mysqly::count($this->table, $query_arr)) {
+        if (!$count = mysqly::count($this->table, $query_arr, $this->operators, $this->or_ands)) {
+            $this->resetInstance();
             return false;
         }
+        $this->resetInstance();
         return $count;
     }
 
@@ -320,11 +342,10 @@ abstract class Model
      */
     public function findBy($key, $value, $is_protected = true, $select = [])
     {
-        $query_arr = [];
+        $query_arr = $this->bind_or_filter === null ? [] : $this->bind_or_filter;
 
         if ($this->child->softdeletes) {
             $query_arr['deleted_at'] = "IS NULL";
-            //$this->builder->useSoftDelete = true;
         }
         $query_arr[$key] = $value;
         if ($this->order !== "")
@@ -336,9 +357,11 @@ abstract class Model
             $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
         }
 
-        if (!$model = mysqly::fetch($this->table, $query_arr, $fields)) {
+        if (!$model = mysqly::fetch($this->table, $query_arr, $fields, $this->operators, $this->or_ands)) {
+            $this->resetInstance();
             return false;
         }
+        $this->resetInstance();
         return $model;
     }
     
@@ -360,12 +383,10 @@ abstract class Model
 
         if ($this->child->softdeletes) {
             $query_arr['deleted_at'] = "IS NULL";
-            //$this->builder->useSoftDelete = true;
         }
 
         foreach ($keys as $pos => $key) {
             $query_arr[$key] = $values[$pos];
-            // $this->builder->where($key, $values[$pos]);
         }
         
         if (count($select)) {
@@ -387,22 +408,24 @@ abstract class Model
      */
     public function findByUsername($name, $is_protected = true)
     {
-        $query_arr = [];
+        $query_arr = $this->bind_or_filter === null ? [] : $this->bind_or_filter;
 
         if ($this->child->softdeletes) {
             $query_arr['deleted_at'] = "IS NULL";
-            //$this->builder->useSoftDelete = true;
         }
         $query_arr['username'] = $name;
 
         $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
-        if (!$user = mysqly::fetch($this->table, $query_arr, $fields)) {
+        if (!$user = mysqly::fetch($this->table, $query_arr, $fields, $this->operators, $this->or_ands)) {
+            $this->resetInstance();
             return false;
         }
         if (count( $user ) < 1) {
+            $this->resetInstance();
             return false;
         }
 
+        $this->resetInstance();
         return $this->fill($user[0]);
     }
 
@@ -414,22 +437,24 @@ abstract class Model
      */
     public function findByEmail(string $email, $is_protected = true)
     {
-        $query_arr = [];
+        $query_arr = $this->bind_or_filter === null ? [] : $this->bind_or_filter;
 
         if ($this->child->softdeletes) {
             $query_arr['deleted_at'] = "IS NULL";
-            //$this->builder->useSoftDelete = true;
         }
         $query_arr['email'] = $email;
 
         $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
-        if (!$user = mysqly::fetch($this->table, $query_arr, $fields)) {
+        if (!$user = mysqly::fetch($this->table, $query_arr, $fields, $this->operators, $this->or_ands)) {
+            $this->resetInstance();
             return false;
         }
         if (count( $user ) < 1) {
+            $this->resetInstance();
             return false;
         }
 
+        $this->resetInstance();
         return $this->fill($user[0]);
     }
 
@@ -445,23 +470,25 @@ abstract class Model
     {
         $id = $id > 0 ? $id : $this->child->id;
         
-        $query_arr = [];
+        $query_arr = $this->bind_or_filter === null ? [] : $this->bind_or_filter;
 
         if ($this->child->softdeletes && !$internal) {
             $query_arr['deleted_at'] = "IS NULL";
-            //$this->builder->useSoftDelete = true;
         }
         $query_arr['id'] = $id;
 
-        if (!mysqly::update($this->table, $query_arr, $values)) {
+        if (!mysqly::update($this->table, $query_arr, $values, $this->operators, $this->or_ands)) {
+            $this->resetInstance();
             return false;
         }
 
         $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
-        if (!$model = mysqly::fetch($this->table, $query_arr, $fields)) {
+        if (!$model = mysqly::fetch($this->table, $query_arr, $fields, $this->operators, $this->or_ands)) {
+            $this->resetInstance();
             return true;
         }
 
+        $this->resetInstance();
         return $this->fill($model[0]);
     }
 
@@ -475,18 +502,22 @@ abstract class Model
     {
         $id = $id > 0 ? $id : $this->child->id;
         
-        $query_arr = [];
+        $query_arr = $this->bind_or_filter === null ? [] : $this->bind_or_filter;
 
         $query_arr['id'] = $id;
         if ($this->child->softdeletes) {
             $query_arr['deleted_at'] = "IS NULL";
-            if (!mysqly::update($this->table, $query_arr, ['deleted_at' => "now"]))
+            if (!mysqly::update($this->table, $query_arr, ['deleted_at' => "now"], $this->operators, $this->or_ands)) {
+                $this->resetInstance();
                 return false;
+            }
+            $this->resetInstance();
             return true;
-            //$this->builder->useSoftDelete = true;
         }
 
-        return mysqly::remove($this->table, $query_arr);
+        $val = mysqly::remove($this->table, $query_arr, $this->operators, $this->or_ands);
+        $this->resetInstance();
+        return $val;
     }
 
     /**
@@ -502,23 +533,22 @@ abstract class Model
         }
         $id = $id > 0 ? $id : $this->child->id;
 
-        //return $this->update(['deleted_at', null], $id, true);
+        return $this->update(['deleted_at', null], $id, true);
     }
 
     public function where(string $column, string $operator = null, $value = null, $boolean = "AND")
     {
-        if (is_null($operator)) {
-            $this->or_and[] = $boolean;
-            $this->bind_or_filter[$column] = $value;
-            return $this->child;
+        is_string($this->or_ands) ? $this->or_ands = [$boolean] : array_push($this->or_ands, $boolean);
+        is_null($this->bind_or_filter) ? $this->bind_or_filter = array($column => $value) : $this->bind_or_filter[$column] = $value;
+        if (is_null($operator) && !is_null($value)) {
+            if (!str_contains($value, 'NULL'))
+                is_string($this->operators) ? $this->operators = ['='] : array_push($this->operators, '=');
         }
-            
-        if (!\is_null($operator) && !\is_null($value)) {
-            $this->or_and[] = $boolean;
-            $this->operators[] = $operator;
-            $this->bind_or_filter[$column] = $value;
-            return $this->child;
+        else if (!\is_null($operator) && !\is_null($value)) {
+            if (!str_contains($value, 'NULL'))
+                is_string($this->operators) ? $this->operators = [$operator] : array_push($this->operators, $operator);
         }
+        return $this;
     }
     
     public function orWhere($column, $operator = null, $value = null)
@@ -526,10 +556,10 @@ abstract class Model
         return $this->where($column, $operator, $value, "OR");
     }
 
-    // public function beginTransaction()
-    // {
-    //     $this->builder->beginTransaction();
-    // }
+    public function beginTransaction()
+    {
+        $this->use_transaction = true;
+    }
 
     // public function commit()
     // {

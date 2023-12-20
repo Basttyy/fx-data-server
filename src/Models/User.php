@@ -23,7 +23,7 @@ final class User extends Model
     public $uuid;
     public $firstname;
     public $lastname;
-    public $username;
+    public string $username;
     public $email;
     public $password;
     public $phone;
