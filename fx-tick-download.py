@@ -265,48 +265,25 @@ all_currencies = {
 
 
 class Dukascopy:
-    # https://datafeed.dukascopy.com/datafeed/EURUSD/2016/02/21/ASK_candles_min_1.bi5
-    # https://datafeed.dukascopy.com/datafeed/EURUSD/2016/02/ASK_candles_hour_1.bi5
-    # https://datafeed.dukascopy.com/datafeed/EURUSD/2016/ASK_candles_day_1.bi5
-    url_min_tpl = "https://datafeed.dukascopy.com/datafeed/%s/%04d/%02d/%02d/%s_candles_min_1.bi5"
-    url_hour_tpl = "https://datafeed.dukascopy.com/datafeed/%s/%04d/%02d/%s_candles_hour_1.bi5"
-    url_day_tpl = "https://datafeed.dukascopy.com/datafeed/%s/%04d/%s_candles_day_1.bi5"
+    url_tpl = "http://datafeed.dukascopy.com/datafeed/%s/%04d/%02d/%02d/%02dh_ticks.bi5"
 
-    def __init__(self, pair, year, month = -1, day = -1, bidask = 'ASK', dest="download/minute_data"):
+    def __init__(self, pair, year, month, day, hour, dest="download/dukascopy"):
         if not os.path.exists(dest):
             os.makedirs(dest)
-        self.bidask = bidask
         self.year = year
         self.month = month
         self.day = day
-
-        if month == -1:
-            self.url = self.url_day_tpl % (pair, int(year), bidask)
-            self.path = "%s/%s/%s/%04d/candles_day_1.bi5" % (
-                dest,
-                bidask,
-                pair,
-                year
-            )
-        elif day == -1:
-            self.url = self.url_tpl % (pair, int(year), month -1, bidask)
-            self.path = "%s/%s/%s/%04d/%02d/candles_day_1.bi5" % (
-                dest,
-                bidask,
-                pair,
-                year,
-                month
-            )
-        else:
-            self.url = self.url_tpl % (pair, int(year), month -1, day, bidask)
-            self.path = "%s/%s/%s/%04d/%02d/%02d/candles_day_1.bi5" % (
-                dest,
-                bidask,
-                pair,
-                year,
-                month,
-                day
-            )
+        self.hour = hour
+        self.url = self.url_tpl % (pair, int(year), month -1, day, hour)
+        self.path = "%s/%04d/%02d/%04d-%02d-%02d--%02dh_ticks.bi5" % (
+            dest,
+            year,
+            month,
+            year,
+            month,
+            day,
+            hour,
+        )
 
     def download(self):
         print("Downloading %s into: %s..." % (self.url, self.path))
@@ -348,7 +325,7 @@ class Dukascopy:
                     )
                     i += 1
 
-            if i > 40:
+            if i == 5:
                 return False
 
         return True
@@ -434,14 +411,13 @@ class Dukascopy:
             )
             timestamp = time.mktime(ciso8601.parse_datetime(timestring).timetuple())
             timestamp += row[0] / 1000
-            openPrice = row[1] / point
-            highPrice = row[2] / point
-            lowPrice = row[3] / point
-            closePrice = row[4] / point
-            volume = "%.4f" % (row[4])
+            askPrice = row[1] / point
+            bidPrice = row[2] / point
+            bidVolume = "%.2f" % (row[4])
+            askVolume = "%.2f" % (row[3])
 
             # Writing one row in CSV format
-            w.writerow([timestamp, openPrice, highPrice, lowPrice, closePrice, volume])
+            w.writerow([timestamp, bidPrice, askPrice, bidVolume, askVolume])
         os.remove(self.path)
         f.close()
 
@@ -481,6 +457,14 @@ if __name__ == "__main__":
         dest="pairs",
         help="Pair(s) to download (separated by comma).",
         default="EURUSD",
+    )
+    parser.add_argument(
+        "-h",
+        "--hours",
+        action="store",
+        dest="hours",
+        help="Hour(s) to download (separated by comma).",
+        default="all",
     )
     parser.add_argument(
         "-d",
@@ -536,6 +520,7 @@ if __name__ == "__main__":
     pairs = (
         list(all_currencies.keys()) if args.pairs == "all" else args.pairs.split(",")
     )
+    hours = range(0, 23 + 1) if args.hours == "all" else intlist(args.hours.split(","))
     days = range(1, 31 + 1) if args.days == "all" else intlist(args.days.split(","))
     months = (
         range(0, 12 + 1) if args.months == "all" else intlist(args.months.split(","))
@@ -553,44 +538,51 @@ if __name__ == "__main__":
             for year in sorted(years):
                 for month in sorted(months):
                     for day in sorted(days):
-                        try:
-                            dt = datetime.datetime(
-                                year=year, month=month, day=day, hour=hour
-                            )
-                            unix = time.mktime(dt.timetuple())
-
-                            # Validate dates
-                            if (
-                                unix > all_currencies.get(pair)
-                                and unix < time.time()
-                            ):
-                                if (
-                                    args.sunday and dt.weekday() == 6
-                                ):
-                                    continue
-                                if (
-                                    args.saturday and dt.weekday() == 5
-                                ):
-                                    continue
-                                # if (
-                                #     dt.weekday() == 4
-                                #     and hour > 21
-                                # ):
-                                #     continue
-                                # if args.months != "all":
-                                #     month -= 1
-                                ds = Dukascopy(
-                                    pair,
-                                    year,
-                                    month,
-                                    day,
-                                    dest=args.dest + "/" + pair,
+                        for hour in sorted(hours):
+                            try:
+                                dt = datetime.datetime(
+                                    year=year, month=month, day=day, hour=hour
                                 )
-                                ds.download()
-                                if args.csv:
-                                    ds.bt5_to_csv()
-                                # raise KeyboardInterrupt # perform one record for testing
-                        except ValueError:  # Ignore invalid dates.
-                            continue
+                                unix = time.mktime(dt.timetuple())
+
+                                # Validate dates
+                                if (
+                                    unix > all_currencies.get(pair)
+                                    and unix < time.time()
+                                ):
+                                    if (
+                                        args.sunday and dt.weekday() == 6
+                                    ):
+                                        continue
+                                    if (
+                                        args.saturday and dt.weekday() == 5
+                                    ):
+                                        continue
+                                    if (
+                                        dt.weekday() == 6
+                                        and hour < 20
+                                    ):
+                                        continue
+                                    # if (
+                                    #     dt.weekday() == 4
+                                    #     and hour > 21
+                                    # ):
+                                    #     continue
+                                    # if args.months != "all":
+                                    #     month -= 1
+                                    ds = Dukascopy(
+                                        pair,
+                                        year,
+                                        month,
+                                        day,
+                                        hour,
+                                        dest=args.dest + "/" + pair,
+                                    )
+                                    ds.download()
+                                    if args.csv:
+                                        ds.bt5_to_csv()
+                                    # raise KeyboardInterrupt # perform one record for testing
+                            except ValueError:  # Ignore invalid dates.
+                                continue
     except KeyboardInterrupt:
         sys.exit()
