@@ -154,6 +154,8 @@ function compoundMinute(string $ticker, Carbon $datetim, string $result_path, in
     if ($zip)
         $s_filter = stream_filter_append($f_result, "zlib.deflate", STREAM_FILTER_WRITE);
     
+    if ($timeframe >= 60)
+        fputs($f_result, "start-datetime: $datetim\r");
     while (1) {
         if (($csv_row = fgetcsv($fh, separator: ',')) === false) {
             $nopush = $open == 0 && $close == 0 && $high == 0 && $low == 0 && $volume == 0;
@@ -185,7 +187,7 @@ function compoundMinute(string $ticker, Carbon $datetim, string $result_path, in
                     fclose($fh);
                     unset($fh);
                     $stat = fstat($f_result);
-                    if ($s_filter)
+                    if ($zip && $s_filter)
                         stream_filter_remove($s_filter);
                     fclose($f_result);
                     unset($f_result);
@@ -236,7 +238,7 @@ function compoundMinute(string $ticker, Carbon $datetim, string $result_path, in
     }
     //sleep(2);
     $stat = fstat($f_result);
-    if ($s_filter)
+    if ($zip && $s_filter)
         stream_filter_remove($s_filter);
     fclose($f_result);
     unset($f_result);

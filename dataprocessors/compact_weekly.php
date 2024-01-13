@@ -11,7 +11,7 @@ foreach ($tickers as $ticker) {
         // Define the source directory and destination directory
         $sourceDir = __DIR__."/../minute_data/download/$offerside/{$min}mins/$ticker";
         $zipPath = $zip ? 'compressed' : ''; $zipExt = $zip ? '.gz' : '';
-        $destinationDir = __DIR__."/../minute_data/$compressedPath/$offerside/weekly/{$min}mins/$ticker$zipExt";
+        $destinationDir = __DIR__."/../minute_data/$zipPath/$offerside/weekly/{$min}mins/$ticker";
     
         $date = Carbon::create($starty);
     
@@ -33,7 +33,8 @@ foreach ($tickers as $ticker) {
             for ($i = 1; $i <= $weeks;  $i++) {
                 
                 // Construct the destination file path for the week
-                $destinationFilePath = "{$destinationDir}/{$destyear}/week{$i}_data.csv.gz";
+                $ii = $i < 10 ? "0$i" : "$i";
+                $destinationFilePath = "{$destinationDir}/{$destyear}/week{$ii}_data.csv$zipExt";
 
                 if (file_exists($destinationFilePath)) {
                     echo "$destinationFilePath exists, skipping".PHP_EOL;
@@ -62,9 +63,9 @@ foreach ($tickers as $ticker) {
                     if (file_exists($sourceFilePath)) {
                         $dailyData = file_get_contents($sourceFilePath);
                         // echo $dailyData;
-                        if (empty($weeklyData))
-                            $heading = "start-datetime: $currentDate";
-                        $weeklyData[] = $dailyData;
+                        // if (empty($weeklyData))
+                            $heading = "start-datetime: $currentDate\r";
+                        $weeklyData[] = $heading.$dailyData;
                     }
         
                     // Move to the next day
@@ -77,8 +78,8 @@ foreach ($tickers as $ticker) {
                 // logger(__DIR__."/storage/logs/console.log")->info("  ");
                 // Write the weekly data to the destination CSV file
                 if (!empty($weeklyData)) {
-                    $heading = "$heading - end-datetime: $currentDate\r";
-                    array_unshift($weeklyData, $heading);
+                    // $heading = "$heading - end-datetime: $currentDate\r";
+                    // array_unshift($weeklyData, $heading);
 
                     $fd = fopen($destinationFilePath, "w+");
                     if ($zip) {
@@ -93,7 +94,7 @@ foreach ($tickers as $ticker) {
                     
                     fwrite($fd, implode("\n", $weeklyData));
 
-                    if ($s_filter)
+                    if ($zip && $s_filter)
                         stream_filter_remove($s_filter);
 
                     fclose($fd);
