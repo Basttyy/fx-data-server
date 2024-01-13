@@ -290,6 +290,7 @@ abstract class Model
 
         if ($this->child->softdeletes) {
             $query_arr['deleted_at'] = "IS NULL";
+            $this->or_ands[] = "AND";
         }
 
         if (count($select)) {
@@ -536,18 +537,35 @@ abstract class Model
         return $this->update(['deleted_at', null], $id, true);
     }
 
-    public function where(string $column, string $operator = null, $value = null, $boolean = "AND")
+    public function where(string $column, string $operatorOrValue = null, $value = null, $boolean = "AND")
     {
+        if (is_null($value) && !is_null($operatorOrValue) && str_contains($operatorOrValue, ' NULL')) {// only column and value was given but value is like `IS NULL` or `NOT NULL`
+            is_string($this->operators) ? $this->operators = [$operatorOrValue] : array_push($this->operators, $operatorOrValue);
+        }
+        else if (is_null($value) && !is_null($operatorOrValue) && !str_contains($operatorOrValue, ' NULL')) {// only column and value was given
+            is_string($this->operators) ? $this->operators = ['='] : array_push($this->operators, '=');
+            $value = $operatorOrValue;
+        } else {
+            is_string($this->operators) ? $this->operators = [$operatorOrValue] : array_push($this->operators, $operatorOrValue);
+        }
+
+
         is_string($this->or_ands) ? $this->or_ands = [$boolean] : array_push($this->or_ands, $boolean);
         is_null($this->bind_or_filter) ? $this->bind_or_filter = array($column => $value) : $this->bind_or_filter[$column] = $value;
-        if (is_null($operator) && !is_null($value)) {
-            if (!str_contains($value, 'NULL'))
-                is_string($this->operators) ? $this->operators = ['='] : array_push($this->operators, '=');
-        }
-        else if (!\is_null($operator) && !\is_null($value)) {
-            if (!str_contains($value, 'NULL'))
-                is_string($this->operators) ? $this->operators = [$operator] : array_push($this->operators, $operator);
-        }
+
+
+        // if (is_null($operator) && !is_null($value)) { //operator was not given
+        //     if (!str_contains($value, 'NULL'))
+        //         is_string($this->operators) ? $this->operators = ['='] : array_push($this->operators, '=');
+        // }
+        // else if (!\is_null($operator) && \is_null($value) && str_contains($operator, 'NULL')) { //operator is `IS NULL` and value wasn't given
+        //     // if (!str_contains($value, 'NULL'))
+        //         is_string($this->operators) ? $this->operators = [$operator] : array_push($this->operators, $operator);
+        // } else if (!is_null($operator) && !is_null($value)) {
+        //     is_string($this->operators) ? $this->operators = [$operator] : array_push($this->operators, $operator);
+        // } else {
+        //     throw new Exception("invalid where statement $column, $operator, $value, $boolean");
+        // }
         return $this;
     }
     

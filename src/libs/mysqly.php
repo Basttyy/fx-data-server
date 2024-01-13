@@ -197,6 +197,8 @@ class mysqly {
    */
   
   public static function fetch_cursor($sql_or_table, $bind_or_filter = [], $select_what = '*', string|array $operators = "=", string|array $or_ands = "AND") {
+    if (is_array($or_ands))
+      array_shift($or_ands);
     if ( strpos($sql_or_table, ' ') || (strpos($sql_or_table, 'SELECT ') === 0) ) {
       $sql = $sql_or_table;
       $bind = $bind_or_filter;
@@ -242,6 +244,7 @@ class mysqly {
       
       $sql .= $order;
     }
+    logger()->info($sql, $bind);
     
     $res = isset($bind) ? static::exec($sql, $bind) : static::exec($sql);
     return $res;

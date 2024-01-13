@@ -7,7 +7,7 @@ use Basttyy\FxDataServer\libs\JsonResponse;
 use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\User;
 
-class FxController
+class FxHistoryController
 {
     private $method;
     private $user;
@@ -22,11 +22,11 @@ class FxController
         $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
     }
 
-    public function __invoke(string $ticker = "", int $period = null, int $year = 0, int $month = 0, int $week = 0, string $query = "", bool $faster = null)
+    public function __invoke(string $ticker = "", string $offerside = "", int $period = null, int $year = 0, int $month = 0, int $week = 0, string $query = "", bool $faster = null)
     {
         switch ($this->method) {
             case 'download_minute_data':
-                $resp = $this->downloadMinutesData($ticker, $period, $year, $month, $week);
+                $resp = $this->downloadMinutesData($ticker, $offerside, $period, $year, $month, $week);
                 break;
             case 'download_tick_data':
                 $resp = $this->downloadTickData($ticker, $year, $week, $faster);
@@ -44,33 +44,34 @@ class FxController
         $resp;
     }
 
-    private function downloadMinutesData (string $ticker, int $period, int $year, int $month, int $week)
+    private function downloadMinutesData (string $ticker, string $offerside, int $period, int $year, int $month, int $week)
     {
         if (!count(searchTicker($ticker))) {
             return JsonResponse::notFound("ticker does not exist");
         }
     
-        if ($period < 240 && $period > 0) {
+        if ($period < 60 && $period > 0) {
             $file_path =
                 env('APP_ENV') === 'local' ?
-                "{$_SERVER['DOCUMENT_ROOT']}/minute_data/weekly/{$period}mins/$ticker/$year/week$week"."_data.csv" :
-                "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/weekly/{$period}mins/$ticker/$year/week$week"."_data.csv";
-        } else if ($period === 240) {
+                "{$_SERVER['DOCUMENT_ROOT']}/minute_data/$offerside/weekly/{$period}mins/$ticker/$year/week$week"."_data.csv.gz" :
+                "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/$offerside/weekly/{$period}mins/$ticker/$year/week$week"."_data.csv.gz";
+        } else if ($period >= 60 && $period < 1440) {
+            $mn = $month < 10 ? "0$month" : "$month";
             $file_path =
                 env('APP_ENV') === 'local' ?
-                "{$_SERVER['DOCUMENT_ROOT']}/minute_data/monthly/{$period}mins/$ticker/$year/month$month"."_data.csv" :
-                "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/monthly/{$period}mins/$ticker/$year/month$month"."_data.csv";
-        } else if ($period > 240) {
+                "{$_SERVER['DOCUMENT_ROOT']}/minute_data/$offerside/monthly/{$period}mins/$ticker/$year/month-$mn"."_data.csv.gz" :
+                "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/$offerside/monthly/{$period}mins/$ticker/$year/month-$mn"."_data.csv.gz";
+        } else if ($period >= 1440) {
             $file_path =
                 env('APP_ENV') === 'local' ?
-                "{$_SERVER['DOCUMENT_ROOT']}/minute_data/yearly/{$period}mins/$ticker/{$year}_$period"."_data.csv" :
-                "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/yearly/{$period}mins/$ticker/{$year}_$period"."_data.csv";
+                "{$_SERVER['DOCUMENT_ROOT']}/minute_data/$offerside/yearly/{$period}mins/$ticker/{$year}_$period"."min_data.csv.gz" :
+                "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/$offerside/yearly/{$period}mins/$ticker/{$year}_$period"."min_data.csv.gz";
         } else {
             return JsonResponse::badRequest("period $period invalid or out of range");
         }
 
         if (file_exists($file_path)) {
-            $data = gzuncompress(file_get_contents($file_path))."\n";
+            $data = gzinflate(file_get_contents($file_path))."\n";
             if ($data) {
                 $ext = pathinfo($file_path, PATHINFO_EXTENSION);
                 header("Content-Type: text/$ext; charset=utf-8");

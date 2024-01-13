@@ -117,11 +117,9 @@ final class PairController
 
             if ($validated = Validator::validate($params, [
                 'name' => 'sometimes|string',
-                'description' => 'sometimes|string',
-                'status' => "sometimes|string|in:$status",
-                'dollar_per_pip' => 'sometimes|numeric',
-                'history_start' => 'sometimes|string',
-                'history_end' => 'sometimes|string'
+                'searchstring' => 'sometimes|string',
+                'exchange' => 'sometimes|string',
+                'market' => 'sometimes|string',
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
@@ -132,14 +130,47 @@ final class PairController
             else
                 $select = $this->pair->symbolinfos;
 
-            if (!$pairs = $this->pair->findByArray(array_keys($params), array_values($params), select: $select))
-                return JsonResponse::ok("no piar found in list", []);
+            // if (!$pairs = $this->pair->findByArray(array_keys($params), array_values($params), select: $select))
+            $searchstring = '';
+            $pairs = [];
+            if (isset($params['searchstring'])) {
+                $searchstring = $params['searchstring'];
+                if (!$pairs1 = $this->pair->where('name', 'LIKE', $searchstring)
+                            ->orWhere('short_name', 'LIKE', $searchstring)
+                            ->orWhere('ticker', 'LIKE', $searchstring)
+                            ->orWhere('description', 'LIKE', $searchstring)
+                            ->orWhere('status', $searchstring)
+                            // ->orWhere('history_start', $searchstring)
+                            // ->orWhere('history_end', $searchstring)
+                            ->all(select: $select))
+                    return JsonResponse::ok("no piar found in list1", []);
+                
+                while ($pair = current($pairs1)) {
+                    $push = true;
+                    if ((isset($params['exchange'])) && $params['exchange'] != '' && $pair['exchange'] != $params['exchange']) {
+                        $push = false;
+                    }
+                    if ((isset($params['market'])) && $params['market'] != '' && $pair['market'] != $params['market']) {
+                        $push = false;
+                    }
+    
+                    if ($push)
+                        array_push($pairs, $pair);
+                    next($pairs1);
+                }
+            } else if (isset($name)) {
+                if (!$pairs = $this->pair->where('name', $params['name'])->all())
+                    return JsonResponse::ok("no piar found in list2", []);
+            }
+
+            if (!count($pairs))
+                return JsonResponse::ok("no piar found in list3", []);
 
             return JsonResponse::ok("pairs retrieved success", $pairs);
         } catch (PDOException $e) {
-            return JsonResponse::serverError("we encountered a problem");
+            return JsonResponse::serverError("we encountered a problem ".$e->getMessage());
         } catch (Exception $e) {
-            return JsonResponse::serverError("we encountered a problem");
+            return JsonResponse::serverError("we encountered a problem ".$e->getMessage());
         }
     }
 
