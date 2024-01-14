@@ -537,7 +537,7 @@ abstract class Model
         return $this->update(['deleted_at', null], $id, true);
     }
 
-    public function where(string $column, string $operatorOrValue = null, $value = null, $boolean = "AND")
+    private function _where(string $column, string $operatorOrValue = null, $value = null, $boolean = "AND")
     {
         if (is_null($value) && !is_null($operatorOrValue) && str_contains($operatorOrValue, ' NULL')) {// only column and value was given but value is like `IS NULL` or `NOT NULL`
             is_string($this->operators) ? $this->operators = [$operatorOrValue] : array_push($this->operators, $operatorOrValue);
@@ -568,10 +568,95 @@ abstract class Model
         // }
         return $this;
     }
-    
-    public function orWhere($column, $operator = null, $value = null)
+
+    public function where(string $column, string $operatorOrValue = null, $value = null)
     {
-        return $this->where($column, $operator, $value, "OR");
+        return $this->_where($column, $operatorOrValue, $value, 'AND');
+    }
+    
+    public function whereLike(string $column, $value = null)
+    {
+        return $this->_where($column, 'LIKE', $value, 'AND');
+    }
+
+    public function whereNotLike(string $column, $value = null)
+    {
+        return $this->_where($column, 'NOT LIKE', $value, 'AND');
+    }
+
+    public function whereLessThan(string $column, $value = null)
+    {
+        return $this->_where($column, '<', $value, 'AND');
+    }
+
+    public function whereGreaterThan(string $column, $value = null)
+    {
+        return $this->_where($column, '>', $value, 'AND');
+    }
+
+    public function whereLessThanOrEqual(string $column, $value = null)
+    {
+        return $this->_where($column, '<=', $value, 'AND');
+    }
+
+    public function whereGreaterThanOrEqual(string $column, $value = null)
+    {
+        return $this->_where($column, '>=', $value, 'AND');
+    }
+
+    public function whereEqual(string $column, $value = null)
+    {
+        return $this->_where($column, '=', $value, 'AND');
+    }
+
+    public function whereNotEqual(string $column, $value = null)
+    {
+        return $this->_where($column, '!=', $value, 'AND');
+    }
+
+    public function orWhere(string $column, string $operatorOrValue = null, $value = null)
+    {
+        return $this->_where($column, $operatorOrValue, $value, 'OR');
+    }
+
+    public function orWhereLike(string $column, $value = null)
+    {
+        return $this->_where($column, 'LIKE', $value, 'OR');
+    }
+
+    public function orWhereNotLike(string $column, $value = null)
+    {
+        return $this->_where($column, 'NOT LIKE', $value, 'OR');
+    }
+    
+    public function orWhereLessThan(string $column, $value = null)
+    {
+        return $this->_where($column, '<', $value, 'OR');
+    }
+
+    public function orWhereGreaterThan(string $column, $value = null)
+    {
+        return $this->_where($column, '>', $value, 'OR');
+    }
+
+    public function orWhereLessThanOrEqual(string $column, $value = null)
+    {
+        return $this->_where($column, '<=', $value, 'OR');
+    }
+
+    public function orWhereGreaterThanOrEqual(string $column, $value = null)
+    {
+        return $this->_where($column, '>=', $value, 'OR');
+    }
+
+    public function orWhereEqual(string $column, $value = null)
+    {
+        return $this->_where($column, '=', $value, 'OR');
+    }
+
+    public function orWhereNotEqual(string $column, $value = null)
+    {
+        return $this->_where($column, '!=', $value, 'OR');
     }
 
     public function beginTransaction()
