@@ -73,7 +73,7 @@ trait QueryBuilder
      */
     protected $order = "";
 
-    protected function prepareModel()
+    private function prepareModel()
     {
         $this->or_ands = 'AND';
         $this->operators = '=';

@@ -5,20 +5,6 @@ namespace Basttyy\FxDataServer\libs\Interfaces;
 interface ModelInterface
 {
     /**
-     * Initialize the model instance parameters
-     * 
-     * @return void
-     */
-    public function prepareModel(): void;
-
-    /**
-     * Reset the query builder instance
-     * 
-     * @return void
-     */
-    public function resetInstance(): void;
-
-    /**
      * Order query by a culumn in a direction "ASC" or "DESC"
      * @param string $column
      * @param string $direction
