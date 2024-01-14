@@ -78,6 +78,11 @@ class mysqly {
       $where[] = "`{$k}` $_operator now(){$or_and}";
       $incr_operator = true;
     }
+    else if ($_operator !== null && str_contains((string)$_operator, 'LIKE')) {
+      $where[] = "LOWER({$k}) $_operator LOWER(:$k){$or_and}";
+      $bind[":{$k}"] = "%$v%";
+      $incr_operator = false;
+    }
     else {
       $where[] = "`{$k}` $_operator :{$k}{$or_and}";
       $bind[":{$k}"] = $v;
@@ -244,7 +249,7 @@ class mysqly {
       
       $sql .= $order;
     }
-    logger()->info($sql, $bind);
+    logger()->info($sql, is_array($bind) ? $bind : []);
     
     $res = isset($bind) ? static::exec($sql, $bind) : static::exec($sql);
     return $res;

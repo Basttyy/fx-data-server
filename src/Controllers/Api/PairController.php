@@ -135,11 +135,11 @@ final class PairController
             $pairs = [];
             if (isset($params['searchstring'])) {
                 $searchstring = $params['searchstring'];
-                if (!$pairs1 = $this->pair->where('name', 'LIKE', $searchstring)
-                            ->orWhere('short_name', 'LIKE', $searchstring)
-                            ->orWhere('ticker', 'LIKE', $searchstring)
-                            ->orWhere('description', 'LIKE', $searchstring)
-                            ->orWhere('status', $searchstring)
+                if (!$pairs1 = $this->pair->where('name', 'LIKE', "$searchstring")
+                            ->orWhere('short_name', 'LIKE', "$searchstring")
+                            ->orWhere('ticker', 'LIKE', "$searchstring")
+                            ->orWhere('description', 'LIKE', "$searchstring")
+                            ->orWhere('status', "$searchstring")
                             // ->orWhere('history_start', $searchstring)
                             // ->orWhere('history_end', $searchstring)
                             ->all(select: $select))

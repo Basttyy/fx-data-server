@@ -51,10 +51,11 @@ class FxHistoryController
         }
     
         if ($period < 60 && $period > 0) {
+            $wk = $week < 10 ? "0$week" : "$week";
             $file_path =
                 env('APP_ENV') === 'local' ?
-                "{$_SERVER['DOCUMENT_ROOT']}/minute_data/$offerside/weekly/{$period}mins/$ticker/$year/week$week"."_data.csv.gz" :
-                "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/$offerside/weekly/{$period}mins/$ticker/$year/week$week"."_data.csv.gz";
+                "{$_SERVER['DOCUMENT_ROOT']}/minute_data/$offerside/weekly/{$period}mins/$ticker/$year/week$wk"."_data.csv.gz" :
+                "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/$offerside/weekly/{$period}mins/$ticker/$year/week$wk"."_data.csv.gz";
         } else if ($period >= 60 && $period < 1440) {
             $mn = $month < 10 ? "0$month" : "$month";
             $file_path =
@@ -64,8 +65,8 @@ class FxHistoryController
         } else if ($period >= 1440) {
             $file_path =
                 env('APP_ENV') === 'local' ?
-                "{$_SERVER['DOCUMENT_ROOT']}/minute_data/$offerside/yearly/{$period}mins/$ticker/{$year}_$period"."min_data.csv.gz" :
-                "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/$offerside/yearly/{$period}mins/$ticker/{$year}_$period"."min_data.csv.gz";
+                "{$_SERVER['DOCUMENT_ROOT']}/minute_data/$offerside/yearly/{$period}mins/$ticker/{$year}-$period"."min_data.csv.gz" :
+                "{$_SERVER['DOCUMENT_ROOT']}/../../minute_data/$offerside/yearly/{$period}mins/$ticker/{$year}-$period"."min_data.csv.gz";
         } else {
             return JsonResponse::badRequest("period $period invalid or out of range");
         }
@@ -80,7 +81,7 @@ class FxHistoryController
             }
         }
 
-        return JsonResponse::notFound("files not found or date $year/month_$month/week_$week out of range");
+        return JsonResponse::notFound("files not found or date  $year/month_$month/week_$week out of range");
     }
 
     // private function downloadMinutesData (string $ticker, int $period, int $from, int $incr, int $nums)
