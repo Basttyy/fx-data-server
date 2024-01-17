@@ -58,7 +58,7 @@ foreach ($tickers as $ticker) {
                     $year = $currentDate->year; $day = format_int_leading_zero($currentDate->day);
                     $sourceFilePath = "{$sourceDir}/{$year}/$month/{$year}-{$month}-{$day}_data.csv";
                     echo $sourceFilePath.PHP_EOL;
-                    // logger(__DIR__."/storage/logs/console.log")->info($sourceFilePath);
+                    
         
                     if (file_exists($sourceFilePath)) {
                         $dailyData = file_get_contents($sourceFilePath);

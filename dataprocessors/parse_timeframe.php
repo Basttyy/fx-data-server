@@ -5,7 +5,7 @@ require_once __DIR__."/data_helpers.php";
 
 use Carbon\Carbon;
 
-$compressedPath = $zip ? 'compressed' : ''; $zipExt = $zip ? '.gz' : '';
+$compressedPath = $zip ? 'compressed/' : ''; $zipExt = $zip ? '.gz' : '';
 foreach ($tickers as $ticker) {
     foreach ($mins as $min) {
         foreach ($years as $year) {
@@ -32,7 +32,7 @@ foreach ($tickers as $ticker) {
                     $datetime->addDays();
                 } else if ((int)$min >= 60 && (int)$min < 1440) {
                     $source_tf = 60;
-                    $path = __DIR__."/../minute_data/$compressedPath/$offerside/monthly/{$min}mins/$ticker/$year/";
+                    $path = __DIR__."/../minute_data/$compressedPath$offerside/monthly/{$min}mins/$ticker/$year/";
                     
                     if (!is_dir($path)) {
                         mkdir($path, 0777, true);
@@ -56,7 +56,7 @@ foreach ($tickers as $ticker) {
                 } else if ((int)$min >= 1440) {
                     // consoleLog('info', 'using 1440min timeframe');
                     $source_tf = 1440;
-                    $path = __DIR__."/../minute_data/$compressedPath/$offerside/yearly/{$min}mins/$ticker/";
+                    $path = __DIR__."/../minute_data/$compressedPath$offerside/yearly/{$min}mins/$ticker/";
                                         
                     if (!is_dir($path)) {
                         mkdir($path, 0777, true);
@@ -64,7 +64,7 @@ foreach ($tickers as $ticker) {
                     $result_path = $path."$year-{$min}min_data.csv$zipExt";
                     compoundMinute($ticker, $datetime, $result_path, (int)$min, $source_tf, offerside: $offerside, zip: $zip);
                     $paths = [];
-                    $datetime->addMonth();
+                    $datetime->addYear();
                 }
                 
                 // $datetime->addDays();

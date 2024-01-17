@@ -158,14 +158,14 @@ function compoundMinute(string $ticker, Carbon $datetim, string $result_path, in
         fputs($f_result, "start-datetime: $datetim\r");
     while (1) {
         if (($csv_row = fgetcsv($fh, separator: ',')) === false) {
-            $nopush = $open == 0 && $close == 0 && $high == 0 && $low == 0 && $volume == 0;
+            $nopush = $open == 0 && $high == 0 && $low == 0 && $close == 0 && $volume == 0;
             if (!count($files)) {
                 // consoleLog("info", "end of file detected");
                 if (!$nopush)
-                    fputcsv($f_result, [$currentime, $open, $close, $high, $low, $volume]);
+                    fputcsv($f_result, [$currentime, $open, $high, $low, $close, $volume]);
                 // fwrite($f_result, "$timestamp,$open,$close,$high,$low,$volume\n");
                 $currentime = 0; $minutes_count = 0; $canpush = false;
-                $open = 0; $close = 0; $high = 0; $low = 0; $volume = 0;
+                $open = 0; $high = 0; $low = 0; $close = 0; $volume = 0;
 
                 fclose($fh);
                 unset($fh);
@@ -178,8 +178,7 @@ function compoundMinute(string $ticker, Carbon $datetim, string $result_path, in
 
                     // consoleLog("info", "end of file detected");
                     if (!$nopush)
-                        // fwrite($f_result, implode(',', [$currentime, $open, $close, $high, $low, $volume]).PHP_EOL);
-                        fputcsv($f_result, [$currentime, $open, $close, $high, $low, $volume]);
+                        fputcsv($f_result, [$currentime, $open, $high, $low, $close, $volume]);
                     // fwrite($f_result, "$timestamp,$open,$close,$high,$low,$volume\n");
                     $currentime = 0; $minutes_count = 0; $canpush = false;
                     $open = 0; $close = 0; $high = 0; $low = 0; $volume = 0;
@@ -205,9 +204,7 @@ function compoundMinute(string $ticker, Carbon $datetim, string $result_path, in
         $date->addSeconds($newtime - $prevtime);
         $prevtime = $newtime;
         
-        if ((double)$csv_row[5] == 0) {
-        // if ((double)$csv_row[5] == 0 && ($date->isFriday() || $date->isSaturday() || $date->isSunday())) {
-            // consoleLog('info', 'skipping flats on sunday');
+        if ((double)$csv_row[5] == 0) {  //If there is no traded volume
             continue;
         }
         
@@ -216,21 +213,21 @@ function compoundMinute(string $ticker, Carbon $datetim, string $result_path, in
             if ($canpush) {
                 $minutes_count = 0;
                 $canpush = false;
-                fputcsv($f_result, [$currentime, $open, $close, $high, $low, $volume]);
+                fputcsv($f_result, [$currentime, $open, $high, $low, $close, $volume]);
                 // fwrite($f_result, "$currentime,$open,$close,$high,$low,$volume\n");
             }
             $canpush = true;
             $currentime = $newtime;
             $open = (double) $csv_row[1];
-            $close = (double) $csv_row[2];
-            $high = (double) $csv_row[3];
-            $low = (double) $csv_row[4];
+            $high = (double) $csv_row[2];
+            $low = (double) $csv_row[3];
+            $close = (double) $csv_row[4];
             $volume = doubleval(number_format((double)$csv_row[5], 2, '.', ''));
         } else {
             $canpush = true;
-            $high = $high > (double) $csv_row[3] ? $high : (double) $csv_row[3];
-            $low = $low < (double) $csv_row[4] ? $low : (double) $csv_row[4];
-            $close = (double) $csv_row[2];
+            $high = $high > (double) $csv_row[2] ? $high : (double) $csv_row[2];
+            $low = $low < (double) $csv_row[3] ? $low : (double) $csv_row[3];
+            $close = (double) $csv_row[4];
             $volume = doubleval(number_format($volume + (double)$csv_row[5], 2, '.', ''));
         }
         $minutes_count = $source_timeframe;
