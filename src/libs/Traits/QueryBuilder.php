@@ -245,7 +245,7 @@ trait QueryBuilder
 
         if ($this->child->softdeletes) {
             $query_arr['deleted_at'] = "IS NULL";
-            $this->or_ands[] = "AND";
+            is_array($this->or_ands) ? $this->or_ands[] = "AND" : $this->or_ands = "AND";
         }
 
         if (count($select)) {

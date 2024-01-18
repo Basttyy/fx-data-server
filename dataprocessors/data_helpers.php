@@ -219,15 +219,15 @@ function compoundMinute(string $ticker, Carbon $datetim, string $result_path, in
             $canpush = true;
             $currentime = $newtime;
             $open = (double) $csv_row[1];
-            $high = (double) $csv_row[2];
+            $close = (double) $csv_row[2];
             $low = (double) $csv_row[3];
-            $close = (double) $csv_row[4];
+            $high = (double) $csv_row[4];
             $volume = doubleval(number_format((double)$csv_row[5], 2, '.', ''));
         } else {
             $canpush = true;
-            $high = $high > (double) $csv_row[2] ? $high : (double) $csv_row[2];
+            $high = $high > (double) $csv_row[4] ? $high : (double) $csv_row[4];
             $low = $low < (double) $csv_row[3] ? $low : (double) $csv_row[3];
-            $close = (double) $csv_row[4];
+            $close = (double) $csv_row[2];
             $volume = doubleval(number_format($volume + (double)$csv_row[5], 2, '.', ''));
         }
         $minutes_count = $source_timeframe;
