@@ -94,6 +94,17 @@ interface ModelInterface
      */
     public function all($is_protected = true, $select = []);
 
+    
+    /**
+     * Alias for all(), Find all elements of a model
+     * 
+     * @param bool $is_protected 'wether to hide or show protected values'
+     * @param array $select 'what parameters of model to fetch in results'
+     * 
+     * @return array|false
+     */
+    public function get($is_protected = true, $select = []);
+
     /**
      * Count total number of elements in a model from results of a query
      * 
