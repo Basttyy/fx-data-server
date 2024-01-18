@@ -193,6 +193,11 @@ trait QueryBuilder
         return $this->fill($model[0]);
     }
 
+    public function first($is_protected = true)
+    {
+        return $this->find(is_protected: $is_protected);
+    }
+
     public function findBy($key, $value, $is_protected = true, $select = [])
     {
         $query_arr = $this->bind_or_filter === null ? [] : $this->bind_or_filter;
