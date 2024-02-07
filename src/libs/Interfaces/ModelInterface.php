@@ -13,6 +13,8 @@ interface ModelInterface
      */
     public function orderBy($column = "id", $direction = "ASC");
 
+    // public function addSelect()
+
     /**
      * Fill a model with array of values
      * @param array $values
@@ -60,6 +62,16 @@ interface ModelInterface
     public function find(int $id = 0, $is_protected = true);
 
     /**
+     * Alias of Find with no id provided
+     * Retrieves the first of all results of a query
+     * @param int $id
+     * @param bool $is_protected 'wether to hide or show protected values'
+     * 
+     * @return self|false
+     */
+    public function first($is_protected = true);
+
+    /**
      * Find a model by key and value
      * 
      * @param string $key
@@ -93,6 +105,17 @@ interface ModelInterface
      * @return array|false
      */
     public function all($is_protected = true, $select = []);
+
+    
+    /**
+     * Alias for all(), Find all elements of a model
+     * 
+     * @param bool $is_protected 'wether to hide or show protected values'
+     * @param array $select 'what parameters of model to fetch in results'
+     * 
+     * @return array|false
+     */
+    public function get($is_protected = true, $select = []);
 
     /**
      * Count total number of elements in a model from results of a query

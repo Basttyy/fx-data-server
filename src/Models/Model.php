@@ -4,6 +4,7 @@ namespace Basttyy\FxDataServer\Models;
 require_once __DIR__."/../libs/helpers.php";
 
 use Basttyy\FxDataServer\libs\Interfaces\ModelInterface;
+use Basttyy\FxDataServer\libs\Interfaces\UserModelInterface;
 use Basttyy\FxDataServer\libs\mysqly;
 use Basttyy\FxDataServer\libs\Traits\QueryBuilder;
 
@@ -62,20 +63,13 @@ abstract class Model implements ModelInterface
     const UPDATED_AT = 'updated_at';
 
     /**
-     * The child class that currently using the parent class
-     * 
-     * @var object
-     */
-    private $child;
-
-    /**
      * Create a new model instance.
      *
      * @param array  $attributes
-     * @param object $child
+     * @param ModelInterface|ModelInterface&UserModelInterface $child
      * @return void
      */
-    public function __construct(object $child = null)
+    public function __construct($child = null)
     {
         $this->child = $child;
         mysqly::auth(env('DB_USER'), env('DB_PASS'), env('DB_NAME'));

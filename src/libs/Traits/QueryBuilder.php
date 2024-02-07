@@ -3,6 +3,7 @@
 namespace Basttyy\FxDataServer\libs\Traits;
 
 use Basttyy\FxDataServer\libs\Arr;
+use Basttyy\FxDataServer\libs\Interfaces\ModelInterface;
 use Basttyy\FxDataServer\libs\mysqly;
 use DateTime;
 use Exception;
@@ -72,6 +73,13 @@ trait QueryBuilder
      * @var string
      */
     protected $order = "";
+
+    /**
+     * The child class that currently using the parent class
+     * 
+     * @var ModelInterface|ModelInterface&UserModelInterface
+     */
+    private $child;
 
     private function prepareModel()
     {
@@ -185,6 +193,11 @@ trait QueryBuilder
         return $this->fill($model[0]);
     }
 
+    public function first($is_protected = true)
+    {
+        return $this->find(is_protected: $is_protected);
+    }
+
     public function findBy($key, $value, $is_protected = true, $select = [])
     {
         $query_arr = $this->bind_or_filter === null ? [] : $this->bind_or_filter;
@@ -260,6 +273,11 @@ trait QueryBuilder
         }
         $this->resetInstance();
         return $fields;
+    }
+
+    public function get($is_protected = true, $select = [])
+    {
+        return $this->all($is_protected, $select);
     }
 
     public function count()
