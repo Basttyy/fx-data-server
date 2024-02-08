@@ -5,6 +5,12 @@ namespace Basttyy\FxDataServer\libs\Interfaces;
 interface ModelInterface
 {
     /**
+     * Get a new querybuilder instance of the called class
+     * 
+     * @return ModelInterface|ModelInterface&UserModelInterface
+     */
+    public static function getBuilder();
+    /**
      * Order query by a culumn in a direction "ASC" or "DESC"
      * @param string $column
      * @param string $direction

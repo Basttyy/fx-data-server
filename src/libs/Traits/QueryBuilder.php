@@ -81,6 +81,12 @@ trait QueryBuilder
      */
     private $child;
 
+    public static function getBuilder()
+    {
+        $classname = get_called_class();
+        return new $classname;
+    }
+
     private function prepareModel()
     {
         $this->or_ands = 'AND';
