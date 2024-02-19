@@ -32,7 +32,11 @@
     "scripts": {
         "dev": [
             "Composer\\Config::disableProcessTimeout",
-            "php -S 192.168.0.153:20334 -t . server.php"
+            "php -S fx-data-server.test:80 -t . server.php"
+        ],
+        "dev-mac": [
+            "Composer\\Config::disableProcessTimeout",
+            "sudo php -S fx-data-server.test:80 -t . server.php"
         ],
         "queue-dev": [
             "Composer\\Config::disableProcessTimeout",
@@ -43,7 +47,6 @@
             "./node_modules/.bin/nodemon --config nodemon_console.json ./src/Console/BurriedJobRunner.php"
         ],
         "queue-work": "php ./src/Console/JobRunner.php",
-        "start": "php server.php 127.0.0.1:23458",
         "add-model": "php ./src/Console/CmdLine/CmdLine.php create-model",
         "add-controller": "php ./src/Console/CmdLine/CmdLine.php create-controller",
         "add-api-controller": "php ./src/Console/CmdLine/CmdLine.php create-api-controller",
