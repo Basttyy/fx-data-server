@@ -1,4 +1,6 @@
 <?php
+namespace Test\Integration;
+
 use Dotenv\Dotenv;
 use Faker\Factory as Faker;
 use GuzzleHttp\Exception\BadResponseException;
@@ -7,14 +9,13 @@ use Psr\Http\Message\ResponseInterface;
 
 abstract class TestCase extends BaseTestCase
 {
-    private GuzzleHttp\Client $client;
+    private \GuzzleHttp\Client $client;
     private $base_username;
     private $base_password;
     private $base_url;
     public \Faker\Generator $faker;
-    public function __construct($initstr = '')
+    public function __construct()
     {
-        echo $initstr;
         $dotenv = strtolower(PHP_OS_FAMILY) === 'windows' ? Dotenv::createImmutable(__DIR__ . "\\..\\..\\") : Dotenv::createImmutable(__DIR__ . '/../../');
         $dotenv->load();
         $dotenv->required(['TEST_USER', 'TEST_PASS', 'SERVER_APP_URI'])->notEmpty();
@@ -22,7 +23,12 @@ abstract class TestCase extends BaseTestCase
         $this->base_password = env('TEST_PASS');
         $this->base_url = env('SERVER_APP_URI');
         $this->faker = Faker::create('en_US');
-        $this->client = new GuzzleHttp\Client();
+        $this->client = new \GuzzleHttp\Client();
+    }
+
+    protected function displayTestInfo ($infostr = '')
+    {
+        echo $infostr;
     }
 
     /**
@@ -34,7 +40,7 @@ abstract class TestCase extends BaseTestCase
      * 
      * @return ResponseInterface
      */
-    public function makeRequest($method, $endpoint, $body = null, $header = null)
+    protected function makeRequest($method, $endpoint, $body = null, $header = null)
     {
 
         //echo $method.'<>'.$endpoint.'<>'.serialize($body).'<>'.serialize($header).PHP_EOL;
@@ -47,7 +53,7 @@ abstract class TestCase extends BaseTestCase
         ]);
     }
 
-    public function makeRequestAndParse ($method, $endpoint, $body = null, $header = null, $only_token = false)
+    protected function makeRequestAndParse ($method, $endpoint, $body = null, $header = null, $only_token = false)
     {
         try {
             $response = $this->makeRequest($method, $endpoint, $body, $header);
@@ -78,7 +84,7 @@ abstract class TestCase extends BaseTestCase
         }
     }
 
-    public function authenticate(bool $only_token = false, string $username = '', string $password = ''): array|string
+    protected function authenticate(bool $only_token = false, string $username = '', string $password = ''): array|string
     {
         return $this->makeRequestAndParse('post', 'auth/login', [
             'email' => $username !== '' ? $username : $this->base_username,
