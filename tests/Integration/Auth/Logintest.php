@@ -16,7 +16,7 @@ final class LoginTest extends TestCase
 
     public function testBadCredentialsGives401()
     {
-        $this->initialize("LoginTest: running test bad credentials give 401");
+        $this->initialize("running test bad credentials give 401");
         $response = $this->authenticate(false, 'anything', 'anypass');
         $this->assertIsArray($response);
         $this->assertStringContainsString('401', $response['status_code']);
