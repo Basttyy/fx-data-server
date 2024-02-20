@@ -2,8 +2,13 @@
 
 namespace Basttyy\FxDataServer\Models;
 
-final class User extends Model
+use Basttyy\FxDataServer\libs\Interfaces\UserModelInterface;
+use Basttyy\FxDataServer\libs\Traits\UserAwareQueryBuilder;
+
+final class User extends Model implements UserModelInterface
 {
+    use UserAwareQueryBuilder;
+    
     const INACTIVE = "inactive";
     const UNVERIFIED = "unverified";
     const ACTIVE = "active";
