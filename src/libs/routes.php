@@ -33,9 +33,9 @@ use Basttyy\FxDataServer\Controllers\NotFoundController;
 call_user_func(new RequestLogController('create'));
 
 /// Auth routes
-post('/login', new AuthController());
-get('/login', new AuthController('login_oauth'));
-get('/refresh-token', new AuthController('refresh_token'));
+post('/auth/login', new AuthController());
+get('/auth/login', new AuthController('login_oauth'));
+get('/auth/refresh-token', new AuthController('refresh_token'));
 get('/auth/captcha', new CaptchaController());
 post('/auth/captcha', new CaptchaController('validate'));
 get('/auth/twofa/mode/$mode', new TwoFaController());

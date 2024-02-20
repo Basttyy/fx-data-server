@@ -4,6 +4,7 @@ namespace Basttyy\FxDataServer\libs\Traits;
 
 use Basttyy\FxDataServer\libs\Arr;
 use Basttyy\FxDataServer\libs\Interfaces\ModelInterface;
+use Basttyy\FxDataServer\libs\Interfaces\UserModelInterface;
 use Basttyy\FxDataServer\libs\mysqly;
 use DateTime;
 use Exception;
@@ -44,28 +45,28 @@ trait QueryBuilder
      * 
      * @var array|string
      */
-    private $operators;
+    protected $operators;
 
     /**
      * The booleans to add queries together
      * 
      * @var array|string
      */
-    private $or_ands;
+    protected $or_ands;
 
     /**
      * The filter key values
      * 
      * @var array|null
      */
-    private $bind_or_filter;
+    protected $bind_or_filter;
 
     /**
      * Wether to run queries as transaction
      * 
      * @var bool
      */
-    private $use_transaction;
+    protected $use_transaction;
 
     /**
      * Sets how the query should be ordered
@@ -79,7 +80,7 @@ trait QueryBuilder
      * 
      * @var ModelInterface|ModelInterface&UserModelInterface
      */
-    private $child;
+    protected $child;
 
     public static function getBuilder()
     {
@@ -93,7 +94,7 @@ trait QueryBuilder
         $this->operators = '=';
     }
 
-    private function resetInstance()
+    protected function resetInstance()
     {
         $this->bind_or_filter = null;
         $this->or_ands = 'AND';

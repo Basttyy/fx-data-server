@@ -6,7 +6,7 @@ final class LoginTest extends TestCase
 {
     public function testUserCanLogin()
     {
-        $this->displayTestInfo("\nrunning test user can login");
+        $this->initialize("running test user can login");
         $response = $this->authenticate();
         $this->assertEquals(200, $response['status_code']);
         $this->assertArrayHasKey('data', $response['body']);
@@ -16,7 +16,7 @@ final class LoginTest extends TestCase
 
     public function testBadCredentialsGives401()
     {
-        $this->displayTestInfo("LoginTest: running test bad credentials give 401");
+        $this->initialize("LoginTest: running test bad credentials give 401");
         $response = $this->authenticate(false, 'anything', 'anypass');
         $this->assertIsArray($response);
         $this->assertStringContainsString('401', $response['status_code']);
