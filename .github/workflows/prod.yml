@@ -1,0 +1,51 @@
+name: Production Merge Check
+
+on:
+  pull_request:
+    branches: [ "prod" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Validate composer.json and composer.lock
+      run: composer validate --strict
+
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress
+
+    - name: Setup Mysql
+      uses: ankane/setup-mysql@v1
+      with:
+        mysql-version: 5.7
+        database: testdb
+
+
+    - name: Copy env and Migrate
+      run: |
+        cp .env.example .env
+        mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql
+        composer run-script migrate-test
+
+    - name: Start Test Server and Run test suite
+      run: |
+        echo "127.0.0.1 fx-data-server.test" | tee -a /etc/hosts
+        composer run-script dev &
+        sleep 2
+        composer run-script test
