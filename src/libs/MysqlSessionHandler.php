@@ -19,7 +19,9 @@ class MysqlSessionHandler implements SessionHandlerInterface, SessionIdInterface
     {
         $this->table = "session";
         $dbname = env('DB_NAME');
-        $this->dbConnection = new PDO("mysql:host=localhost;dbname=$dbname", env('DB_USER'), env('DB_PASS'));
+        $dbhost = env('DB_HOST');
+        $dbadapter = env('DB_ADAPTER');
+        $this->dbConnection = new PDO("$dbadapter:host=$dbhost;dbname=$dbname", env('DB_USER'), env('DB_PASS'));
     }
     public function open($sessionSavePath, $sessionName): bool
     {
