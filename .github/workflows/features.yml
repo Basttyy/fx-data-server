@@ -34,13 +34,12 @@ jobs:
       uses: shogo82148/actions-setup-mysql@v1
       with:
         mysql-version: 'mariadb-10.9'
-        root-password: password
         auto-start: true
 
     - name: Copy env and Migrate
       run: |
         cp .env.example .env
-        mysql -u root -p password -h 127.0.0.1 -e 'CREATE DATABASE IF NOT EXISTS `testdb`'
+        mysql -u root -h 127.0.0.1 -e 'CREATE DATABASE IF NOT EXISTS `testdb`'
         composer run-script migrate-test
 
     - name: Start Test Server and Run test suite
