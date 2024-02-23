@@ -44,7 +44,7 @@ jobs:
 
     - name: Start Test Server and Run test suite
       run: |
-        sudo echo "127.0.0.1 fx-data-server.test" | tee -a /etc/hosts
+        bash -c "echo '127.0.0.1 fx-data-server.test' | sudo tee -a /etc/hosts"
         composer run-script dev &
         sleep 2
         composer run-script test
