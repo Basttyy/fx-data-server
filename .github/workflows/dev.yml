@@ -31,21 +31,20 @@ jobs:
       run: composer install --prefer-dist --no-progress
 
     - name: Setup Mysql
-
       uses: shogo82148/actions-setup-mysql@v1
       with:
         mysql-version: 'mariadb-10.9'
-    
-    - run: mysql -u root -h 127.0.0.1 -e 'CREATE DATABASE `fx-data-server`'
+        auto-start: true
 
     - name: Copy env and Migrate
       run: |
         cp .env.example .env
-        composer run-script migrate-test
+        mysql -u root -h localhost -e 'CREATE DATABASE IF NOT EXISTS `testdb`'
 
     - name: Start Test Server and Run test suite
       run: |
-        echo "127.0.0.1 fx-data-server.test" | tee -a /etc/hosts
-        composer run-script dev &
+        bash -c "echo '127.0.0.1 fx-data-server.test' | sudo tee -a /etc/hosts"
+        composer run-script dev-mac &
         sleep 2
+        composer run-script migrate-test
         composer run-script test

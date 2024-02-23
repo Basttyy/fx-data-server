@@ -40,6 +40,10 @@
             "Composer\\Config::disableProcessTimeout",
             "sudo php -S fx-data-server.test:80 -t . server.php"
         ],
+        "test-server": [
+            "Composer\\Config::disableProcessTimeout",
+            "sudo php -S fx-data-server.test:80 . server.php"
+        ],
         "queue-dev": [
             "Composer\\Config::disableProcessTimeout",
             "./node_modules/.bin/nodemon --config nodemon_console.json ./src/Console/JobRunner.php"
