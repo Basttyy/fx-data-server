@@ -42,7 +42,7 @@
         ],
         "test-server": [
             "Composer\\Config::disableProcessTimeout",
-            "sudo php -S fx-data-server.test:80 . server.php"
+            "sudo php -S fx-data-server.test:80 -t . server.php -d error_log=/dev/null -d display_errors=off"
         ],
         "queue-dev": [
             "Composer\\Config::disableProcessTimeout",
