@@ -40,11 +40,11 @@ jobs:
       run: |
         cp .env.example .env
         mysql -u root -h 127.0.0.1 -e 'CREATE DATABASE IF NOT EXISTS `testdb`'
-        composer run-script migrate-test
 
     - name: Start Test Server and Run test suite
       run: |
         bash -c "echo '127.0.0.1 fx-data-server.test' | sudo tee -a /etc/hosts"
         composer run-script dev-mac &
         sleep 2
+        composer run-script migrate-test
         composer run-script test
