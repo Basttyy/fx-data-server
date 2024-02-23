@@ -40,7 +40,6 @@ jobs:
 
     - name: Copy env and Migrate
       run: |
-        echo "${{ secrets.FIREBASE_CREDENTIALS_DEV }}" | base64 -d > firebase-adminskd-keys.json
         cp .env.example .env
         composer run-script migrate-test
 
