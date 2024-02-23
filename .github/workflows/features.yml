@@ -39,7 +39,7 @@ jobs:
     - name: Copy env and Migrate
       run: |
         cp .env.example .env
-        service mysql start
+        sudo service mysql start
         mysql -u root -p password -h 127.0.0.1 -e 'CREATE DATABASE IF NOT EXISTS `testdb`'
         composer run-script migrate-test
 
