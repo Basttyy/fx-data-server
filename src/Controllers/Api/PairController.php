@@ -327,5 +327,5 @@ final class PairController
             $message = env("APP_ENV") === "local" ? $e->getMessage() : "we encountered a problem";
             return JsonResponse::serverError("we got some error here".$message);
         }
-    }
+    } 
 }

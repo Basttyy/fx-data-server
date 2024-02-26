@@ -51,6 +51,17 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
         return $data;
     }
 
+    /**
+     * Make a Request and parse response into an array
+     * @param string $method
+     * @param string $endpoint
+     * @param array $body
+     * @param array $header
+     * @param boolean $only_token
+     * 
+     * @return array | string
+     * @throws \Exception
+     */
     protected function makeRequestAndParse ($method, $endpoint, $body = null, $header = null, $only_token = false)
     {
         try {
@@ -76,7 +87,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
                     'status_code' => $response->getStatusCode()
                 ];
             } else {
-                return $e;
+                throw $e;
             }
         }
     }
