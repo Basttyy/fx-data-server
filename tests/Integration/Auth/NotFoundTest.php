@@ -19,5 +19,4 @@ final class NotFoundTest extends TestCase
         $this->assertArrayHasKey("message", $body);
         $this->assertEquals("the requested resource is not found", $body["message"]);
     }
-    
 }
