@@ -40,6 +40,10 @@
             "Composer\\Config::disableProcessTimeout",
             "sudo php -S fx-data-server.test:80 -t . server.php"
         ],
+        "test-server": [
+            "Composer\\Config::disableProcessTimeout",
+            "sudo php -S fx-data-server.test:80 server.php >> /dev/null 2>&1"
+        ],
         "queue-dev": [
             "Composer\\Config::disableProcessTimeout",
             "./node_modules/.bin/nodemon --config nodemon_console.json ./src/Console/JobRunner.php"
@@ -57,7 +61,7 @@
         "migrate": "./vendor/bin/phinx migrate",
         "migrate-test": "vendor/bin/phinx migrate -e testing && vendor/bin/phinx seed:run -e testing",
         "seed": "./vendor/bin/phinx seed:run",
-        "test": "vendor/bin/phpunit tests"
+        "test": "./vendor/bin/phpunit tests"
     },
     "require-dev": {
         "phpunit/phpunit": "^11.0",

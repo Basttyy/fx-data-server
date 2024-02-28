@@ -2,7 +2,7 @@
 namespace Test\Integration\Auth;
 use Test\Integration\TestCase;
 
-final class LoginTest extends TestCase
+final class UserLoginTest extends TestCase
 {
     public function testUserCanLogin()
     {
