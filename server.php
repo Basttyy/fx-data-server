@@ -33,17 +33,18 @@ $dotenv = strtolower(PHP_OS_FAMILY) === 'windows' ? Dotenv::createImmutable(__DI
 $dotenv->load();
 $dotenv->required(['APP_KEY', 'APP_ENV', 'DB_USER', 'DB_HOST', 'DB_NAME', 'ADMIN_APP_URI', 'USER_APP_URI', 'SERVER_APP_URI', 'FINGERPRINT_MAX_AGE', 'SECRET_TOKEN', 'SHA_TYPE', 'CONTENT_LENGTH_MIN'])->notEmpty();
 
-$server = $_SERVER['SERVER_SOFTWARE'];
+$server = strtolower($_SERVER['SERVER_SOFTWARE']) ?? "";
 
-if (str_contains($_SERVER['SERVER_SOFTWARE'], 'PHP/')) {
+
+if ($_ENV['APP_ENV'] === "local" && (!str_contains($server, 'apache') && (!str_contains($server, 'nginx')) && (!str_contains($server, 'litespeed')))) {
     // file_put_contents("php://stdout", "[" . 0 . "] " . "server software is:  $server" . "\n");
     $http_origin = $_SERVER["HTTP_ORIGIN"] ?? "";
     if ($http_origin === $_ENV['USER_APP_URI'] || $http_origin === $_ENV['ADMIN_APP_URI'] || $http_origin === $_ENV['SERVER_APP_URI']) {
-        file_put_contents("php://stdout", "[" . 0 . "] " . "cors header applied: $http_origin" . "\n");
+        // file_put_contents("php://stdout", "[" . 0 . "] " . "cors header applied: $http_origin" . "\n");
         applyCorsHeaders($http_origin);
     }
-    
-    if ($_ENV['APP_ENV'] === "local" && preg_match('/\.(?:js|css|svg|ico|woff2|ttf|webp|pdf|png|jpg|json|jpeg|gif)$/', $_SERVER["REQUEST_URI"])) {
+
+    if (preg_match('/\.(?:js|css|svg|ico|woff2|ttf|webp|pdf|png|jpg|json|jpeg|gif)$/', $_SERVER["REQUEST_URI"])) {
         $path = $_SERVER['DOCUMENT_ROOT'].$_SERVER["REQUEST_URI"];
         if (file_exists($path)) {
             $mime = mime_content_type($path);
@@ -55,10 +56,10 @@ if (str_contains($_SERVER['SERVER_SOFTWARE'], 'PHP/')) {
             echo file_get_contents($path);
             return true;
         }
-    
+
         header("Content-type: application/json", true, 404);
         echo json_encode(["message" => "File Not Found"]);
-    
+
         return true;
     }
 }
