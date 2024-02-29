@@ -11,7 +11,7 @@ use Basttyy\FxDataServer\Controllers\Api\Auth\CaptchaController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\TwoFaController;
 use Basttyy\FxDataServer\Controllers\Api\BlogController;
 use Basttyy\FxDataServer\Controllers\Api\FeedbackController;
-use Basttyy\FxDataServer\Controllers\Api\FxController;
+use Basttyy\FxDataServer\Controllers\Api\FxHistoryController;
 use Basttyy\FxDataServer\Controllers\Api\MigrateController;
 use Basttyy\FxDataServer\Controllers\Api\MiscellaneousController;
 use Basttyy\FxDataServer\Controllers\Api\PairController;
@@ -33,9 +33,9 @@ use Basttyy\FxDataServer\Controllers\NotFoundController;
 call_user_func(new RequestLogController('create'));
 
 /// Auth routes
-post('/login', new AuthController());
-get('/login', new AuthController('login_oauth'));
-get('/refresh-token', new AuthController('refresh_token'));
+post('/auth/login', new AuthController());
+get('/auth/login', new AuthController('login_oauth'));
+get('/auth/refresh-token', new AuthController('refresh_token'));
 get('/auth/captcha', new CaptchaController());
 post('/auth/captcha', new CaptchaController('validate'));
 get('/auth/twofa/mode/$mode', new TwoFaController());
@@ -147,7 +147,7 @@ delete('/blog/posts/$id/comments/$id', new PostCommentController('delete'));
 get('/fx/download/ticker/$ticker/from/$from/nums/$nums/faster/$faster', $downloadTickData);
 get('/fx/candles/ticker/$ticker/from/$fro/nums/$num/timeframe/$timefram', $getTimeframeCandles);
 // get('/fx/download/min/ticker/$ticker/period/$period/from/$from/incr/$incr/nums/$nums', new FxController());
-get('/fx/download/min/ticker/$ticker/period/$period/yr/$year/mn/$month/wk/$week', new FxController());
+get('/fx/download/min/ticker/$ticker/offerside/$offerside/period/$period/yr/$year/mn/$month/wk/$week', new FxHistoryController());
 get('/fx/tickers/query/$query', new MiscellaneousController('search_ticker'));
 get('/fx/tickers/query', new MiscellaneousController('search_ticker'));
 
