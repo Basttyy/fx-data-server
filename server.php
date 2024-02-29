@@ -36,7 +36,7 @@ $dotenv->required(['APP_KEY', 'APP_ENV', 'DB_USER', 'DB_HOST', 'DB_NAME', 'ADMIN
 $server = strtolower($_SERVER['SERVER_SOFTWARE']) ?? "";
 
 
-if ($_ENV['APP_ENV'] === "local" && (!in_array($server, ['apache', 'nginx', 'litespeed']))) {
+if ($_ENV['APP_ENV'] === "local" && (!str_contains($server, 'apache') && (!str_contains($server, 'nginx')) && (!str_contains($server, 'litespeed')))) {
     // file_put_contents("php://stdout", "[" . 0 . "] " . "server software is:  $server" . "\n");
     $http_origin = $_SERVER["HTTP_ORIGIN"] ?? "";
     if ($http_origin === $_ENV['USER_APP_URI'] || $http_origin === $_ENV['ADMIN_APP_URI'] || $http_origin === $_ENV['SERVER_APP_URI']) {
