@@ -99,6 +99,8 @@ trait QueryBuilder
         $this->bind_or_filter = null;
         $this->or_ands = 'AND';
         $this->operators = '=';
+        $this->order = '';
+        $this->use_transaction = false;
     }
 
     public function orderBy($column = "id", $direction = "ASC")
@@ -180,15 +182,20 @@ trait QueryBuilder
 
     public function find(int $id = 0, $is_protected = true)
     {
-        $id = $id > 0 ? $id : $this->child->id;
         $query_arr = [];
+        if ($id === 0 && isset($this->child->id)) {
+            $id = $this->child->id;
+        }
         if ($this->bind_or_filter)
             $query_arr = $this->bind_or_filter;
 
+        
+        if ($id < 0)
+            $query_arr['id'] = $id;
         if ($this->child->softdeletes) {
             $query_arr['deleted_at'] = "IS NULL";
+            is_string($this->or_ands) ? $this->or_ands = ["AND"] : array_push($this->or_ands, "AND");
         }
-        $query_arr['id'] = $id;
         
         $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
 
@@ -209,10 +216,11 @@ trait QueryBuilder
     {
         $query_arr = $this->bind_or_filter === null ? [] : $this->bind_or_filter;
 
+        $query_arr[$key] = $value;
         if ($this->child->softdeletes) {
             $query_arr['deleted_at'] = "IS NULL";
+            is_string($this->or_ands) ? $this->or_ands = ["AND"] : array_push($this->or_ands, "AND");
         }
-        $query_arr[$key] = $value;
         if ($this->order !== "")
             $query_arr['order_by'] = $this->order;
     
@@ -238,12 +246,13 @@ trait QueryBuilder
 
         $query_arr = [];
 
-        if ($this->child->softdeletes) {
-            $query_arr['deleted_at'] = "IS NULL";
-        }
-
         foreach ($keys as $pos => $key) {
             $query_arr[$key] = $values[$pos];
+            is_string($this->or_ands) ? $this->or_ands = [$or_and] : array_push($this->or_ands, $or_and);
+        }
+        if ($this->child->softdeletes) {
+            $query_arr['deleted_at'] = "IS NULL";
+            array_push($this->or_ands, "AND");
         }
         
         if (count($select)) {
@@ -251,7 +260,7 @@ trait QueryBuilder
         } else {
             $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
         }
-        if (!$fields = $or_and === "AND" ? mysqly::fetch($this->table, $query_arr, $fields) : mysqly::fetchOr($this->table, $query_arr, $fields)) {
+        if (!$fields = mysqly::fetch($this->table, $query_arr, $fields)) {
             return false;
         }
         return $fields;
@@ -298,6 +307,7 @@ trait QueryBuilder
         // }
         if ($this->child->softdeletes) {
             $query_arr['deleted_at'] = "IS NULL";
+            is_string($this->or_ands) ? $this->or_ands = ["AND"] : array_push($this->or_ands, "AND");
         }
 
         if (!$count = mysqly::count($this->table, $query_arr, $this->operators, $this->or_ands)) {
@@ -322,6 +332,7 @@ trait QueryBuilder
         $query_arr['id'] = $id;
         if ($this->child->softdeletes) {
             $query_arr['deleted_at'] = "IS NULL";
+            is_string($this->or_ands) ? $this->or_ands = ["AND"] : array_push($this->or_ands, "AND");
             if (!mysqly::update($this->table, $query_arr, ['deleted_at' => "now"], $this->operators, $this->or_ands)) {
                 $this->resetInstance();
                 return false;
@@ -454,10 +465,11 @@ trait QueryBuilder
         
         $query_arr = $this->bind_or_filter === null ? [] : $this->bind_or_filter;
 
+        $query_arr['id'] = $id;
         if ($this->child->softdeletes && !$internal) {
             $query_arr['deleted_at'] = "IS NULL";
+            is_string($this->or_ands) ? $this->or_ands = ["AND"] : array_push($this->or_ands, "AND");
         }
-        $query_arr['id'] = $id;
 
         if (!mysqly::update($this->table, $query_arr, $values, $this->operators, $this->or_ands)) {
             $this->resetInstance();

@@ -8,6 +8,20 @@ use Basttyy\FxDataServer\libs\NumberConverter;
 $tickers = isset($argv[1]) ? explode(',', strtoupper($argv[1])) : [];
 $years = isset($argv[2]) ? explode(',', $argv[2]) : [];
 
+$enc = base64_encode('_*^hkmC7~ge"5>i-');
+echo $enc."\n";
+echo base64_decode($enc."\n");
+// $f = fopen('pass.txt', 'w');
+$has = password_hash('_*^hkmC7~ge"5>i-', PASSWORD_BCRYPT);
+file_put_contents('pass.txt', $has);
+
+if (password_verify('_*^hkmC7~ge"5>i-', $has))
+    echo 'valid password';
+else
+    echo 'invalid password';
+
+exit (0);
+
 $datetime = new Carbon();
 
 foreach ($tickers as $ticker) {
