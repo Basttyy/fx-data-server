@@ -87,7 +87,7 @@ final class AuthController
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
-            if (!$_user = $this->user->where('email', $body['email'])->first(false)) {
+            if (!$_user = $this->user->where('email', $body['email'])->orWhere('username', $body['email'])->first(false)) {
                 throw new NotFoundException("invalid login details");
             }
             // echo "user found by email";

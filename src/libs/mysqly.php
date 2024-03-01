@@ -217,8 +217,11 @@ class mysqly {
           if (array_key_exists('order_by', $bind_or_filter)) {
             $len--;
           }
-          if (is_array($or_ands) && $len >= $or_ands)
-            array_shift($or_ands);
+
+          if (is_array($or_ands)) {
+            while ($len <= count($or_ands))
+              array_shift($or_ands);
+          }
 
           foreach ( $bind_or_filter as $k => $v ) {
             if ( $k == 'order_by' ) {
