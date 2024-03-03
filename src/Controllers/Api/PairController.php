@@ -200,7 +200,7 @@ final class PairController
                 'name' => 'required|string',
                 'description' => 'required|string',
                 'status' => "sometimes|string|in:$status",
-                'dollar_per_pip' => 'required|numeric',
+                'dollar_per_pip' => 'required|numeric', 
                 'history_start' => 'required|string',
                 'history_end' => 'required|string',
                 'exchange' => 'sometimes|string',

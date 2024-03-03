@@ -42,7 +42,7 @@ final class PlanController
                 $resp = $this->create();
                 break;
             case 'update':
-                $resp = $this->update($id);
+                $resp = $this->update($id); 
                 break;
             case 'delete':
                 $resp = $this->delete($id);
@@ -222,4 +222,5 @@ final class PlanController
             return JsonResponse::serverError("we got some error here".$message);
         }
     }
+
 }

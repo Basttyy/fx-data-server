@@ -88,7 +88,7 @@ delete('/test-sessions/$id', new TestSessionController('delete'));
 
 /// Pairs Routes
 get('/pairs/$id', new PairController());
-get('/pairs', new PairController('list'));
+// get('/pairs', new PairController('list'));
 get('/pairs/list/onlypair', new PairController('listonlypair'));
 get('/pairs/list/pairorsym/$id/query/$query', new PairController('query'));
 post('/pairs', new PairController('create'));
