@@ -85,7 +85,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
     {
         return $this->makeRequestAndParse('post', 'auth/login', [
             'email' => $username !== '' ? $username : $this->base_username,
-            'password' => $password !== '' ? $password : $this->base_password
+            'password' => base64_encode($password !== '' ? $password : $this->base_password)
         ], null, $only_token);
     }
 }
