@@ -1,12 +1,11 @@
 <?php
 
 namespace Test\Integration\Pair;
-use GuzzleHttp\Exceptions\RequestException;
+use GuzzleHttp\Exception\RequestException;
 use Psr\Http\Message\StreamInterface; 
 use Psr\Http\Message\ResponseInterface;
-use Exception;
+// use Exception;
 use Test\Integration\TestCase;
-// use PHPUnit\Framework\Testcase;
 
 final class CreateTest extends TestCase
 {
@@ -28,7 +27,7 @@ final class CreateTest extends TestCase
             'history_start' => '2024-01-01',
             'history_end' => '2024-12-31',
             'exchange' => 'Test Exchange',
-            'market' => 'forex',
+            'market' => 'fx',
             'short_name' => 'TP',
             'ticker' => 'TEST',
             'price_precision' => 2,
@@ -54,6 +53,49 @@ final class CreateTest extends TestCase
         $this->assertEquals($pairRandomDescription, $responseData['data']['description']);
     }
 
+    public function testUserCannotCreatePair()
+    {
+        $this->initialize("running test user cannot create pair");
+
+        try{
+            $token = $this->authenticate(true, "user@fxtester.com.ng", "123456789");
+
+            // $token = $this->authenticate(only_token: true);
+            $pairRandomName = $this->faker->currencyCode . $this->faker->currencyCode . '  Test Pair ' . $this->faker->uuid;
+            $pairRandomDescription = "Description for " . $pairRandomName;
+
+            $response = $this->makeRequest("POST", "pairs", [
+                'name' => $pairRandomName,
+                'description' => $pairRandomDescription,
+                'status' => 'enabled',
+                'dollar_per_pip' => 0.1,
+                'history_start' => '2024-01-01',
+                'history_end' => '2024-12-31',
+                'exchange' => 'Test Exchange',
+                'market' => 'fx',
+                'short_name' => 'TP',
+                'ticker' => 'TEST',
+                'price_precision' => 2,
+                'volume_precision' => 2,
+                'price_currency' => 'USD',
+                'type' => 'test',
+                'logo' => 'test_logo_url'
+            ], header: ["Authorization" => "Bearer " . $token]);
+
+        } catch (\Exception $e) {
+            if ($e instanceof RequestException) {
+                $this->assertSame(401, $e->getCode());
+                $response = $e->getResponse();
+                $body = json_decode($response->getBody()->getContents(), true);
+
+                $this->assertEquals(401, $response->getStatusCode());
+                $this->assertArrayHasKey("message", $body);
+                $this->assertEquals("you don't have this permission", $body["message"]);        
+            } else {
+                throw $e;
+            }
+        }
+    }
 
 
 

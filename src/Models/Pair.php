@@ -6,7 +6,7 @@ final class Pair extends Model
     const ENABLED = "enabled";
     const DISABLED = "disabled";
 
-    const FX = 'forex';
+    const FX = 'fx';
     const CRYPTO = 'crypto';
     const STOCKS = 'stock';
     const COMODITY = 'commodity';
