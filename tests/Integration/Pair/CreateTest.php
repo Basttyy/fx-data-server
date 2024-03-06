@@ -108,6 +108,18 @@ final class CreateTest extends TestCase
         $this->assertArrayHasKey('data', $response['body']);;
     }
 
+    public function testListSinglePair()
+    {
+        $this->initialize("running test to list one/single pair");
+        $token = $this->authenticate(only_token: true);
+        $pairId = 1;
+        $response = $this->makeRequestAndParse("get", "pairs/" . $pairId, header: [
+            "Authorization" => "Bearer " . $token
+        ]);
+        $this->assertEquals(200, $response['status_code']);
+        $this->assertArrayHasKey('data', $response['body']);;
+    }
+
 
 
 }
