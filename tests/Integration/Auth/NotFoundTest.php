@@ -10,7 +10,7 @@ final class NotFoundTest extends TestCase
     {
         $this->initialize("testing wrong route returns 404");
 
-        $response = $this->makeRequest("GET", "/some/wrong/endpoint");
+        $response = $this->makeRequest("GET", "some/wrong/endpoint");
         $this->assertSame(404, $e->getCode());
         $response = $e->getResponse();
         $body = json_decode($response->getBody()->getContents(), true);

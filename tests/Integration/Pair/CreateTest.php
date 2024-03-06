@@ -10,16 +10,19 @@ use Test\Integration\TestCase;
 
 final class CreateTest extends TestCase
 {
-
     public function testAdminCanCreatePair()
     {
         $this->initialize("running test admin can create pair");
 
-        $token = $this->authenticate(true, env('TEST_USER'), env('TEST_PASS'));
+        // $token = $this->authenticate(true, env('TEST_USER'), env('TEST_PASS'));
+
+        $token = $this->authenticate(only_token: true);
+        $pairRandomName = $this->faker->currencyCode . $this->faker->currencyCode . '  Test Pair ' . $this->faker->uuid;
+        $pairRandomDescription = "Description for " . $pairRandomName;
 
         $response = $this->makeRequest("POST", "pairs", [
-            'name' => 'Test Pair',
-            'description' => 'Test Pair Description',
+            'name' => $pairRandomName,
+            'description' => $pairRandomDescription,
             'status' => 'enabled',
             'dollar_per_pip' => 0.1,
             'history_start' => '2024-01-01',
@@ -34,23 +37,22 @@ final class CreateTest extends TestCase
             'type' => 'test',
             'logo' => 'test_logo_url'
         ], header: ["Authorization" => "Bearer " . $token]);
-        
-           // Assert that the response is not null
-            $this->assertNotNull($response);
 
-            // Decode the response JSON content into an array. Assert that the response data matches the expected data
-            $responseData = json_decode($response->getBody()->getContents(), true);
+        // Assert that the response is not null
+        $this->assertNotNull($response);
 
-            // Assert that the response contains a 'message' key with value 'pair creation successful'
-            $this->assertArrayHasKey('message', $responseData);
-            $this->assertEquals('pair creation successful', $responseData['message']);
+        // Decode the response JSON content into an array. Assert that the response data matches the expected data
+        $responseData = json_decode($response->getBody()->getContents(), true);
 
-            // Assert that the response contains a 'pair' key with expected pair data
-            $this->assertArrayHasKey('pair', $responseData);
-            $this->assertEquals('Test Pair', $responseData['pair']['name']);
-            $this->assertEquals('Test Pair Description', $responseData['pair']['description']);     
+        // Assert that the response contains a 'message' key with value 'pair creation successful'
+        $this->assertArrayHasKey('message', $responseData);
+        $this->assertEquals('pair creation successful', $responseData['message']);
+
+        // Assert that the response contains a 'pair' key with expected pair data
+        $this->assertArrayHasKey('data', $responseData);
+        $this->assertEquals($pairRandomName, $responseData['data']['name']);
+        $this->assertEquals($pairRandomDescription, $responseData['data']['description']);
     }
-
 
 
 

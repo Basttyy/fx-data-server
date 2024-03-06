@@ -4,10 +4,11 @@
 
 ### PROCESS A
 * Clone the repository
+* Create your new-branch
 * Checkout to dev
 * Run git pull
-* Checkout to your-name/features
-* Run git push —set-origin your-name/features
+* Checkout to your new-branch/features
+* Run git push —set-origin your new-branch/features
 
 ### PROCESS B
 * On your browser download and install Laragon
@@ -22,7 +23,7 @@
 * Run cp .env.example .env
 * Edit .env configuration to match the db credentials you have in Laragon
 * Create .htaccess file and request the content of .htaccess file from a team member/lead dev
-* Visit or reload http://fx-data-server.test again it should show not found api response instead of index of/
+* Visit or reload http://fx-data-server.test again it should show {"message": "the requested resource is not found"} an api response instead of index of/
 
 
 # CommandLine Helper

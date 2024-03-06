@@ -88,15 +88,15 @@ final class AuthController
             }
 
             if (!$_user = $this->user->where('email', $body['email'])->orWhere('username', $body['email'])->first(false)) {
-                throw new NotFoundException("invalid login details 1");
+                throw new NotFoundException("invalid login details");
             }
             // echo "user found by email";
             if (!$_user instanceof User) {
-                throw new NotFoundException("invalid login details 2");
+                throw new NotFoundException("invalid login details");
             }
 
             if (!$token = $this->authenticator->authenticate($this->user, base64_decode($body['password']))) {
-                return JsonResponse::unauthorized("invalid login details 3");
+                return JsonResponse::unauthorized("invalid login details");
             }
             $subscription = $this->subscription->findBy('user_id', $this->user->id, false);
             $is_admin = $this->authenticator->verifyRole($this->user, 'admin');
