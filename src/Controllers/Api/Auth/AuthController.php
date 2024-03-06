@@ -87,22 +87,22 @@ final class AuthController
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
-            // echo "got to pass login";
-            if (!$user = $this->user->findByEmail($body['email'], false)) {
-                throw new NotFoundException("user does not exist");
+            if (!$_user = $this->user->where('email', $body['email'])->orWhere('username', $body['email'])->first(false)) {
+                throw new NotFoundException("invalid login details");
             }
             // echo "user found by email";
-            if (!$user instanceof User) {
-                throw new NotFoundException("user does not exist");
+            if (!$_user instanceof User) {
+                throw new NotFoundException("invalid login details");
             }
 
-            if (!$token = $this->authenticator->authenticate($this->user, $body['password'])) {
+            if (!$token = $this->authenticator->authenticate($this->user, base64_decode($body['password']))) {
                 return JsonResponse::unauthorized("invalid login details");
             }
             $subscription = $this->subscription->findBy('user_id', $this->user->id, false);
             $is_admin = $this->authenticator->verifyRole($this->user, 'admin');
 
-            $user = Arr::except($this->user->toArray(), $this->user->twofainfos);
+            $hidden = [ ...$this->user->twofainfos, 'password'];
+            $user = Arr::except($this->user->toArray(), $hidden);
             $user['extra']['is_admin'] = $is_admin;
             $user['extra']['subscription'] = $subscription ? $subscription : null;
             $user['extra']['twofa']['enabled'] = strlen($this->user->twofa_types) > 0;
