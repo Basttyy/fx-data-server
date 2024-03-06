@@ -202,8 +202,6 @@ class mysqly {
    */
   
   public static function fetch_cursor($sql_or_table, $bind_or_filter = [], $select_what = '*', string|array $operators = "=", string|array $or_ands = "AND") {
-    if (is_array($or_ands))
-      array_shift($or_ands);
     if ( strpos($sql_or_table, ' ') || (strpos($sql_or_table, 'SELECT ') === 0) ) {
       $sql = $sql_or_table;
       $bind = $bind_or_filter;
@@ -216,8 +214,15 @@ class mysqly {
       if ( $bind_or_filter ) {
         if ( is_array($bind_or_filter) ) {
           $i = 0; $j = 0; $len = count($bind_or_filter);
-          if (array_key_exists('order_by', $bind_or_filter))
+          if (array_key_exists('order_by', $bind_or_filter)) {
             $len--;
+          }
+
+          if (is_array($or_ands)) {
+            while ($len <= count($or_ands))
+              array_shift($or_ands);
+          }
+
           foreach ( $bind_or_filter as $k => $v ) {
             if ( $k == 'order_by' ) {
               $order = ' ORDER BY ' . $v;

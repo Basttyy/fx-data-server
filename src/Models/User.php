@@ -24,31 +24,31 @@ final class User extends Model implements UserModelInterface
     protected $primaryKey = 'id';
 
     //object properties
-    public $id;
-    public $uuid;
-    public $firstname;
-    public $lastname;
+    public int $id;
+    public string | null $uuid;
+    public string $firstname;
+    public string $lastname;
     public string $username;
-    public $email;
-    public $password;
-    public $phone;
-    public $level;
-    public $country;
-    public $city;
-    public $postal_code;
-    public $address;
-    public $role_id;
-    public $access_token;
-    public $twofa_secret;
-    public $email2fa_token;
-    public $email2fa_expire;
-    public $twofa_types;
-    public $twofa_default_type;
-    public $status;
-    public $avatar;
-    public $created_at;
-    public $updated_at;
-    public $deleted_at;
+    public string $email;
+    public string | null $password;
+    public string $phone;
+    public int | null $level;
+    public string | null $country;
+    public string | null $city;
+    public string | null $postal_code;
+    public string | null $address;
+    public int $role_id;
+    public string | null $access_token;
+    public string | null $twofa_secret;
+    public string | null $email2fa_token;
+    public string | null $email2fa_expire;
+    public string | null $twofa_types;
+    public string $twofa_default_type;
+    public string $status;
+    public string $avatar;
+    public string $created_at;
+    public string | null $updated_at;
+    public string | null $deleted_at;
 
     /**
      * user twofa properties
