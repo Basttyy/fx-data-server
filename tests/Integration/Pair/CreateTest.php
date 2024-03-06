@@ -97,6 +97,17 @@ final class CreateTest extends TestCase
         }
     }
 
+    public function testListAllPairs()
+    {
+        $this->initialize("running test to list all pairs");
+        $token = $this->authenticate(only_token: true);
+        $response = $this->makeRequestAndParse("GET", "pairs/list/onlypair", header: [
+            "Authorization" => "Bearer " . $token
+        ]);
+        $this->assertEquals(200, $response['status_code']);
+        $this->assertArrayHasKey('data', $response['body']);;
+    }
+
 
 
 }
