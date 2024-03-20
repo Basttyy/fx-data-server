@@ -106,13 +106,15 @@ final class PlanController
 
             $body = sanitize_data(json_decode($inputJSON, true));
             $status = Plan::DISABLED.', '.Plan::ENABLED;
+            $intervals = implode(', ', Plan::INTERVALS);
 
             if ($validated = Validator::validate($body, [
                 'name' => 'required|string',
                 'description' => 'required|string',
                 'price' => 'required|numeric',
                 'status' => "sometimes|string|in:$status",
-                'features' => 'required|string'
+                'features' => 'required|string',
+                'duration_interval' => "required|string|in:$intervals"
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
@@ -161,12 +163,15 @@ final class PlanController
             $body = sanitize_data(json_decode($inputJSON, true));
 
             $status = Plan::DISABLED.', '.Plan::ENABLED;
+            $intervals = implode(', ', Plan::INTERVALS);
+            
             if ($validated = Validator::validate($body, [
                 'name' => 'sometimes|string',
                 'description' => 'sometimes|string',
                 'price' => 'sometimes|numeric',
                 'status' => "sometimes|string|in:$status",
-                'features' => 'sometimes|string'
+                'features' => 'sometimes|string',
+                'duration_interval' => "sometimes|string|in:$intervals"
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
