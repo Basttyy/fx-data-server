@@ -27,6 +27,7 @@ class PairSeeder extends AbstractSeed
                 'market' => Pair::FX,
                 'short_name' => 'GBPUSD',
                 'ticker' => 'GBPUSD',
+                'min_move' => '0.00001',
                 'price_precision' => '5',
                 'volume_precision' => '5',
                 'price_currency' => 'usd'
@@ -42,6 +43,7 @@ class PairSeeder extends AbstractSeed
                 'market' => Pair::FX,
                 'short_name' => 'EURUSD',
                 'ticker' => 'EURUSD',
+                'min_move' => '0.00001',
                 'price_precision' => '5',
                 'volume_precision' => '5',
                 'price_currency' => 'usd'
@@ -57,6 +59,7 @@ class PairSeeder extends AbstractSeed
                 'market' => Pair::COMODITY,
                 'short_name' => 'XAUUSD',
                 'ticker' => 'XAUUSD',
+                'min_move' => '0.001',
                 'price_precision' => '3',
                 'volume_precision' => '3',
                 'price_currency' => 'usd'
