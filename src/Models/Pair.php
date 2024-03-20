@@ -13,6 +13,27 @@ final class Pair extends Model
     const INDEX = 'index';
     const FUTURES = 'futures';
 
+    const TIMEZONES =
+        "Etc/UTC, Africa/Casablanca, Africa/Johannesburg, Africa/Lagos, Africa/Nairobi, ".
+        "Africa/Tunis, America/Anchorage, America/Argentina/Buenos_Aires, America/Bogota, ".
+        "America/Caracas, America/Chicago, America/El_Salvador, America/Juneau, America/Lima, ".
+        "America/Los_Angeles, America/Mexico_City, America/New_York, America/Phoenix, ".
+        "America/Santiago, America/Sao_Paulo, America/Toronto, America/Vancouver, Asia/Almaty, ".
+        "Asia/Ashkhabad, Asia/Bahrain, Asia/Bangkok, Asia/Chongqing, Asia/Colombo, Asia/Dhaka, ".
+        "Asia/Dubai, Asia/Ho_Chi_Minh, Asia/Hong_Kong, Asia/Jakarta, Asia/Jerusalem, Asia/Karachi, ".
+        "Asia/Kathmandu, Asia/Kolkata, Asia/Kuwait, Asia/Manila, Asia/Muscat, Asia/Nicosia, ".
+        "Asia/Qatar, Asia/Riyadh, Asia/Seoul, Asia/Shanghai, Asia/Singapore, Asia/Taipei, ".
+        "Asia/Tehran, Asia/Tokyo, Asia/Yangon, Atlantic/Reykjavik, Australia/Adelaide, ".
+        "Australia/Brisbane, Australia/Perth, Australia/Sydney, Europe/Amsterdam, Europe/Athens, ".
+        "Europe/Belgrade, Europe/Berlin, Europe/Bratislava, Europe/Brussels, Europe/Bucharest, ".
+        "Europe/Budapest, Europe/Copenhagen, Europe/Dublin, Europe/Helsinki, Europe/Istanbul, ".
+        "Europe/Lisbon, Europe/London, Europe/Luxembourg, Europe/Madrid, Europe/Malta, ".
+        "Europe/Moscow, Europe/Oslo, Europe/Paris, Europe/Prague, Europe/Riga, Europe/Rome, ".
+        "Europe/Stockholm, Europe/Tallinn, Europe/Vienna, Europe/Vilnius, Europe/Warsaw, ".
+        "Europe/Zurich, Pacific/Auckland, Pacific/Chatham, Pacific/Fakaofo, Pacific/Honolulu, ".
+        "Pacific/Norfolk, US/Mountain, Africa/Cairo"
+    ;
+
     protected $softdeletes = true;
     protected $table = 'pairs';
     protected $primaryKey = 'id';
@@ -33,6 +54,8 @@ final class Pair extends Model
     public $market;
     public $short_name;
     public $ticker;
+    public $timezone;
+    public $min_move;
     public $price_precision;
     public $volume_precision;
     public $price_currency;
@@ -54,7 +77,7 @@ final class Pair extends Model
      * @var array
      */
     public $symbolinfos = [
-        'description', 'exchange', 'market', 'short_name', 'ticker', 'price_precision', 'volume_precision', 'price_currency', 'dollar_per_pip', 'type', 'logo'
+        'description', 'exchange', 'market', 'short_name', 'ticker', 'timezone', 'min_move', 'price_precision', 'volume_precision', 'price_currency', 'dollar_per_pip', 'type', 'logo'
     ];
 
     /**
@@ -63,7 +86,7 @@ final class Pair extends Model
      * @var array
      */
     protected $fillable = [
-        'id', 'name', 'description', 'status', 'dollar_per_pip', 'exchange', 'market', 'short_name', 'ticker', 'price_precision', 'volume_precision', 'price_currency', 'type', 'logo', 'history_start', 'history_end', 'deleted_at', 'created_at', 'updated_at'
+        'id', 'name', 'description', 'status', 'dollar_per_pip', 'exchange', 'market', 'short_name', 'ticker', 'timezone', 'min_move', 'price_precision', 'volume_precision', 'price_currency', 'type', 'logo', 'history_start', 'history_end', 'deleted_at', 'created_at', 'updated_at'
     ];
     
     /**

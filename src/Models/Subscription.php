@@ -14,9 +14,11 @@ final class Subscription extends Model
 
     //object properties
     public $id;
-    public $name;
-    public $previleges;
+    public $duration;
+    public $user_id;
+    public $plan_id;
     public $created_at;
+    public $expires_at;
     public $updated_at;
     public $deleted_at;
 
@@ -26,7 +28,7 @@ final class Subscription extends Model
      * @var array
      */
     protected $fillable = [
-        'id', 'duration', 'user_id', 'plan_id', 'created_at', 'updated_at', 'deleted_at'
+        'id', 'duration', 'user_id', 'plan_id', 'created_at', 'expires_at', 'updated_at', 'deleted_at'
     ];
 
     /**

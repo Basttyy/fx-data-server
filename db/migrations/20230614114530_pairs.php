@@ -28,9 +28,11 @@ final class Pairs extends AbstractMigration
             ->addColumn('history_start', 'timestamp')
             ->addColumn('history_end', 'timestamp')
             ->addColumn('exchange', 'string', ['default' => 'Dukascopy'])                /************ Used for SymbolInfo on KlineChart */
-            ->addColumn('market', 'string', ['default' => ''])
+            ->addColumn('market', 'string', ['default' => 'forex'])
             ->addColumn('short_name', 'string')
             ->addColumn('ticker', 'string')
+            ->addColumn('timezone', 'string', ['default' => 'Etc/UTC'])
+            ->addColumn('min_move', 'decimal')
             ->addColumn('price_precision', 'decimal')
             ->addColumn('volume_precision', 'decimal')
             ->addColumn('price_currency', 'string')

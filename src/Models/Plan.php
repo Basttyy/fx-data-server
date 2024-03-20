@@ -6,6 +6,13 @@ final class Plan extends Model
     const ENABLED = "enabled";
     const DISABLED = "disabled";
 
+    const INTERVALS = [
+        'year',
+        'month',
+        'week',
+        'day',
+    ];
+
     protected $softdeletes = true;
     protected $table = 'plans';
     protected $primaryKey = 'id';
@@ -14,6 +21,7 @@ final class Plan extends Model
     public $id;
     public $name;
     public $description;
+    public $duration_interval;
     public $price;
     public $status;
     public $features;
@@ -27,7 +35,7 @@ final class Plan extends Model
      * @var array
      */
     protected $fillable = [
-        'id', 'name', 'description', 'price', 'status', 'features', 'deleted_at', 'created_at', 'updated_at'
+        'id', 'name', 'description', 'duration_interval', 'price', 'status', 'features', 'deleted_at', 'created_at', 'updated_at'
     ];
     
     /**
