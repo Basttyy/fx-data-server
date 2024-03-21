@@ -1,16 +1,21 @@
-# SETUP INSTRUCTIONS
+# FX-DATA-SERVER DOCUMENTATION
+##### GETTING STARTED / INSTALLATION
+##### DETAILED USER MANUAL
+##### API DOCUMENTATION
+##### TROUBLESHOOTING AND FAQ
+##### VERSIONING AND CHANGE LOGS
 
-## On windows
 
-### PROCESS A
-* Clone the repository
+## GETTING STARTED / INSTALLATION
+#### PROCESS A
+* Open CLI on your desktop and Clone the repository
 * Create your new-branch
 * Checkout to dev
 * Run git pull
 * Checkout to your new-branch/features
 * Run git push —set-origin your new-branch/features
 
-### PROCESS B
+#### PROCESS B
 * On your browser download and install Laragon
 * Start Laragon
 * Click on start all
@@ -26,7 +31,7 @@
 * Visit or reload http://fx-data-server.test again it should show {"message": "the requested resource is not found"} an api response instead of index of/
 
 
-# CommandLine Helper
+## CommandLine Helper
 
 * composer run-script queue-dev      //runs the background job worker
 * composer run-script queue-buried-dev      //runs the background buried job worker
@@ -41,15 +46,12 @@
 
 # fx-data-server
 ## fx historical data feed
-
-
 * the queue worker is meant to work with CRON Jobs
 * start a cron job with the script path (5 min interval for example)
 * cron_command "server_home/src/console/jobrunner.php"
 * cron_command "server_home/src/console/burriedjobrunner.php"
 
 # Gregwar/Captcha should be changed as follows
-
 * src/Gregwar/Captcha/CaptchaBuilder.php
 * 344: $size = (int) round($width / $length) - $this->rand(0, 3) - 1;
 * 348: $x = (int) round(($width - $textWidth) / 2);

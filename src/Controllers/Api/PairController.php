@@ -62,6 +62,7 @@ final class PairController
 
     private function show(string $id)
     {
+        // $id = sanitize_data(2);
         $id = sanitize_data($id);
         try {
             if (!$user = $this->authenticator->validate()) {
@@ -71,7 +72,7 @@ final class PairController
             if (!$this->pair->find((int)$id))
                 return JsonResponse::notFound("unable to retrieve pair");
 
-            return JsonResponse::ok("pair retrieved success", $this->pair->toArray(select: $this->pair->pairinfos));
+            return JsonResponse::ok("pair retrieved successfully", $this->pair->toArray(select: $this->pair->pairinfos));
         } catch (PDOException $e) {
             return JsonResponse::serverError("we encountered a problem");
         } catch (LogicException $e) {
@@ -143,7 +144,7 @@ final class PairController
                             // ->orWhere('history_start', $searchstring)
                             // ->orWhere('history_end', $searchstring)
                             ->all(select: $select))
-                    return JsonResponse::ok("no piar found in list1", []);
+                    return JsonResponse::ok("no pair found in list1", []);
                 
                 while ($pair = current($pairs1)) {
                     $push = true;
@@ -160,11 +161,11 @@ final class PairController
                 }
             } else if (isset($name)) {
                 if (!$pairs = $this->pair->where('name', $params['name'])->all())
-                    return JsonResponse::ok("no piar found in list2", []);
+                    return JsonResponse::ok("no pair found in list2", []);
             }
 
             if (!count($pairs))
-                return JsonResponse::ok("no piar found in list3", []);
+                return JsonResponse::ok("no pair found in list3", []);
 
             return JsonResponse::ok("pairs retrieved success", $pairs);
         } catch (PDOException $e) {
@@ -279,7 +280,7 @@ final class PairController
             }
 
             // echo "got to pass login";
-            if (!$this->pair->update($body, (int)$id)) {
+            if ($this->pair->update($body, (int)$id)) {
                 return JsonResponse::notFound("unable to update pair");
             }
 
@@ -328,4 +329,5 @@ final class PairController
             return JsonResponse::serverError("we got some error here".$message);
         }
     } 
+    
 }

@@ -172,7 +172,7 @@ final class PlanController
             }
 
             if (!$this->plan->update($body, (int)$id)) {
-                return JsonResponse::notFound("unable to update plan not found");
+                return JsonResponse::notFound("Plan not found or unable to update");
             }
 
             return JsonResponse::ok("plan updated successfull", $this->plan->toArray());

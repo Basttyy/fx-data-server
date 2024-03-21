@@ -216,7 +216,7 @@ final class UserController
                 return JsonResponse::serverError("unable to update user");
             }
 
-            return JsonResponse::ok("user updated successfull", [
+            return JsonResponse::ok("user update successful", [
                 'data' => $user->toArray()
             ]);
         } catch (PDOException $e) {
