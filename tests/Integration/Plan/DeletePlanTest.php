@@ -9,62 +9,48 @@ use Test\Integration\TestCase;
 
 final class DeletePlanTest extends TestCase
 {
-    // public function testDeletePair()
-    // {
-    //     // CREATING PAIR TO BE DELETED
-    //     $this->initialize("running test to delete one/single pair -- CREATING PAIR TO BE DELETED");
+    public function testDeletePair()
+    {
+        $this->initialize("running test to delete one/single pair");
 
-    //     $token = $this->authenticate(only_token: true);
-    //     $pairRandomName = $this->faker->currencyCode . $this->faker->currencyCode . '  Test Pair to be deleted ' . $this->faker->uuid;
-    //     $pairRandomDescription = "Description for " . $pairRandomName;
+        $token = $this->authenticate(only_token: true);
 
-    //     $tempResponse = $this->makeRequest("POST", "pairs", [
-    //         'name' => $pairRandomName,
-    //         'description' => $pairRandomDescription,
-    //         'status' => 'enabled',
-    //         'dollar_per_pip' => 0.1,
-    //         'history_start' => '2024-01-01',
-    //         'history_end' => '2024-12-31',
-    //         'exchange' => 'Test Exchange',
-    //         'market' => 'fx',
-    //         'short_name' => 'TP',
-    //         'ticker' => 'TEST',
-    //         'price_precision' => 2,
-    //         'volume_precision' => 2,
-    //         'price_currency' => 'USD',
-    //         'type' => 'test',
-    //         'logo' => 'test_logo_url'
-    //     ], header: ["Authorization" => "Bearer " . $token]);
+        // Create a new plan to be deleted
+        $planRandomName = $this->faker->currencyCode . $this->faker->currencyCode . '  Test Plan ' . $this->faker->uuid;
+        $planRandomDescription = "Description for " . $planRandomName;
 
-    //     // Assert that the response is not null
-    //     $this->assertNotNull($tempResponse);
+        $response = $this->makeRequest("POST", "plans", [
+            'name' => $planRandomName,
+            'description' => $planRandomDescription,
+            'price' => 5.0,
+            'status' => 'enabled',
+            'features' => 'four pairs, three years of data, three indicators per session',
+        ], header: ["Authorization" => "Bearer " . $token]);
 
-    //     // Decode the response JSON content into an array. Assert that the response data matches the expected data
-    //     $tempResponseData = json_decode($tempResponse->getBody()->getContents(), true);
+        $this->assertNotNull($response);
 
-    //     // Assert that the response contains a 'message' key with value 'pair creation successful'
-    //     $this->assertArrayHasKey('message', $tempResponseData);
-    //     $this->assertEquals('pair creation successful', $tempResponseData['message']);
+        $responseData = json_decode($response->getBody()->getContents(), true);
 
-    //     // Assert that the response contains a 'pair' key with expected pair data
-    //     $this->assertArrayHasKey('data', $tempResponseData);
-    //     $this->assertEquals($pairRandomName, $tempResponseData['data']['name']);
-    //     $this->assertEquals($pairRandomDescription, $tempResponseData['data']['description']);
+        $this->assertArrayHasKey('message', $responseData);
+        $this->assertEquals('plan creation successful', $responseData['message']);
 
+        $this->assertArrayHasKey('data', $responseData);
+        $this->assertEquals($planRandomName, $responseData['data']['name']);
+        $this->assertEquals($planRandomDescription, $responseData['data']['description']);
 
+        // Delete the newly created plan
+        $this->initialize("running test to delete one/single plan ID:: " . $responseData['data']['id']);
+        $pairId = $responseData['data']['id'];
+        $response = $this->makeRequestAndParse("DELETE", "plans/" . $pairId, header: [
+            "Authorization" => "Bearer " . $token
+        ]);
 
+        // Check if the deletion was successful
+        $this->assertEquals(200, $response['status_code']);
+        $this->assertArrayHasKey('message', $response['body']);
+        $this->assertEquals('plan deleted successfull', $response['body']['message']);
+    }
 
-    //     // DELETING NEWLY CREATED PAIR 
-    //     $this->initialize("running test to delete one/single pair -- DELETING NEWLY CREATED PAIR ID::" . $tempResponseData['data']['id']);
-    //     $token = $this->authenticate(only_token: true);
-    //     $pairId = $tempResponseData['data']['id'];
-    //     $response = $this->makeRequestAndParse("DELETE", "pairs/" . $pairId, header: [
-    //         "Authorization" => "Bearer " . $token
-    //     ]);
-
-    //     $this->assertEquals(200, $response['status_code']);
-    //     $this->assertArrayHasKey('data', $response['body']);
-    // }
 
 }
 

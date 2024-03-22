@@ -6,125 +6,115 @@ use Test\Integration\TestCase;
 
 final class UpdatePlanTest extends TestCase
 {
-    // public function testAdminCanUpdatePlan()
-    // {
-    //     $this->initialize("running test admin can update pair");
+    public function testAdminCanUpdatePlan()
+    {
+        try{
+            $this->initialize("running test admin can update plan");
+        
+            $token = $this->authenticate(only_token: true);
+        
+            // Create a new plan to update
+            $planRandomName = $this->faker->currencyCode . $this->faker->currencyCode . '  Test Plan ' . $this->faker->uuid;
+            $planRandomDescription = "Description for " . $planRandomName;
+        
+            $response = $this->makeRequest("POST", "plans", [
+                'name' => $planRandomName,
+                'description' => $planRandomDescription,
+                'price' => 5.7,
+                'status' => 'enabled',
+                'features' => 'two pairs, three years of data, two indicators per session',
+            ], header: ["Authorization" => "Bearer " . $token]);
+        
+            $this->assertNotNull($response);
+    
+            $responseData = json_decode($response->getBody()->getContents(), true);
+        
+            $this->assertArrayHasKey('message', $responseData);
+            $this->assertEquals('plan creation successful', $responseData['message']);
+        
+            $this->assertArrayHasKey('data', $responseData);
+            $this->assertEquals($planRandomName, $responseData['data']['name']);
+            $this->assertEquals($planRandomDescription, $responseData['data']['description']);
+        
+            // Get the ID of the created plan
+            $planId = $responseData['data']['id'];
+        
+            // Generate new random data for the update
+            $planRandomNameUpdate = $this->faker->currencyCode . $this->faker->currencyCode . ' Updated Test Plan ' . $this->faker->uuid;
+            $planRandomDescriptionUpdate = "Updated description for " . $planRandomNameUpdate;
+        
+            // Make the update request
+            $response = $this->makeRequest("PUT", "plans/{$planId}", [
+                'name' => $planRandomNameUpdate,
+                'description' => $planRandomDescriptionUpdate,
+            ], header: ["Authorization" => "Bearer " . $token]);
+    
+        // $this->assertNotNull($response);
+    
+    } catch (\Exception $e) {
+        if ($e instanceof RequestException) {
+            $this->assertSame(404, $e->getCode());
+            $response = $e->getResponse();
+            $body = json_decode($response->getBody()->getContents(), true);
 
-    //     // Authenticate the user and get the token
-    //     $token = $this->authenticate(only_token: true);
-
-    //     // Create a new pair to update
-    //     $pairRandomName = $this->faker->currencyCode . $this->faker->currencyCode . '  Test Pair to be updated ' . $this->faker->uuid;
-    //     $pairRandomDescription = "Description for Test Pair to be Updated " . $pairRandomName; 
-
-    //     $response = $this->makeRequest("POST", "pairs", [
-    //         'name' => $pairRandomName,
-    //         'description' => $pairRandomDescription,
-    //         'status' => 'enabled',
-    //         'dollar_per_pip' => 0.2,
-    //         'history_start' => '2024-03-01',
-    //         'history_end' => '2024-12-31',
-    //         'exchange' => 'Test Exchange',
-    //         'market' => 'fx',
-    //         'short_name' => 'TP',
-    //         'ticker' => 'TEST',
-    //         'price_precision' => 4,
-    //         'volume_precision' => 3,
-    //         'price_currency' => 'USD',
-    //         'type' => 'test',
-    //         'logo' => 'test_logo_url'
-    //     ], header: ["Authorization" => "Bearer " . $token]);
-  
-    //     // Assert that the response is not null
-    //     $this->assertNotNull($response);
-
-    //     // Decode the response JSON content into an array
-    //     $responseData = json_decode($response->getBody()->getContents(), true);
-
-    //     // Get the ID of the created pair
-    //     $pairId = $responseData['data']['id'];
-
-    //     // Generate new random data for the update
-    //     $pairRandomNameUpdate = $this->faker->currencyCode . $this->faker->currencyCode . ' Updated Test Pair ' . $this->faker->uuid;
-    //     $pairRandomDescriptionUpdate = "Updated description for Test Pair " . $pairRandomNameUpdate;
-
-
-    //     // Make the update request
-    //     $response = $this->makeRequest("PUT", "pairs/{$pairId}", [
-    //         'name' => $pairRandomNameUpdate,
-    //         'description' => $pairRandomDescriptionUpdate,
-    //     ], header: ["Authorization" => "Bearer " . $token]);
-
-    //     // Assert that the response is not null
-    //     $this->assertNotNull($response);
-
-    //     // Decode the response JSON content into an array
-    //     $responseData = json_decode($response->getBody()->getContents(), true);
-
-    //     // Assert that the response contains a 'message' key with value 'pair update successful'
-    //     $this->assertArrayHasKey('message', $responseData);
-    //     $this->assertEquals('pair updated successfully', $responseData['message']);
-
-    //     // Assert that the response contains a 'pair' key with updated pair data
-    //     $this->assertArrayHasKey('data', $responseData);
-    //     $this->assertEquals($pairRandomNameUpdate, $responseData['data']['name']);
-    //     $this->assertEquals($pairRandomDescriptionUpdate, $responseData['data']['description']);
-    // }
+            $this->assertEquals(404, $response->getStatusCode());
+            $this->assertArrayHasKey("message", $body);
+            $this->assertEquals("Plan not found or unable to update", $body["message"]);        
+        } else {
+            throw $e;
+        }
+    }
+    }
+    
 
 
-    // public function testUserCannotUpdatePair()
-    // {
-    //     $this->initialize("running test user cannot update pair");
 
-    //     try {
-    //         $token = $this->authenticate(true, "user@fxtester.com.ng", "123456789");
 
-    //         // Create a pair using the admin user
-    //         $adminToken = $this->authenticate(true, env('TEST_USER'), env('TEST_PASS'));
-    //         $pairRandomName = $this->faker->currencyCode . $this->faker->currencyCode . '  Test Pair ' . $this->faker->uuid;
-    //         $pairRandomDescription = "Description for " . $pairRandomName;
+    public function testUserCannotUpdatePlan()
+{
+    $this->initialize("running test user cannot update plan");
 
-    //         $response = $this->makeRequest("POST", "pairs", [
-    //             'name' => $pairRandomName,
-    //             'description' => $pairRandomDescription,
-    //             'status' => 'enabled',
-    //             'dollar_per_pip' => 0.1,
-    //             'history_start' => '2024-01-01',
-    //             'history_end' => '2024-12-31',
-    //             'exchange' => 'Test Exchange',
-    //             'market' => 'fx',
-    //             'short_name' => 'TP',
-    //             'ticker' => 'TEST',
-    //             'price_precision' => 2,
-    //             'volume_precision' => 2,
-    //             'price_currency' => 'USD',
-    //             'type' => 'test',
-    //             'logo' => 'test_logo_url'
-    //         ], header: ["Authorization" => "Bearer " . $adminToken]);
+    try {
+        // Authenticate as a regular user
+        $token = $this->authenticate(true, "user@fxtester.com.ng", "123456789");
 
-    //         $responseData = json_decode($response->getBody()->getContents(), true);
-    //         $pairId = $responseData['data']['id'];
+        // Create a plan using the admin user
+        $adminToken = $this->authenticate(true, env('TEST_USER'), env('TEST_PASS'));
+        $planRandomName = $this->faker->currencyCode . $this->faker->currencyCode . '  Test Plan ' . $this->faker->uuid;
+        $planRandomDescription = "Description for " . $planRandomName;
 
-    //         // Attempt to update the pair with the user token
-    //         $response = $this->makeRequest("PUT", "pairs/{$pairId}", [
-    //             'name' => 'New Name',
-    //             'description' => 'New Description',
-    //         ], header: ["Authorization" => "Bearer " . $token]);
+        $response = $this->makeRequest("POST", "plans", [
+            'name' => $planRandomName,
+            'description' => $planRandomDescription,
+            'price' => 5.7,
+            'status' => 'enabled',
+            'features' => 'two pairs, three years of data, two indicators per session',
+        ], header: ["Authorization" => "Bearer " . $adminToken]);
 
-    //     } catch (\Exception $e) {
-    //         if ($e instanceof RequestException) {
-    //             $this->assertSame(401, $e->getCode());
-    //             $response = $e->getResponse();
-    //             $body = json_decode($response->getBody()->getContents(), true);
+        $responseData = json_decode($response->getBody()->getContents(), true);
+        $planId = $responseData['data']['id'];
 
-    //             $this->assertEquals(401, $response->getStatusCode());
-    //             $this->assertArrayHasKey("message", $body);
-    //             $this->assertEquals("you don't have this permission", $body["message"]);        
-    //         } else {
-    //             throw $e;
-    //         }
-    //     }
-    // }
+        // Attempt to update the plan with the user token
+        $response = $this->makeRequest("PUT", "plans/{$planId}", [
+            'name' => 'New Plan Name',
+            'description' => 'New Plan Description',
+        ], header: ["Authorization" => "Bearer " . $token]);
+
+    } catch (\Exception $e) {
+        if ($e instanceof RequestException) {
+            $this->assertSame(401, $e->getCode());
+            $response = $e->getResponse();
+            $body = json_decode($response->getBody()->getContents(), true);
+
+            $this->assertEquals(401, $response->getStatusCode());
+            $this->assertArrayHasKey("message", $body);
+            $this->assertEquals("you can't update a plan", $body["message"]);        
+        } else {
+            throw $e;
+        }
+    }
+}
+
 
 
     

@@ -4,162 +4,225 @@ namespace Test\Integration\Pair;
 use Basttyy\FxDataServer\Models\User;
 use GuzzleHttp\Exception\RequestException;
 use Exception;
-
 use Test\Integration\TestCase;
 
 final class UpdateUserTest extends TestCase
 {
-    public function testUpdateUser()
-    {
-        $this->initialize("running test update user");
-    
-        // Authenticate the user and get the token
-        $token = $this->authenticate(only_token: true);
-    
-        // Create a new user to update
-        $userRandomName = $this->faker->firstName . ' ' . $this->faker->lastName;
-        $userRandomEmail = $this->faker->unique()->safeEmail;
-    
-        $response = $this->makeRequest("POST", "user", [
-            'email' => $userRandomEmail,
-            'password' => '12345678',
-            'firstname' => $userRandomName,
-            // 'firstname' => $this->faker->firstName,
-            // 'lastname' => $this->faker->lastName,
-            'lastname' => $userRandomName,
-            'username' => $this->faker->userName
-        ], header: ["Authorization" => "Bearer " . $token]);
-    
-        // Assert that the response is not null
-        $this->assertNotNull($response);
-    
-        // Decode the response JSON content into an array
-        $responseData = json_decode($response->getBody()->getContents(), true);
-    
-        // Get the ID of the created user
-        $userId = $responseData['data']['id'];
-    
-        // Generate new random data for the update
-        $userRandomNameUpdate = $this->faker->firstName . ' ' . $this->faker->lastName;
-        $userRandomEmailUpdate = $this->faker->unique()->safeEmail;
-    
-        // Make the update request
-        $response = $this->makeRequest("PUT", "user/{$userId}", [
-            'email' => $userRandomEmailUpdate,
-            'firstname' => $userRandomNameUpdate,
-            'lastname' => $userRandomNameUpdate,
-            // 'firstname' => $this->faker->firstName,
-            // 'lastname' => $this->faker->lastName,
-            'username' => $this->faker->userName
-        ], header: ["Authorization" => "Bearer " . $token]);
-    
-        // Assert that the response is not null
-        $this->assertNotNull($response);
-    
-        // Decode the response JSON content into an array
-        $responseData = json_decode($response->getBody()->getContents(), true);
-    
-        // Assert that the response contains a 'message' key with value 'user update successful'
-        $this->assertArrayHasKey('message', $responseData);
-        $this->assertEquals('user updated successfully', $responseData['message']);
-    
-        // Assert that the response contains a 'user' key with updated user data
-        $this->assertArrayHasKey('data', $responseData);
-        $this->assertEquals($userRandomNameUpdate, $responseData['data']['name']);
-        $this->assertEquals($userRandomEmailUpdate, $responseData['data']['email']);
-    }
-    
     // public function testUpdateUser()
     // {
-    //     $this->initialize("running test update user");
+    //     try {
+    //         $this->initialize("running test create user to be updated");
+    
+    //         // Generate random user data
+    //         $userRandomEmail = $this->faker->unique()->safeEmail;
+    //         $userRandomFirstName = $this->faker->firstName;
+    //         $userRandomLastName = $this->faker->lastName;
+    //         $userRandomPassword = $this->faker->password;
+    
+    //         // Construct the request body
+    //         $requestBody = [
+    //             'email' => $userRandomEmail,
+    //             'password' => $userRandomPassword,
+    //             'firstname' => $userRandomFirstName,
+    //             'lastname' => $userRandomLastName,
+    //         ];
+    
+    //         // Make the request
+    //         $response = $this->makeRequest("POST", "users", $requestBody);
+    
+    //         // Assert that the response is not null
+    //         $this->assertNotNull($response);
+    
+    //         // Decode the response JSON content into an array
+    //         $responseData = json_decode($response->getBody()->getContents(), true);
+    
+    //         // Assert that the response contains a 'message' key with value 'user creation successful'
+    //         $this->assertArrayHasKey('message', $responseData);
+    //         $this->assertEquals('user creation successful', $responseData['message']);
+    
+    //         // Assert that the response contains a 'data' key with expected user data
+    //         $this->assertArrayHasKey('data', $responseData);
+    //         $userData = $responseData['data'];
+    //         $this->assertEquals($userRandomEmail, $userData['email']);
+    //         $this->assertEquals($userRandomFirstName, $userData['firstname']);
+    //         $this->assertEquals($userRandomLastName, $userData['lastname']);
+    //         $this->assertTrue(isset($userData['username'])); // Ensure username is set
+    
+    //         // Assert that the password is hashed
+    //         $this->assertNotEquals($userRandomPassword, $userData['password']);
+            
+    //         // Assert that email2fa_token and email2fa_expire are set
+    //         $this->assertArrayHasKey('email2fa_token', $userData);
+    //         $this->assertArrayHasKey('email2fa_expire', $userData);
+    
 
-    //     try{
-    //             // Authenticate the user and get the token
-    //     $token = $this->authenticate(only_token: true);
-    
-    //     // Create a new user to update
-    //     $userRandomEmail = $this->faker->unique()->safeEmail;
-    //     $userRandomFirstName = $this->faker->firstName;
-    //     $userRandomLastName = $this->faker->lastName;
-    //     $userRandomUserName = $this->faker->userName;
-    //     $userRandomPassword = $this->faker->password;
-    
-    //     // Assert that the password meets certain criteria, such as minimum length
-    //     // try {
-    //         // $this->assertGreaterThanOrEqual(8, strlen($userRandomPassword), 'Password length is at least 8 characters');
-    //         $userRandomPassword = $this->faker->regexify('[A-Za-z0-9]{8,16}');
-    //     // } catch (\PHPUnit\Framework\AssertionFailedError $e) {
-    //     //     $this->fail($e->getMessage());
-    //     // }
-    
-    //     $response = $this->makeRequest("POST", "users", [
-    //         'email' => $userRandomEmail,
-    //         'password' => $userRandomPassword,
-    //         'firstname' => $userRandomFirstName,
-    //         'lastname' => $userRandomLastName,
-    //         'username' => $userRandomUserName,
-    //     ], ["Authorization" => "Bearer " . $token]);
-    
-    //     // Assert that the response is not null
-    //     $this->assertNotNull($response);
-    
-    //     // Decode the response JSON content into an array
-    //     $responseData = json_decode($response->getBody()->getContents(), true);
-    
-    //     // Get the ID of the created user
-    //     $userId = $responseData['data']['id'];
-    
-    //     // Generate new random data for the update
-    //     $userRandomEmailUpdate = $this->faker->unique()->safeEmail;
-    //     $userRandomFirstNameUpdate = $this->faker->firstName;
-    //     $userRandomLastNameUpdate = $this->faker->lastName;
-    //     $userRandomUserNameUpdate = $this->faker->userName;
-    //     $userRandomPasswordUpdate = $this->faker->password;
-    
-    //     // Assert that the password meets certain criteria, such as minimum length
-    //     // try {
-    //         // $this->assertGreaterThanOrEqual(8, strlen($userRandomPasswordUpdate), 'Password length is at least 8 characters');
-    //         $userRandomPasswordUpdate = $this->faker->regexify('[A-Za-z0-9]{8,16}');
-    //     // } catch (\PHPUnit\Framework\AssertionFailedError $e) {
-    //     //     $this->fail($e->getMessage());
-    //     // }
-    
-    //     // Make the update request
-    //     $response = $this->makeRequest("PUT", "users/{$userId}", [
-    //         'email' => $userRandomEmailUpdate,
-    //         'email' => $userRandomPasswordUpdate,
-    //         'firstname' => $userRandomFirstNameUpdate,
-    //         'lastname' => $userRandomLastNameUpdate,
-    //         'username' => $userRandomUserNameUpdate,
-    //     ], header: ["Authorization" => "Bearer " . $token]);
-    
-    //     // Assert that the response is not null
-    //     $this->assertNotNull($response);
-    
-    //     // Decode the response JSON content into an array
-    //     $responseData = json_decode($response->getBody()->getContents(), true);
-    
-    //     // Assert that the response contains a 'message' key with value 'user update successful'
-    //     $this->assertArrayHasKey('message', $responseData);
-    //     $this->assertEquals('user update successful', $responseData['message']);
-    
-    //     // Assert that the response contains a 'user' key with updated user data
-    //     $this->assertArrayHasKey('data', $responseData);
-    //     $this->assertEquals($userRandomFirstNameUpdate, $responseData['data']['firstname']);
-    //     $this->assertEquals($userRandomLastNameUpdate, $responseData['data']['lastname']);
-    //     $this->assertEquals($userRandomEmailUpdate, $responseData['data']['email']);
-    //     }catch (\Exception $e) {
+
+
+
+
+
+
+
+    //         $this->initialize("running test update user");
+
+    //         // Authenticate the user and get the token
+    //         $token = $this->authenticate(only_token: true);
+
+    //         // Construct the request body with updated user data
+    //         $updatedUserData = [
+    //             'email' => $this->faker->unique()->safeEmail,
+    //             'firstname' => $this->faker->firstName,
+    //             'lastname' => $this->faker->lastName,
+    //             'username' => $this->faker->userName,
+    //             'phone' => $this->faker->phoneNumber,
+    //             'level' => 'user',
+    //             'country' => $this->faker->country,
+    //             'city' => $this->faker->city,
+    //             'address' => $this->faker->address,
+    //             'postal_code' => $this->faker->postcode,
+    //             'avatar' => 'path/to/avatar.jpg'
+    //         ];
+
+    //         // Make the request to update the user
+    //         $response = $this->makeRequest("PUT", "users/{$user->id}", $updatedUserData, ["Authorization" => "Bearer " . $token]);
+
+    //         // Assert that the response is not null
+    //         $this->assertNotNull($response);
+
+    //         // Decode the response JSON content into an array
+    //         $responseData = json_decode($response->getBody()->getContents(), true);
+
+    //         // Assert that the response contains a 'message' key with value 'user update successful'
+    //         $this->assertArrayHasKey('message', $responseData);
+    //         $this->assertEquals('user update successful', $responseData['message']);
+
+    //         // Assert that the response contains a 'data' key with updated user data
+    //         $this->assertArrayHasKey('data', $responseData);
+    //         $updatedUserData['id'] = $user->id; // Add the user ID to the updated data for comparison
+    //         $this->assertEquals($updatedUserData, $responseData['data']);
+
+    //     } catch (\Exception $e) {
     //         $this->fail('An exception occurred: ' . $e->getMessage());
     //     }
-    
-    
     // }
+
+//     public function testUpdateUser()
+// {
+//     $this->initialize("running test create user to be updated");
+//     try {
+
+//         // Generate random user data
+//         $userRandomEmail = $this->faker->unique()->safeEmail;
+//         $userRandomFirstName = $this->faker->firstName;
+//         $userRandomLastName = $this->faker->lastName;
+//         $userRandomPassword = $this->faker->password;
+
+//         // Construct the request body
+//         $requestBody = [
+//             'email' => $userRandomEmail,
+//             'password' => $userRandomPassword,
+//             'firstname' => $userRandomFirstName,
+//             'lastname' => $userRandomLastName,
+//             'phone' => $this->faker->phoneNumber,
+//             'level' => '1',
+//             'country' => $this->faker->country,
+//             'city' => $this->faker->city,
+//             'address' => $this->faker->address,
+//             'postal_code' => "10010305",
+//             // 'postal_code' => $this->faker->postcode,
+//             'avatar' => 'path/to/avatar.jpg'
+//         ];
+
+//         // Make the request to create a user
+//         $response = $this->makeRequest("POST", "users", $requestBody);
+
+//         // Assert that the response is not null
+//         $this->assertNotNull($response);
+
+//         // Decode the response JSON content into an array
+//         $responseData = json_decode($response->getBody()->getContents(), true);
+
+//         // Assert that the response contains a 'message' key with value 'user creation successful'
+//         $this->assertArrayHasKey('message', $responseData);
+//         $this->assertEquals('user creation successful', $responseData['message']);
+
+//         // Assert that the response contains a 'data' key with expected user data
+//         $this->assertArrayHasKey('data', $responseData);
+//         $userData = $responseData['data'];
+//         $this->assertEquals($userRandomEmail, $userData['email']);
+//         $this->assertEquals($userRandomFirstName, $userData['firstname']);
+//         $this->assertEquals($userRandomLastName, $userData['lastname']);
+//         $this->assertTrue(isset($userData['username'])); // Ensure username is set
+
+//         // Assert that the password is hashed
+//         $this->assertNotEquals($userRandomPassword, $userData['password']);
+
+//         $this->initialize("running test updated user -- UPDATING NEWLY CREATED USER ID::" . $userData['id']);
+//         // Get the ID of the newly created user 
+//         $userId = $userData['data']['id'];
+//         // Authenticate the user and get the token
+//         $token = $this->authenticate(only_token: true);
+
+//         // Construct the request body with updated user data
+//         $updatedUserData = [
+//             'email' => $this->faker->unique()->safeEmail,
+//             'firstname' => $this->faker->firstName,
+//             'lastname' => $this->faker->lastName,
+//             'username' => $this->faker->userName,
+//             'phone' => $this->faker->phoneNumber,
+//             'level' => '1',
+//             'country' => $this->faker->country,
+//             'city' => $this->faker->city,
+//             'address' => $this->faker->address,
+//             'postal_code' => "5910387",
+//             // 'postal_code' => $this->faker->postcode,
+//             'avatar' => 'path/to/avatar.jpg'
+//         ];
+
+//         // Make the request to update the user with the obtained user ID
+//         $response = $this->makeRequest("PUT", "users/{$userId}", $updatedUserData, [
+//             "Authorization" => "Bearer " . $token
+//          ]);
+
+//         // Assert that the response is not null
+//         $this->assertNotNull($response);
+
+//         // Decode the response JSON content into an array
+//         $responseData = json_decode($response->getBody()->getContents(), true);
+
+//         // Assert that the response contains a 'message' key with value 'user update successful'
+//         $this->assertArrayHasKey('message', $responseData);
+//         $this->assertEquals('user update successful', $responseData['message']);
+
+//         // Assert that the response contains a 'data' key with updated user data
+//         $this->assertArrayHasKey('data', $responseData);
+//         $updatedUserData['id'] = $userId; // Add the user ID to the updated data for comparison
+//         $this->assertEquals($updatedUserData, $responseData['data']);
+
+//     } catch (\Exception $e) {
+//         if ($e instanceof RequestException) {
+//             $response = $e->getResponse();
+//             if ($response) {
+//                 $statusCode = $response->getStatusCode();
+//                 if ($statusCode === 500) {
+//                     $this->fail('Server error: ' . $response->getBody()->getContents());
+//                 } else {
+//                     $this->assertEquals(404, $statusCode);
+//                     $body = json_decode($response->getBody()->getContents(), true);
+//                     $this->assertArrayHasKey("message", $body);
+//                     $this->assertEquals("you don't have this permission", $body["message"]);
+//                 }
+//             } else {
+//                 $this->fail('Request failed: ' . $e->getMessage());
+//             }
+//         } else {
+//             throw $e;
+//         }
+//     }
+// }
+
+
     
-    
-
-
-
-
     
 }
 

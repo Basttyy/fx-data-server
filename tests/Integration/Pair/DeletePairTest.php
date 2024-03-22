@@ -15,6 +15,7 @@ final class DeletePairTest extends TestCase
         $this->initialize("running test to delete one/single pair -- CREATING PAIR TO BE DELETED");
 
         $token = $this->authenticate(only_token: true);
+        
         $pairRandomName = $this->faker->currencyCode . $this->faker->currencyCode . '  Test Pair to be deleted ' . $this->faker->uuid;
         $pairRandomDescription = "Description for " . $pairRandomName;
 

@@ -8,7 +8,7 @@ final class UpdatePairTest extends TestCase
 {
     public function testAdminCanUpdatePair()
     {
-        $this->initialize("running test admin can update pair");
+        $this->initialize("running test admin can update pair -- CREATING PAIR TO BE UPDATED");
 
         // Authenticate the user and get the token
         $token = $this->authenticate(only_token: true);
@@ -41,6 +41,8 @@ final class UpdatePairTest extends TestCase
         // Decode the response JSON content into an array
         $responseData = json_decode($response->getBody()->getContents(), true);
 
+        
+        
         // Get the ID of the created pair
         $pairId = $responseData['data']['id'];
 
