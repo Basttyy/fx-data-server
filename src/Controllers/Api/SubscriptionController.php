@@ -9,6 +9,7 @@ use Basttyy\FxDataServer\Models\Plan;
 use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\Subscription;
 use Basttyy\FxDataServer\Models\User;
+use Carbon\Carbon;
 use Exception;
 use LogicException;
 use PDOException;
@@ -189,6 +190,7 @@ final class SubscriptionController
                 return JsonResponse::notFound("unable to retrieve plan");
             }
             $body['total_cost'] = ($body['duration'] - ($body['duration']/6)) * $this->plan->price;  // Give one month discount for every 6 months subscribed
+            $body['expires_at'] = Carbon::now()->modify('+'.$body['duration'].' '.$this->plan->duration_interval. $body['duration'] > 1 ? 's' : '');
 
             ///TODO:  We Still Need To Make Sure The User Had Completed A Payment That Is Worth The Amount Above, Before We Can Create The Subscription
 

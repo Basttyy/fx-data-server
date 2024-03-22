@@ -194,7 +194,7 @@ final class PairController
 
             $body = sanitize_data(json_decode($inputJSON, true));
             $status = Pair::DISABLED.', '.Pair::ENABLED;
-            $markets = Pair::FX.', '.Pair::COMODITY.', '.Pair::CRYPTO.', '.Pair::STOCKS.', '.Pair::INDICES;
+            $markets = Pair::FX.', '.Pair::COMODITY.', '.Pair::CRYPTO.', '.Pair::STOCKS.', '.Pair::INDEX;
 
             if ($validated = Validator::validate($body, [
                 'name' => 'required|string',
@@ -207,6 +207,8 @@ final class PairController
                 'market' => "required|in:$markets",
                 'short_name' => 'required|string',
                 'ticker' => 'required|string',
+                'timezone' => 'required|string|in:'.Pair::TIMEZONES,
+                'min_move' => 'required|string',
                 'price_precision' => 'required|int',
                 'volume_precision' => 'required|int',
                 'price_currency' => 'required|string',
@@ -256,7 +258,7 @@ final class PairController
             $body = sanitize_data(json_decode($inputJSON, true));
             $id = sanitize_data($id);
             $status = Pair::DISABLED.', '.Pair::ENABLED;
-            $markets = Pair::FX.', '.Pair::COMODITY.', '.Pair::CRYPTO.', '.Pair::STOCKS.', '.Pair::INDICES;
+            $markets = Pair::FX.', '.Pair::COMODITY.', '.Pair::CRYPTO.', '.Pair::STOCKS.', '.Pair::INDEX;
 
             if ($validated = Validator::validate($body, [
                 'name' => 'sometimes|string',
@@ -269,6 +271,8 @@ final class PairController
                 'market' => "sometimes|in:$markets",
                 'short_name' => 'sometimes|string',
                 'ticker' => 'sometimes|string',
+                'timezone' => 'required|string|in:'.Pair::TIMEZONES,
+                'min_move' => 'sometimes|string',
                 'price_precision' => 'sometimes|int',
                 'volume_precision' => 'sometimes|int',
                 'price_currency' => 'sometimes|string',

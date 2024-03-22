@@ -14,12 +14,14 @@
         "firebase/php-jwt": "^6.5",
         "monolog/monolog": "^2.9",
         "phpmailer/phpmailer": "^6.8",
-        "ezyang/htmlpurifier": "^4.17"
+        "ezyang/htmlpurifier": "^4.17",
+        "guzzlehttp/guzzle": "^7.7"
     },
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Basttyy\\FxDataServer\\": "src/"
+            "Basttyy\\FxDataServer\\": "src/",
+            "Test\\": "tests/"
         }
     },
     "authors": [
@@ -32,7 +34,15 @@
     "scripts": {
         "dev": [
             "Composer\\Config::disableProcessTimeout",
-            "php -S 192.168.0.153:20334 -t . server.php"
+            "php -S fx-data-server.test:80 -t . server.php"
+        ],
+        "dev-mac": [
+            "Composer\\Config::disableProcessTimeout",
+            "sudo php -S fx-data-server.test:80 -t . server.php"
+        ],
+        "test-server": [
+            "Composer\\Config::disableProcessTimeout",
+            "sudo php -S fx-data-server.test:80 server.php >> /dev/null 2>&1"
         ],
         "queue-dev": [
             "Composer\\Config::disableProcessTimeout",
@@ -43,13 +53,18 @@
             "./node_modules/.bin/nodemon --config nodemon_console.json ./src/Console/BurriedJobRunner.php"
         ],
         "queue-work": "php ./src/Console/JobRunner.php",
-        "start": "php server.php 127.0.0.1:23458",
         "add-model": "php ./src/Console/CmdLine/CmdLine.php create-model",
         "add-controller": "php ./src/Console/CmdLine/CmdLine.php create-controller",
         "add-api-controller": "php ./src/Console/CmdLine/CmdLine.php create-api-controller",
         "add-migration": "./vendor/bin/phinx create",
         "add-seed": "./vendor/bin/phinx seed:create",
         "migrate": "./vendor/bin/phinx migrate",
-        "seed": "./vendor/bin/phinx seed:run"
+        "migrate-test": "vendor/bin/phinx migrate -e testing && vendor/bin/phinx seed:run -e testing",
+        "seed": "./vendor/bin/phinx seed:run",
+        "test": "./vendor/bin/phpunit tests"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0",
+        "fakerphp/faker": "^1.23"
     }
 }
