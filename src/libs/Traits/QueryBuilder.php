@@ -3,10 +3,12 @@
 namespace Basttyy\FxDataServer\libs\Traits;
 
 use Basttyy\FxDataServer\libs\Arr;
-use Basttyy\FxDataServer\libs\Interfaces\ModelInterface;
+use Basttyy\FxDataServer\libs\Interfaces\UserModelInterface;
 use Basttyy\FxDataServer\libs\mysqly;
+use Basttyy\FxDataServer\Models\Model;
 use DateTime;
 use Exception;
+use Hybridauth\Exception\NotImplementedException;
 use PDO;
 
 trait QueryBuilder
@@ -77,9 +79,16 @@ trait QueryBuilder
     /**
      * The child class that currently using the parent class
      * 
-     * @var ModelInterface|ModelInterface&UserModelInterface
+     * @var Model|Model&UserModelInterface
      */
-    private $child;
+    protected $child;
+
+    /**
+     * Indicates if the model already has a copy in the db or not
+     * 
+     * @var bool
+     */
+    private $exists_in_db = false;
 
     private function prepareModel()
     {
@@ -171,9 +180,36 @@ trait QueryBuilder
         return $model[0];
     }
 
+    public function save()
+    {
+        $values = Arr::where($this->toArray(), function ($v, $k) {      // to be used to filter out empty values in future
+            return true;
+        }, ARRAY_FILTER_USE_BOTH);
+
+        if ($this->child->{$this->child->primaryKey} === 0) {
+            if (!$id = mysqly::insert($this->table, $values)) {
+                return false;
+            }
+
+            $fields = $this->fillable;
+            if (!$model = mysqly::fetch($this->table, ['id' => $id], $fields)) {
+                return true;
+            }
+        } else {
+            $model = $this->_update($values, $this->child->{$this->child->primaryKey}, true, should_fill: false);
+            if (!$model)
+                return false;
+        }
+
+        array_key_exists($this->child->{$this->child::UPDATED_AT}, $model[0]) ? $this->child->{$this->child::UPDATED_AT} = $model[$this->child->{$this->child::UPDATED_AT}] : null;
+        array_key_exists($this->child->{$this->child->primaryKey}, $model[0]) ? $this->child->{$this->child->primaryKey} = $model[$this->child->{$this->child->primaryKey}] : null;
+
+        return true;
+    }
+
     public function find(int $id = 0, $is_protected = true)
     {
-        $id = $id > 0 ? $id : $this->child->id;
+        $id = $id > 0 ? $id : $this->child->{$this->child->primaryKey};
         $query_arr = [];
         if ($this->bind_or_filter)
             $query_arr = $this->bind_or_filter;
@@ -193,9 +229,29 @@ trait QueryBuilder
         return $this->fill($model[0]);
     }
 
+    public function findOr($id = 0, $is_protected = true, $callable)
+    {
+        throw new NotImplementedException('oops! this feature is yet to be implemented');
+    }
+
     public function first($is_protected = true)
     {
         return $this->find(is_protected: $is_protected);
+    }
+
+    public function firstWhere($column, $operatorOrValue = null, $value = null, $is_protected = true)
+    {
+        throw new NotImplementedException('oops! this feature is yet to be implemented');
+    }
+
+    public function firstOrCreate($search, $keyvalues, $is_protected = true, $select = [])
+    {
+        throw new NotImplementedException('oops! this feature is yet to be implemented');
+    }
+
+    public function firstOrNew($search, $keyvalues, $is_protected = true, $select = [])
+    {
+        throw new NotImplementedException('oops! this feature is yet to be implemented');
     }
 
     public function findBy($key, $value, $is_protected = true, $select = [])
@@ -301,6 +357,21 @@ trait QueryBuilder
         return $count;
     }
 
+    public function avg()
+    {
+        throw new NotImplementedException('oops! this feature is yet to be implemented');
+    }
+
+    public function max()
+    {
+        throw new NotImplementedException('oops! this feature is yet to be implemented');
+    }
+    
+    public function min()
+    {
+        throw new NotImplementedException('oops! this feature is yet to be implemented');
+    }
+
     public function update(array $values, int $id=0, $is_protected = true)
     {
         $this->_update($values, $id, is_protected: $is_protected);
@@ -308,7 +379,7 @@ trait QueryBuilder
 
     public function delete(int $id = 0)
     {
-        $id = $id > 0 ? $id : $this->child->id;
+        $id = $id > 0 ? $id : $this->child->{$this->child->primaryKey};
         
         $query_arr = $this->bind_or_filter === null ? [] : $this->bind_or_filter;
 
@@ -333,7 +404,7 @@ trait QueryBuilder
         if (!$this->child->softdeletes) {
             throw new Exception("this model does not support soft deleting");
         }
-        $id = $id > 0 ? $id : $this->child->id;
+        $id = $id > 0 ? $id : $this->child->{$this->child->primaryKey};
 
         return $this->_update(['deleted_at', null], $id, true);
     }
@@ -439,11 +510,11 @@ trait QueryBuilder
      * @param array $values
      * @param int $id
      * @param bool $internal
-     * @return self|bool
+     * @return self|bool|array
      */
-    private function _update(array $values, int $id=0, $internal = false, $is_protected = true)
+    private function _update(array $values, int $id=0, $internal = false, $is_protected = true, $should_fill = true)
     {
-        $id = $id > 0 ? $id : $this->child->id;
+        $id = $id > 0 ? $id : $this->child->{$this->child->primaryKey};
         
         $query_arr = $this->bind_or_filter === null ? [] : $this->bind_or_filter;
 
@@ -464,7 +535,10 @@ trait QueryBuilder
         }
 
         $this->resetInstance();
-        return $this->fill($model[0]);
+        if ($should_fill)
+            return $this->fill($model[0]);
+
+        return $model[0];
     }
 
     private function _where(string $column, string $operatorOrValue = null, $value = null, $boolean = "AND")

@@ -12,38 +12,6 @@ class mysqly {
   protected static $auth_file = '/var/lib/mysqly/.auth.php';
   protected static $auto_create = false;
   
-  
-  
-  /* Internal implementation */
-  
-  private static function filter($filter, string|array $or_ands = "AND", string|array $operators = '=') {
-    $bind = []; $query = []; $incr_operator = false;
-    if ( is_array($filter) ) {
-
-
-      $i = 0; $j = 0; $len = count($filter);
-
-      foreach ( $filter as $k => $v ) {
-        if ($len - $j === 1)
-          $or_and = '';
-        else
-          $or_and = is_array($or_ands) ? "$or_ands[$j]" : "$or_ands";
-        
-        $operator = is_array($operators) ? $operators[$i] : $operators;
-        static::condition($k, $v, $query, $bind, $incr_operator, $or_and, $operator);
-        $j++;
-        if ($incr_operator)
-          $i++;
-        $incr_operator = false;
-      }
-    }
-    else {
-      static::condition('id', $filter, $query, $bind, $incr_operator);
-    }
-    
-    return [$query ? ('WHERE ' . implode(' ', $query)) : '', $bind];
-  }
-  
   /**
    * Prepare conditions
    * 
@@ -187,6 +155,39 @@ class mysqly {
     static::exec('START TRANSACTION');
     $result = $callback();
     static::exec( $result ? 'COMMIT' : 'ROLLBACK' );
+  }  
+  
+
+
+  /* Internal implementation */
+  
+  private static function filter($filter, string|array $or_ands = "AND", string|array $operators = '=') {
+    // if this method fails in the future, check fetch_cursor below to copy implementation
+    $bind = []; $query = []; $incr_operator = false;
+    if ( is_array($filter) ) {
+
+
+      $i = 0; $j = 0; $len = count($filter);
+
+      foreach ( $filter as $k => $v ) {
+        if ($len - $j === 1)
+          $or_and = '';
+        else
+          $or_and = is_array($or_ands) ? "$or_ands[$j]" : "$or_ands";
+        
+        $operator = is_array($operators) ? $operators[$i] : $operators;
+        static::condition($k, $v, $query, $bind, $incr_operator, $or_and, $operator);
+        $j++;
+        if ($incr_operator)
+          $i++;
+        $incr_operator = false;
+      }
+    }
+    else {
+      static::condition('id', $filter, $query, $bind, $incr_operator);
+    }
+    
+    return [$query ? ('WHERE ' . implode(' ', $query)) : '', $bind];
   }
   
   

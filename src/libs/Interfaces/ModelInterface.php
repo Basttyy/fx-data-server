@@ -2,6 +2,8 @@
 
 namespace Basttyy\FxDataServer\libs\Interfaces;
 
+use Closure;
+
 interface ModelInterface
 {
     /**
@@ -40,17 +42,24 @@ interface ModelInterface
      * 
      * @return \PDOStatement|false $statement
      */
-    public function raw(string $sql, $bind);
+    public function raw($sql, $bind);
     
     /**
-     * create a model from array values
+     * create a model from array values and save to db
      * @param array $values
      * @param bool $is_protected 'wether to hide or show protected values'
      * @param array $select 'what parameters of model to fetch in results'
      * 
      * @return array|bool
      */
-    public function create(array $values, $is_protected = true, $select = []);
+    public function create($values, $is_protected = true, $select = []);
+
+    /**
+     * save a model object to DB
+     * 
+     * @return bool
+     */
+    public function save();
 
     /**
      * Find a model by its id
@@ -59,17 +68,63 @@ interface ModelInterface
      * 
      * @return self|false
      */
-    public function find(int $id = 0, $is_protected = true);
+    public function find($id = 0, $is_protected = true);
+
+    /**
+     * Find a model by its id, execute the closure if not found
+     * @param int $id
+     * @param bool $is_protected 'wether to hide or show protected values'
+     * @param callable $callable
+     * 
+     * @return self|false
+     */
+    public function findOr($id = 0, $is_protected = true, $callable);
 
     /**
      * Alias of Find with no id provided
      * Retrieves the first of all results of a query
-     * @param int $id
      * @param bool $is_protected 'wether to hide or show protected values'
      * 
      * @return self|false
      */
     public function first($is_protected = true);
+
+    /**
+     * Retrieves the first of all results of a query
+     * No previous or subsequent where clause is required
+     * @param string $column
+     * @param string|null $operatorOrValue
+     * @param mixed $value
+     * @param bool $is_protected 'wether to hide or show protected values'
+     * 
+     * @return self|false
+     */
+    public function firstWhere($column, $operatorOrValue = null, $value = null, $is_protected = true);
+
+    /**
+     * Retrieve model by key value or create it if it doesn't exist from array values
+     * search and keyvalues will be used together while creating the model
+     * @param array $search
+     * @param array $keyvalues
+     * @param bool $is_protected 'wether to hide or show protected values'
+     * @param array $select 'what parameters of model to fetch in results'
+     * 
+     * @return array|bool
+     */
+    public function firstOrCreate($search, $keyvalues, $is_protected = true, $select = []);
+
+    /**
+     * Retrieve model by key value or instantiate it if it doesn't exist from array values
+     * The model still needs to be save to the DB by calling save()
+     * search and keyvalues will be used together while creating the model
+     * @param array $search
+     * @param array $keyvalues
+     * @param bool $is_protected 'wether to hide or show protected values'
+     * @param array $select 'what parameters of model to fetch in results'
+     * 
+     * @return array|bool
+     */
+    public function firstOrNew($search, $keyvalues, $is_protected = true, $select = []);
 
     /**
      * Find a model by key and value
@@ -94,7 +149,7 @@ interface ModelInterface
      * 
      * @return array|false
      */
-    public function findByArray(array $keys, array $values, $or_and = "AND", $is_protected = true, $select = []);
+    public function findByArray($keys, $values, $or_and = "AND", $is_protected = true, $select = []);
 
     /**
      * Find all elements of a model
@@ -123,6 +178,28 @@ interface ModelInterface
      * @return int|false
      */
     public function count();
+    
+    /**
+     * Given a column, return the avearage of all values of that
+     * column from results of a query
+     * 
+     * @return int|false
+     */
+    public function avg();
+    
+    /**
+     * Given a column, return the element in a model with greatest value of that
+     * column from results of a query
+     * @return int|false
+     */
+    public function max();
+        
+    /**
+     * Given a column, return the element in a model with smallest value of that
+     * column from results of a query
+     * @return int|false
+     */
+    public function min();
 
     /**
      * update a model
@@ -133,16 +210,15 @@ interface ModelInterface
      * 
      * @return self|bool
      */
-    public function update(array $values, int $id=0, $is_protected = true);
+    public function update($values, $id=0, $is_protected = true);
 
     /**
      * update a model
-     * =
      * @param int $id
      * 
      * @return bool
      */
-    public function delete(int $id = 0);
+    public function delete($id = 0);
 
     /**
      * restore a soft deleted model
@@ -152,7 +228,7 @@ interface ModelInterface
      * @return self|bool
      * @throws Exception
      */
-    public function restore(int $id = 0);
+    public function restore($id = 0);
 
     /**
      * Add a where clause to the query instance
@@ -163,7 +239,7 @@ interface ModelInterface
      * 
      * @return self
      */
-    public function where(string $column, string $operatorOrValue = null, $value = null);
+    public function where($column, $operatorOrValue = null, $value = null);
     
     /**
      * Add a where clause to the query instance
@@ -173,7 +249,7 @@ interface ModelInterface
      * 
      * @return self
      */
-    public function whereLike(string $column, $value = null);
+    public function whereLike($column, $value = null);
 
     /**
      * Add a where clause to the query instance
@@ -183,7 +259,7 @@ interface ModelInterface
      * 
      * @return self
      */
-    public function whereNotLike(string $column, $value = null);
+    public function whereNotLike($column, $value = null);
 
     /**
      * Add a where clause to the query instance
@@ -193,7 +269,7 @@ interface ModelInterface
      * 
      * @return self
      */
-    public function whereLessThan(string $column, $value = null);
+    public function whereLessThan($column, $value = null);
 
     /**
      * Add a where clause to the query instance
@@ -203,7 +279,7 @@ interface ModelInterface
      * 
      * @return self
      */
-    public function whereGreaterThan(string $column, $value = null);
+    public function whereGreaterThan($column, $value = null);
 
     /**
      * Add a where clause to the query instance
@@ -213,7 +289,7 @@ interface ModelInterface
      * 
      * @return self
      */
-    public function whereLessThanOrEqual(string $column, $value = null);
+    public function whereLessThanOrEqual($column, $value = null);
 
     /**
      * Add a where clause to the query instance
@@ -223,7 +299,7 @@ interface ModelInterface
      * 
      * @return self
      */
-    public function whereGreaterThanOrEqual(string $column, $value = null);
+    public function whereGreaterThanOrEqual($column, $value = null);
 
     /**
      * Add a where clause to the query instance
@@ -233,7 +309,7 @@ interface ModelInterface
      * 
      * @return self
      */
-    public function whereEqual(string $column, $value = null);
+    public function whereEqual($column, $value = null);
 
     /**
      * Add a where clause to the query instance
@@ -243,7 +319,7 @@ interface ModelInterface
      * 
      * @return self
      */
-    public function whereNotEqual(string $column, $value = null);
+    public function whereNotEqual($column, $value = null);
 
     /**
      * Add a where clause to the query instance
@@ -254,7 +330,7 @@ interface ModelInterface
      * 
      * @return self
      */
-    public function orWhere(string $column, string $operatorOrValue = null, $value = null);
+    public function orWhere($column, $operatorOrValue = null, $value = null);
 
     /**
      * Add a where clause to the query instance
@@ -264,7 +340,7 @@ interface ModelInterface
      * 
      * @return self
      */
-    public function orWhereLike(string $column, $value = null);
+    public function orWhereLike($column, $value = null);
 
     /**
      * Add a where clause to the query instance
@@ -274,7 +350,7 @@ interface ModelInterface
      * 
      * @return self
      */
-    public function orWhereNotLike(string $column, $value = null);
+    public function orWhereNotLike($column, $value = null);
     
     /**
      * Add a where clause to the query instance
@@ -284,7 +360,7 @@ interface ModelInterface
      * 
      * @return self
      */
-    public function orWhereLessThan(string $column, $value = null);
+    public function orWhereLessThan($column, $value = null);
 
     /**
      * Add a where clause to the query instance
@@ -294,7 +370,7 @@ interface ModelInterface
      * 
      * @return self
      */
-    public function orWhereGreaterThan(string $column, $value = null);
+    public function orWhereGreaterThan($column, $value = null);
 
     /**
      * Add a where clause to the query instance
@@ -304,7 +380,7 @@ interface ModelInterface
      * 
      * @return self
      */
-    public function orWhereLessThanOrEqual(string $column, $value = null);
+    public function orWhereLessThanOrEqual($column, $value = null);
 
     /**
      * Add a where clause to the query instance
@@ -314,7 +390,7 @@ interface ModelInterface
      * 
      * @return self
      */
-    public function orWhereGreaterThanOrEqual(string $column, $value = null);
+    public function orWhereGreaterThanOrEqual($column, $value = null);
 
     /**
      * Add a where clause to the query instance
@@ -324,7 +400,7 @@ interface ModelInterface
      * 
      * @return self
      */
-    public function orWhereEqual(string $column, $value = null);
+    public function orWhereEqual($column, $value = null);
 
     /**
      * Add a where clause to the query instance
@@ -334,7 +410,7 @@ interface ModelInterface
      * 
      * @return self
      */
-    public function orWhereNotEqual(string $column, $value = null);
+    public function orWhereNotEqual($column, $value = null);
 
     /**
      * Begin a Transaction (all subsequent statements will be executed in that transaction)
