@@ -29,6 +29,11 @@ intlist = lambda l: list(map(int, l))
 # Create a mapping of currencies.
 all_currencies = {
     # Currency pairs.
+    "EURUSD": 1175270400,  # Starting from 2007.03.30 16:00
+    "GBPUSD": 1175270400,  # Starting from 2007.03.30 16:00
+    "XAUUSD": 1305010800,  # Starting from 2011.05.10 07:00
+    "GBPJPY": 1175270400,  # Starting from 2007.03.30 16:00
+    "USDJPY": 1175270400,  # Starting from 2007.03.30 16:00
     "AUDJPY": 1175270400,  # Starting from 2007.03.30 16:00
     "AUDNZD": 1229961600,  # Starting from 2008.12.22 16:00
     "AUDUSD": 1175270400,  # Starting from 2007.03.30 16:00
@@ -41,14 +46,10 @@ all_currencies = {
     "EURJPY": 1175270400,  # Starting from 2007.03.30 16:00
     "EURNOK": 1175270400,  # Starting from 2007.03.30 16:00
     "EURSEK": 1175270400,  # Starting from 2007.03.30 16:00
-    "EURUSD": 1175270400,  # Starting from 2007.03.30 16:00
     "GBPCHF": 1175270400,  # Starting from 2007.03.30 16:00
-    "GBPJPY": 1175270400,  # Starting from 2007.03.30 16:00
-    "GBPUSD": 1175270400,  # Starting from 2007.03.30 16:00
     "NZDUSD": 1175270400,  # Starting from 2007.03.30 16:00
     "USDCAD": 1175270400,  # Starting from 2007.03.30 16:00
     "USDCHF": 1175270400,  # Starting from 2007.03.30 16:00
-    "USDJPY": 1175270400,  # Starting from 2007.03.30 16:00
     "USDNOK": 1222639200,  # Starting from 2008.09.28 22:00
     "USDSEK": 1222642800,  # Starting from 2008.09.28 23:00
     "USDSGD": 1222642800,  # Starting from 2008.09.28 23:00
@@ -63,7 +64,6 @@ all_currencies = {
     "NZDCHF": 1266318000,  # Starting from 2010.02.16 11:00
     "NZDJPY": 1266318000,  # Starting from 2010.02.16 11:00
     "XAGUSD": 1289491200,  # Starting from 2010.11.11 16:00
-    "XAUUSD": 1305010800,  # Starting from 2011.05.10 07:00
     "ADSDEEUR": 1426201200,  # Starting from 2015.03.13 00:00
     "ALVDEEUR": 1429394400,  # Starting from 2015.04.19 00:00
     "AUSIDXAUD": 1402524000,  # Starting from 2014.06.12 00:00
