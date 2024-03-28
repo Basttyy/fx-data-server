@@ -1,6 +1,6 @@
 <?php
 
-namespace Test\Integration\Pair;
+namespace Test\Integration\User;
 use Basttyy\FxDataServer\Models\User;
 use GuzzleHttp\Exception\RequestException;
 use Exception;

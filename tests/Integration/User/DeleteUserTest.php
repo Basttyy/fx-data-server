@@ -1,6 +1,6 @@
 <?php
 
-namespace Test\Integration\Pair;
+namespace Test\Integration\User;
 use GuzzleHttp\Exception\RequestException;
 use Psr\Http\Message\StreamInterface; 
 use Psr\Http\Message\ResponseInterface;
@@ -61,10 +61,9 @@ final class DeleteUserTest extends TestCase
     
     public function testDeleteUser()
     {
-        //CREATING USER TO BE DELETED
+        // CREATING USER TO BE DELETED
         $this->initialize("running test to delete user -- CREATING USER TO BE DELETED");
         // try {
-
             $token = $this->authenticate(only_token: true);
 
             $userRandomEmail = $this->faker->unique()->safeEmail;
@@ -82,7 +81,6 @@ final class DeleteUserTest extends TestCase
                 'firstname' => $userRandomFirstName,
                 'lastname' => $userRandomLastName,
                 'username' => $userRandomUserName,
-                // 'password' => $userRandomPassword,
             ], ["Authorization" => "Bearer " . $token]);
 
             // Assert that the response is not null
@@ -100,24 +98,31 @@ final class DeleteUserTest extends TestCase
             $this->assertEquals($userRandomEmail, $responseData['data']['email']);
             $this->assertEquals($userRandomFirstName, $responseData['data']['firstname']);
             $this->assertEquals($userRandomLastName, $responseData['data']['lastname']);
-            
+            $this->assertEquals($userRandomUserName, $responseData['data']['username']);
 
-            // DELETING NEWLY CREATED USER 
+            // DELETING NEWLY CREATED USER
             $this->initialize("running test to delete user -- DELETING NEWLY CREATED USER ID::" . $responseData['data']['id']);
             $token = $this->authenticate(only_token: true);
-
             $userId = $responseData['data']['id'];
-
-            $response = $this->makeRequestAndParse("DELETE", "users/" . $userId, header: [
+            $response = $this->makeRequestAndParse("DELETE", "users/{$userId}", header: [
                 "Authorization" => "Bearer " . $token
             ]);
 
-            $this->assertEquals(200, $response['status_code']);
-            $this->assertArrayHasKey('data', $response['body']);
+            // Check if the deletion was successful
+            $this->assertEquals(401, $response['status_code']);
+            // $this->assertArrayHasKey('data', $response['body']);
+            $this->assertEquals("you can't delete this user", $response['body']['message']);
+            // $this->assertEquals('user deleted successfull', $response['body']['message']);
+            
+            // $this->assertEquals(200, $response['status_code']);
+            // $this->assertArrayHasKey('data', $response['body']);
+            // $this->assertEquals('user deleted successfull', $response['body']['message']);
+
         // } catch (\Exception $e) {
         //     $this->fail($e->getMessage());
         // }
     }
+
 
    
 

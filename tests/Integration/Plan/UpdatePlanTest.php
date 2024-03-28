@@ -1,6 +1,6 @@
 <?php
 
-namespace Test\Integration\Pair;
+namespace Test\Integration\Plan;
 use GuzzleHttp\Exception\RequestException;
 use Test\Integration\TestCase;
 

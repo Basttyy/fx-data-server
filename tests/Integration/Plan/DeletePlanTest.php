@@ -1,6 +1,6 @@
 <?php
 
-namespace Test\Integration\Pair;
+namespace Test\Integration\Plan;
 use GuzzleHttp\Exception\RequestException;
 use Psr\Http\Message\StreamInterface; 
 use Psr\Http\Message\ResponseInterface;
@@ -38,7 +38,7 @@ final class DeletePlanTest extends TestCase
         $this->assertEquals($planRandomName, $responseData['data']['name']);
         $this->assertEquals($planRandomDescription, $responseData['data']['description']);
 
-        // Delete the newly created plan
+        // DELETING NEWLY CREATED PLAN
         $this->initialize("running test to delete one/single plan ID:: " . $responseData['data']['id']);
         $pairId = $responseData['data']['id'];
         $response = $this->makeRequestAndParse("DELETE", "plans/" . $pairId, header: [

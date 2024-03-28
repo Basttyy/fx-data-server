@@ -251,8 +251,9 @@ final class UserController
             if (!$this->user->delete((int)$id)) {
                 return JsonResponse::notFound("unable to delete user or user not found");
             }
-
+            
             return JsonResponse::ok("user deleted successfull");
+
         } catch (PDOException $e) {
             if (env("APP_ENV") === "local")
                 $message = $e->getMessage();

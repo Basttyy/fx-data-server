@@ -1,39 +1,43 @@
 <?php
 
-// namespace Test\Integration\Pair;
-// use GuzzleHttp\Exception\RequestException;
-// use Psr\Http\Message\StreamInterface; 
-// use Psr\Http\Message\ResponseInterface;
-// // use Exception;
-// use Test\Integration\TestCase;
+namespace Test\Integration\Pair;
+use GuzzleHttp\Exception\RequestException;
+use Psr\Http\Message\StreamInterface; 
+use Psr\Http\Message\ResponseInterface;
+// use Exception;
+use Test\Integration\TestCase;
 
-// final class QueryPairTest extends TestCase
-// {
-//     public function testQuery()
-//     {
-//         $this->initialize("running test query pair");
+final class QueryPairTest extends TestCase
+{
 
-//         try {
-//             // Set up test data in $_GET
-//             $_GET['searchstring'] = 'USD';
-//             $_GET['exchange'] = 'Test Exchange';
-//             $_GET['market'] = 'fx';
+    public function testQuery()
+    {
+        $this->initialize("running test query");
 
-//             // Make the request to the query endpoint
-//             $response = $this->makeRequest("GET", "query/1", $_GET);
+        try {
+        $token = $this->authenticate(only_token: true);
 
-//             $this->assertNotNull($response);
-//             $responseData = json_decode($response->getBody()->getContents(), true);
-//             $this->assertArrayHasKey('message', $responseData);
-//             $this->assertEquals('no pair found in list1', $responseData['message']);
+        $id = 1;
+        $searchParams = "searchstring";
+        $searchTerm = "GBPUSD";
 
-//             $this->assertArrayHasKey('data', $responseData);
-//             $this->assertEmpty($responseData['data']);
+        $response = $this->makeRequest("GET", "pairs/list/pairorsym/" . $id . "/query/?" . $searchParams . "=" . $searchTerm, header: [
+            "Authorization" => "Bearer " . $token
+            ]);
 
-//         } catch (\Exception $e) {
-//             $this->fail("An unexpected exception occurred: {$e->getMessage()}");
-//         }
-//     }
 
-// }
+        $this->assertNotNull($response);
+
+        $responseData = json_decode($response->getBody()->getContents(), true);
+
+        $this->assertArrayHasKey('message', $responseData);
+        $this->assertEquals('pairs retrieved success', $responseData['message']);
+        $this->assertArrayHasKey('data', $responseData);
+
+        } catch (\Exception $e) {
+            $this->fail("An unexpected exception occurred: {$e->getMessage()}");
+        }
+    }
+
+}
 
