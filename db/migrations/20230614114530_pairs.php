@@ -24,7 +24,7 @@ final class Pairs extends AbstractMigration
         $table->addColumn('name', 'string')
             ->addColumn('description', 'string', ['null' => true])             /************ Will be used as 'name' in Klinechart's SymbolInfo */
             ->addColumn('status', 'enum', ['values' => Pair::ENABLED.','.Pair::DISABLED, 'default' => Pair::ENABLED])
-            ->addColumn('dollar_per_pip', 'decimal', ['precision' => 5, 'scale' => 2])
+            ->addColumn('dollar_per_pip', 'decimal', ['precision' => 12, 'scale' => 2])
             ->addColumn('history_start', 'timestamp')
             ->addColumn('history_end', 'timestamp')
             ->addColumn('exchange', 'string', ['default' => 'Dukascopy'])                /************ Used for SymbolInfo on KlineChart */
@@ -32,9 +32,9 @@ final class Pairs extends AbstractMigration
             ->addColumn('short_name', 'string')
             ->addColumn('ticker', 'string')
             ->addColumn('timezone', 'string', ['default' => 'Etc/UTC'])
-            ->addColumn('min_move', 'decimal')
-            ->addColumn('price_precision', 'decimal')
-            ->addColumn('volume_precision', 'decimal')
+            ->addColumn('min_move', 'decimal', ['precision' => 15, 'scale' => 5])
+            ->addColumn('price_precision', 'integer')
+            ->addColumn('volume_precision', 'integer')
             ->addColumn('price_currency', 'string')
             ->addColumn('type', 'string', ['default' => 'ADRC'])
             ->addColumn('logo', 'string', ['null' => true])                     /************ End of SymbolInfo */

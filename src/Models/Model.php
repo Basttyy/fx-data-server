@@ -35,9 +35,9 @@ abstract class Model implements ModelInterface
     /**
      * id property of the model
      * 
-     * @var string
+     * @var int
      */
-    protected $id = 0;
+    public $id = 0;
 
     /**
      * The "type" of the primary key ID.

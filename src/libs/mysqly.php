@@ -506,6 +506,7 @@ class mysqly {
     $sql = "UPDATE `{$table}` SET {$values} {$where}";
     
     try {
+      logger()->info($sql, is_array($bind) ? $bind : []);
       $statement = static::exec($sql, $bind);
       return $statement->rowCount();
     }

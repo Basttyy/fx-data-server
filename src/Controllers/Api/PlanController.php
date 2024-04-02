@@ -125,7 +125,7 @@ final class PlanController
 
             ///TODO:: send campaign notification to users/subscribers about the new plan
 
-            return JsonResponse::ok("plan creation successful", $plan);
+            return JsonResponse::created("plan creation successful", $plan);
         } catch (PDOException $e) {
             if (env("APP_ENV") === "local")
                 $message = $e->getMessage();
@@ -164,7 +164,7 @@ final class PlanController
 
             $status = Plan::DISABLED.', '.Plan::ENABLED;
             $intervals = implode(', ', Plan::INTERVALS);
-            
+
             if ($validated = Validator::validate($body, [
                 'name' => 'sometimes|string',
                 'description' => 'sometimes|string',
