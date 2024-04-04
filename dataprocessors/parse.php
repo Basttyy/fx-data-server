@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__."../vendor/autoload.php";
-require_once __DIR__."../src/libs/helpers.php";
+require_once __DIR__."/../vendor/autoload.php";
+require_once __DIR__."/../src/libs/helpers.php";
 require_once __DIR__."/data_helpers.php";
 
 use Carbon\Carbon;

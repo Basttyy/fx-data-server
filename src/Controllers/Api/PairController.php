@@ -200,7 +200,7 @@ final class PairController
                 'name' => 'required|string',
                 'description' => 'required|string',
                 'status' => "sometimes|string|in:$status",
-                'dollar_per_pip' => 'required|numeric',
+                'dollar_per_pip' => 'required|float',
                 'history_start' => 'required|string',
                 'history_end' => 'required|string',
                 'exchange' => 'sometimes|string',
@@ -208,7 +208,7 @@ final class PairController
                 'short_name' => 'required|string',
                 'ticker' => 'required|string',
                 'timezone' => 'required|string|in:'.Pair::TIMEZONES,
-                'min_move' => 'required|string',
+                'min_move' => 'required|float',
                 'price_precision' => 'required|int',
                 'volume_precision' => 'required|int',
                 'price_currency' => 'required|string',
@@ -218,11 +218,11 @@ final class PairController
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
-            if (!$pair = $this->pair->create($body, select: $this->pair->pairinfos)) {
+            if (!$pair = $this->pair->create($body)) {
                 return JsonResponse::serverError("unable to create pair");
             }
 
-            return JsonResponse::ok("pair creation successful", $pair);
+            return JsonResponse::created("pair creation successful", $pair);
         } catch (PDOException $e) {
             if (env("APP_ENV") === "local")
                 $message = $e->getMessage();
@@ -264,7 +264,7 @@ final class PairController
                 'name' => 'sometimes|string',
                 'description' => 'sometimes|string',
                 'status' => "sometimes|string|in:$status",
-                'dollar_per_pip' => 'sometimes|numeric',
+                'dollar_per_pip' => 'sometimes|float',
                 'history_start' => 'sometimes|string',
                 'history_end' => 'sometimes|string',
                 'exchange' => 'sometimes|string',
@@ -272,7 +272,7 @@ final class PairController
                 'short_name' => 'sometimes|string',
                 'ticker' => 'sometimes|string',
                 'timezone' => 'required|string|in:'.Pair::TIMEZONES,
-                'min_move' => 'sometimes|string',
+                'min_move' => 'sometimes|float',
                 'price_precision' => 'sometimes|int',
                 'volume_precision' => 'sometimes|int',
                 'price_currency' => 'sometimes|string',
