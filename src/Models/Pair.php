@@ -39,7 +39,7 @@ final class Pair extends Model
     protected $primaryKey = 'id';
 
     //oject properties
-    public $id;
+    // public $id;
     public $name;
     public $description;
     public $status;

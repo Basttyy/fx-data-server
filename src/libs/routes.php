@@ -11,7 +11,7 @@ use Basttyy\FxDataServer\Controllers\Api\Auth\CaptchaController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\TwoFaController;
 use Basttyy\FxDataServer\Controllers\Api\BlogController;
 use Basttyy\FxDataServer\Controllers\Api\FeedbackController;
-use Basttyy\FxDataServer\Controllers\Api\FxHistoryController;
+use Basttyy\FxDataServer\Controllers\Api\FxDataController;
 use Basttyy\FxDataServer\Controllers\Api\MigrateController;
 use Basttyy\FxDataServer\Controllers\Api\MiscellaneousController;
 use Basttyy\FxDataServer\Controllers\Api\PairController;
@@ -144,10 +144,8 @@ delete('/blog/posts/$id/comments/$id', new PostCommentController('delete'));
 // });
 
 /// Historical Data Routes
-get('/fx/download/ticker/$ticker/from/$from/nums/$nums/faster/$faster', $downloadTickData);
-get('/fx/candles/ticker/$ticker/from/$fro/nums/$num/timeframe/$timefram', $getTimeframeCandles);
-// get('/fx/download/min/ticker/$ticker/period/$period/from/$from/incr/$incr/nums/$nums', new FxController());
-get('/fx/download/min/ticker/$ticker/offerside/$offerside/period/$period/yr/$year/mn/$month/wk/$week', new FxHistoryController());
+get('/fx/download/min/ticker/$ticker/offerside/$offerside/period/$period/yr/$year/mn/$month/wk/$week', new FxDataController());
+get('/fx/currency/conversiondata/ticker/$ticker/year/$year', new FxDataController('currency_conversion_data'));
 get('/fx/tickers/query/$query', new MiscellaneousController('search_ticker'));
 get('/fx/tickers/query', new MiscellaneousController('search_ticker'));
 

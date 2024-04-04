@@ -19,11 +19,25 @@ abstract class Model implements ModelInterface
     protected $table;
 
     /**
-     * The primary key for the model.
+     * The primary key for the model in db
      *
      * @var string
      */
     protected $primaryKey = 'id';
+
+    /**
+     * Wether the model can be soft deleted
+     * 
+     * @var string
+     */
+    protected $softdeletes = true;
+
+    /**
+     * id property of the model
+     * 
+     * @var int
+     */
+    public $id = 0;
 
     /**
      * The "type" of the primary key ID.
@@ -66,7 +80,7 @@ abstract class Model implements ModelInterface
      * Create a new model instance.
      *
      * @param array  $attributes
-     * @param ModelInterface|ModelInterface&UserModelInterface $child
+     * @param self|self&UserModelInterface $child
      * @return void
      */
     public function __construct($child = null)

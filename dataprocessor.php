@@ -4,11 +4,11 @@ require_once __DIR__."/vendor/autoload.php";
 // parse_str(implode('&', array_slice($argv, 1)), $_GET);
 
 // php dataprocessor.php -c parse -t xauusd -y 2016,2017,2018,2019,2020,2021,2022,2023 -T 1
-// php dataprocessor.php -c parse_timeframe -t xauusd -y 2016,2017,2018,2019,2020,2021,2022,2023 -T 1,2,5,10,15,30
+// php dataprocessor.php -c parse_timeframe -t xauusd -y 2016,2017,2018,2019,2020,2021,2022,2023 -T 1,2,5,10,15,30,45
 // php dataprocessor.php -c compress -t xauusd -y 2016,2017,2018,2019,2020,2021,2022,2023 -T 2,5,15,30,60,120
 // php dataprocessor.php -c compact_week -t xauusd -s 2016 -e 2023 -T 1,2,5,15,30,60,120
 // php dataprocessor.php -c compact_month -t xauusd -s 2016 -e 2023 -T 1440
-// php dataprocessor.php -c parse_timeframe -t eurusd -T=240 -S=60 -y=2016,2017,2018,2019,2020,2021,2022,2023
+// php dataprocessor.php -c parse_timeframe -t eurusd -T=60,120,240 -S=60 -y=2016,2017,2018,2019,2020,2021,2022,2023
 
 use Carbon\Carbon;
 use Basttyy\FxDataServer\libs\NumberConverter;

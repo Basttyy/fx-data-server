@@ -24,7 +24,7 @@ final class User extends Model implements UserModelInterface
     protected $primaryKey = 'id';
 
     //object properties
-    public int $id;
+    // public $id;
     public string | null $uuid;
     public string $firstname;
     public string $lastname;

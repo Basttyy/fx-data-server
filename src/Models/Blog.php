@@ -14,7 +14,7 @@ final class Blog extends Model
     protected $primaryKey = 'id';
 
     //oject properties
-    public $id;
+    // public $id;
     public $user_id;
     public $title;
     public $slug;
