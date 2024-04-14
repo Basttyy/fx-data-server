@@ -189,8 +189,18 @@ final class SubscriptionController
             if (!$this->plan->find($body['plan_id'])) {
                 return JsonResponse::notFound("unable to retrieve plan");
             }
-            $body['total_cost'] = ($body['duration'] - ($body['duration']/6)) * $this->plan->price;  // Give one month discount for every 6 months subscribed
-            $body['expires_at'] = Carbon::now()->modify('+'.$body['duration'].' '.$this->plan->duration_interval. $body['duration'] > 1 ? 's' : '');
+            $durationInterval = function() use ($body) {
+                if ($this->plan->duration_interval == 'bi-annual')
+                    return ($body['duration'] * 6).' '.'months';
+                $plural = $body['duration'] > 1 ? 's' : '';
+
+                return $body['duration'] .' '. $this->plan->duration_interval . $plural;
+            };
+
+            $body['total_cost'] = $this->plan->price;
+            $body['expires_at'] = Carbon::now()->modify('+' . $durationInterval());
+            // $body['total_cost'] = ($body['duration'] - ($body['duration']/6)) * $this->plan->price;  // Give one month discount for every 6 months subscribed
+            // $body['expires_at'] = Carbon::now()->modify('+'.$body['duration'].' '.$this->plan->duration_interval. $body['duration'] > 1 ? 's' : '');
 
             ///TODO:  We Still Need To Make Sure The User Had Completed A Payment That Is Worth The Amount Above, Before We Can Create The Subscription
 
@@ -198,7 +208,7 @@ final class SubscriptionController
                 return JsonResponse::serverError("unable to create subscription");
             }
 
-            ///TODO:: send success notification to the user about the new subscription he made
+            ///TODO: send success notification to the user about the new subscription he made
 
             return JsonResponse::ok("subscription creation successful", $subscription);
         } catch (PDOException $e) {

@@ -11,6 +11,8 @@ class mysqly {
   protected static $auth = [];
   protected static $auth_file = '/var/lib/mysqly/.auth.php';
   protected static $auto_create = false;
+
+  protected static $transaction_mode = false;
   
   /**
    * Prepare conditions
@@ -147,7 +149,7 @@ class mysqly {
    * transaction() wrap a query in a callback
    * and run inside a transaction
    * 
-   * @param Callable $callback
+   * @param callable $callback
    * @return void
   */
   
@@ -155,9 +157,38 @@ class mysqly {
     static::exec('START TRANSACTION');
     $result = $callback();
     static::exec( $result ? 'COMMIT' : 'ROLLBACK' );
-  }  
-  
+  }
 
+  /**
+   * start a transaction chain
+   * subsequent queries will be executed in a transaction
+   * 
+   * @return void
+   */
+  public static function beginTransaction() {
+    static::exec('START TRANSACTION');
+    static::$transaction_mode = true;
+  }
+  
+  /**
+   * commit all changes made in the transaction chain
+   * 
+   * @return void
+   */
+  public static function commit() {
+    if (static::$transaction_mode)
+      static::exec('COMMIT');
+  }
+  
+  /**
+   * rollback all changes made in the transaction chain
+   * 
+   * @return void
+   */
+  public static function rollback() {
+    if (static::$transaction_mode)
+      static::exec('ROLLBACK');
+  }
 
   /* Internal implementation */
   

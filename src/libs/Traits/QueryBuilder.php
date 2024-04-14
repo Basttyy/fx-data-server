@@ -64,11 +64,11 @@ trait QueryBuilder
     protected $bind_or_filter;
 
     /**
-     * Wether to run queries as transaction
+     * Wether queries are currently running in a transaction
      * 
      * @var bool
      */
-    protected $use_transaction;
+    protected $transaction_mode;
 
     /**
      * Sets how the query should be ordered
@@ -108,7 +108,7 @@ trait QueryBuilder
         $this->or_ands = 'AND';
         $this->operators = '=';
         $this->order = '';
-        $this->use_transaction = false;
+        $this->transaction_mode = false;
     }
 
     public function orderBy($column = "id", $direction = "ASC")
@@ -243,7 +243,7 @@ trait QueryBuilder
         return $this->fill($model[0]);
     }
 
-    public function findOr($id, $callable, $is_protected = true)
+    public function findOr($id = 0, $is_protected = true, $callable = null)
     {
         throw new NotImplementedException('oops! this feature is yet to be implemented');
     }
@@ -519,7 +519,18 @@ trait QueryBuilder
 
     public function beginTransaction()
     {
-        $this->use_transaction = true;
+        mysqly::beginTransaction();
+        $this->transaction_mode = true;
+    }
+
+    public function commit()
+    {
+        mysqly::commit();
+    }
+
+    public function rollback()
+    {
+        mysqly::rollback();
     }
 
     /**
@@ -588,14 +599,4 @@ trait QueryBuilder
         // }
         return $this;
     }
-
-    // public function commit()
-    // {
-    //     $this->builder->commit();
-    // }
-
-    // public function rollback()
-    // {
-    //     $this->builder->rollback();
-    // }
 }

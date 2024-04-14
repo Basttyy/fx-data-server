@@ -27,6 +27,8 @@ final class Plans extends AbstractMigration
             ->addColumn('duration_interval', 'string', ['default' => Plan::INTERVALS['month']])
             ->addColumn('status', 'string', ['default' => Plan::ENABLED])
             ->addColumn('features', 'string')
+            ->addColumn('plan_token', 'string')
+            ->addColumn('third_party_id', 'string')
             ->addColumn('deleted_at', 'timestamp', ['null' => true])
             ->addTimestamps()
             ->create();

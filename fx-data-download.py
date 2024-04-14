@@ -417,33 +417,13 @@ class Dukascopy:
             # Big-endian to Little-endian conversion
             row = unpack(_fmt, row)
 
-            # Calculating & formatting column values
-            # minute = row[0] / 1000 // 60
-            # second = row[0] / 1000 - minute * 60
-            # timestamp = "%d.%02d.%02d %02d:%02d:%06.3f" % (
-            #     self.year,
-            #     self.month,
-            #     self.day,
-            #     self.hour,
-            #     minute,
-            #     second,
-            # )
             day = 1
             month = 1
             if self.day > 1:
                 day = self.day
             if self.month > 1:
                 month = self.month
-            # timestring = "%d-%02d-%02d %02d:%02d:%06.3f" % (
-            #     self.year,
-            #     month,
-            #     day,
-            #     00,
-            #     00,
-            #     00,
-            # )
-            # timestamp = time.mktime(ciso8601.parse_datetime(timestring).timetuple())
-            # timestamp += row[0]
+
             timestamp = row[0]
             openPrice = row[1] / point
             highPrice = row[2] / point

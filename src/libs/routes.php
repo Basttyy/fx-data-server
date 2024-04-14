@@ -22,6 +22,7 @@ use Basttyy\FxDataServer\Controllers\Api\RequestLogController;
 use Basttyy\FxDataServer\Controllers\Api\StrategyController;
 use Basttyy\FxDataServer\Controllers\Api\SubscriptionController;
 use Basttyy\FxDataServer\Controllers\Api\TestSessionController;
+use Basttyy\FxDataServer\Controllers\Api\TransactionController;
 use Basttyy\FxDataServer\Controllers\Api\UserController;
 use Basttyy\FxDataServer\Controllers\Api\UserExplicitController;
 use Basttyy\FxDataServer\Controllers\NotFoundController;
@@ -68,6 +69,10 @@ get('/subscriptions/all/count/$query', new SubscriptionController('count'));
 get('/subscriptions/query/$query', new SubscriptionController('list'));
 get('/subscriptions/palns/$id', new SubscriptionController('list_plan'));
 post('/subscriptions', new SubscriptionController('create'));
+
+get('/transaction/generate/ref', new TransactionController('trans_ref'));
+get('/transaction/verify', new TransactionController('create'));
+post('/transaction/verify', new TransactionController('update'));
 
 /// Strategy Routes
 get('/strategies/$id', new StrategyController());

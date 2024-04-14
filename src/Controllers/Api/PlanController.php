@@ -8,12 +8,15 @@ use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\Models\Plan;
 use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\User;
+use Basttyy\FxDataServer\libs\Traits\Flutterwave;
 use Exception;
+use GuzzleHttp\Client;
 use LogicException;
 use PDOException;
 
 final class PlanController
 {
+    use Flutterwave;
     private $method;
     private $user;
     private $authenticator;
@@ -119,9 +122,48 @@ final class PlanController
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
+            $this->plan->beginTransaction();
+
             if (!$plan = $this->plan->create($body)) {
                 return JsonResponse::serverError("unable to create plan");
             }
+            $this->plan->fill($plan);
+
+            // \Flutterwave\Flutterwave::bootstrap();
+
+            // $paymentPlansService = new \Flutterwave\Service\PaymentPlan();
+
+            $convertInterval = function() use ($body) {
+                if ($body['duration_interval'] === 'day') {
+                    return 'daily';
+                }
+                return $body['duration_interval'].'ly';
+            };
+
+            $response = $this->createPaymentPlan($body['price'], $body['name'], $convertInterval());
+
+            // $payload = new \Flutterwave\Payload();
+
+            // $payload->set('amount', 5000);
+            // $payload->set('name', '');
+            // $payload->set('interval', $convertInterval());
+
+            // $response = $paymentPlansService->create($payload);
+
+            if ($response->status !== 'success') {
+                $this->plan->rollback();
+                return JsonResponse::serverError("unable to create plan");
+            }
+
+            if (!$this->plan->update([
+                'plan_token' => $response->data->plan_token,
+                'third_party_id' => $response->data->id
+            ])) {
+                $this->plan->rollback();
+                return JsonResponse::serverError("unable to create plan");
+            }
+
+            $this->plan->commit();
 
             ///TODO:: send campaign notification to users/subscribers about the new plan
 
@@ -135,8 +177,8 @@ final class PlanController
             
             return JsonResponse::serverError($message);
         } catch (Exception $e) {
-            $message = env("APP_ENV") === "local" ? $e->getMessage() : "we encountered a problem";
-            return JsonResponse::serverError("we got some error here".$message);
+            $message = env("APP_ENV") === "local" ? $e->getMessage() : "";
+            return JsonResponse::serverError("we encountered a problem ".$message);
         }
     }
 

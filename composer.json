@@ -15,7 +15,8 @@
         "monolog/monolog": "^2.9",
         "phpmailer/phpmailer": "^6.8",
         "ezyang/htmlpurifier": "^4.17",
-        "guzzlehttp/guzzle": "^7.7"
+        "guzzlehttp/guzzle": "^7.7",
+        "flutterwavedev/flutterwave-v3": "^1.0"
     },
     "license": "MIT",
     "autoload": {

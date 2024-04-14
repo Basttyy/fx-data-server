@@ -19,6 +19,13 @@ if (! function_exists('json_response')) {
     }
 }
 
+if (! function_exists('transaction_ref')) {
+    function transaction_ref()
+    {
+        return uniqid('btfxtrans-');
+    }
+}
+
 if (! function_exists('env')) {
     /**
      * Gets the value of an environment variable.
