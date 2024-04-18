@@ -23,10 +23,12 @@ final class Plans extends AbstractMigration
         $table = $this->table($this::TABLE_NAME);
         $table->addColumn('name', 'string', ['limit' => 64])
             ->addColumn('description', 'string')
-            ->addColumn('price', 'decimal', ['precision' => 5, 'scale' => 2])
-            ->addColumn('duration_interval', 'string', ['default' => Plan::INTERVALS['month']])
+            ->addColumn('price', 'decimal', ['precision' => 9, 'scale' => 2])
+            ->addColumn('duration_interval', 'string', ['default' => Plan::INTERVALS[2]])
             ->addColumn('status', 'string', ['default' => Plan::ENABLED])
             ->addColumn('features', 'string')
+            ->addColumn('plan_token', 'string')
+            ->addColumn('third_party_id', 'string')
             ->addColumn('deleted_at', 'timestamp', ['null' => true])
             ->addTimestamps()
             ->create();

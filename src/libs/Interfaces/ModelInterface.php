@@ -84,7 +84,7 @@ interface ModelInterface
      * 
      * @return self|false
      */
-    public function findOr($id = 0, $is_protected = true, $callable);
+    public function findOr($id = 0, $is_protected = true, $callable = null);
 
     /**
      * Alias of Find with no id provided
@@ -423,13 +423,17 @@ interface ModelInterface
      */
     public function beginTransaction();
 
-    // public function commit()
-    // {
-    //     $this->builder->commit();
-    // }
+    /**
+     * commit all changes made in the transaction chain
+     * 
+     * @return void
+     */
+    public function commit();
 
-    // public function rollback()
-    // {
-    //     $this->builder->rollback();
-    // }
+    /**
+     * rollback all changes made in the transaction chain
+     * 
+     * @return void
+     */
+    public function rollback();
 }

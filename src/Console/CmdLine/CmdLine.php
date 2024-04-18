@@ -31,7 +31,7 @@ switch ($command) {
 exit($exit);
 
 function createModel (string $name) {
-    $name = Str::camel($name);
+    $name = Str::pascal($name);
     $name_lower = Str::snake($name);
     $model_folder = strtolower(PHP_OS_FAMILY) === "windows" ? __DIR__."\\..\\..\\Models\\" : __DIR__."/../../Models/";
 $model_template = "<?php
@@ -96,7 +96,7 @@ final class {$name} extends Model
 }
 
 function createController (string $name, $type = 'api') {
-    $name = Str::camel($name);
+    $name = Str::pascal($name);
     $controller_str = Str::snake($name);
     $controller_str_spc = str_replace('_', ' ', $controller_str);
     if ($type === 'api') {

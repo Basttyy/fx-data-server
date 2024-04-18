@@ -3,17 +3,21 @@ namespace Basttyy\FxDataServer\Controllers\Api;
 
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
+use Basttyy\FxDataServer\libs\Arr;
 use Basttyy\FxDataServer\libs\JsonResponse;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\Models\Plan;
 use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\User;
+use Basttyy\FxDataServer\libs\Traits\Flutterwave;
 use Exception;
+use GuzzleHttp\Client;
 use LogicException;
 use PDOException;
 
 final class PlanController
 {
+    use Flutterwave;
     private $method;
     private $user;
     private $authenticator;
@@ -114,14 +118,55 @@ final class PlanController
                 'price' => 'required|numeric',
                 'status' => "sometimes|string|in:$status",
                 'features' => 'required|string',
+                'currency' => 'required|string',
                 'duration_interval' => "required|string|in:$intervals"
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
-            if (!$plan = $this->plan->create($body)) {
+            $this->plan->beginTransaction();
+
+            $body['price'] = (float)$body['price'];
+            if (!$plan = $this->plan->create(Arr::except($body, 'currency'))) {
                 return JsonResponse::serverError("unable to create plan");
             }
+            $this->plan->fill($plan);
+
+            // \Flutterwave\Flutterwave::bootstrap();
+
+            // $paymentPlansService = new \Flutterwave\Service\PaymentPlan();
+
+            $convertInterval = function() use ($body) {
+                if ($body['duration_interval'] === 'day') {
+                    return 'daily';
+                }
+                return $body['duration_interval'].'ly';
+            };
+
+            $response = $this->createPaymentPlan($body['price'], $body['currency'], $body['name'], $convertInterval());
+
+            // $payload = new \Flutterwave\Payload();
+
+            // $payload->set('amount', 5000);
+            // $payload->set('name', '');
+            // $payload->set('interval', $convertInterval());
+
+            // $response = $paymentPlansService->create($payload);
+
+            if ($response->status !== 'success') {
+                $this->plan->rollback();
+                return JsonResponse::serverError("unable to create plan");
+            }
+
+            if (!$this->plan->update([
+                'plan_token' => $response->data->plan_token,
+                'third_party_id' => $response->data->id
+            ])) {
+                $this->plan->rollback();
+                return JsonResponse::serverError("unable to create plan");
+            }
+
+            $this->plan->commit();
 
             ///TODO:: send campaign notification to users/subscribers about the new plan
 
@@ -135,8 +180,8 @@ final class PlanController
             
             return JsonResponse::serverError($message);
         } catch (Exception $e) {
-            $message = env("APP_ENV") === "local" ? $e->getMessage() : "we encountered a problem";
-            return JsonResponse::serverError("we got some error here".$message);
+            $message = env("APP_ENV") === "local" ? $e->getMessage() : "";
+            return JsonResponse::serverError("we encountered a problem ".$message);
         }
     }
 

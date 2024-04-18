@@ -11,6 +11,8 @@ class mysqly {
   protected static $auth = [];
   protected static $auth_file = '/var/lib/mysqly/.auth.php';
   protected static $auto_create = false;
+
+  protected static $transaction_mode = false;
   
   /**
    * Prepare conditions
@@ -147,7 +149,7 @@ class mysqly {
    * transaction() wrap a query in a callback
    * and run inside a transaction
    * 
-   * @param Callable $callback
+   * @param callable $callback
    * @return void
   */
   
@@ -155,9 +157,38 @@ class mysqly {
     static::exec('START TRANSACTION');
     $result = $callback();
     static::exec( $result ? 'COMMIT' : 'ROLLBACK' );
-  }  
-  
+  }
 
+  /**
+   * start a transaction chain
+   * subsequent queries will be executed in a transaction
+   * 
+   * @return void
+   */
+  public static function beginTransaction() {
+    static::exec('START TRANSACTION');
+    static::$transaction_mode = true;
+  }
+  
+  /**
+   * commit all changes made in the transaction chain
+   * 
+   * @return void
+   */
+  public static function commit() {
+    if (static::$transaction_mode)
+      static::exec('COMMIT');
+  }
+  
+  /**
+   * rollback all changes made in the transaction chain
+   * 
+   * @return void
+   */
+  public static function rollback() {
+    if (static::$transaction_mode)
+      static::exec('ROLLBACK');
+  }
 
   /* Internal implementation */
   
@@ -255,7 +286,7 @@ class mysqly {
       
       $sql .= $order;
     }
-    logger()->info($sql, is_array($bind) ? $bind : []);
+    // logger()->info($sql, isset($bind) &&  is_array($bind) ? $bind : []);
     
     $res = isset($bind) ? static::exec($sql, $bind) : static::exec($sql);
     return $res;
@@ -418,6 +449,7 @@ class mysqly {
     $values = static::values($data, $bind);
     $sql = 'INSERT ' . ($ignore ? ' IGNORE ' : '') . "INTO `{$table}` SET {$values}";
     
+    // logger()->info($sql, $bind);
     try {
       static::exec($sql, $bind);
     }
@@ -439,6 +471,7 @@ class mysqly {
     $bind = [];
     $values = static::values($data, $bind);
     $sql = "INSERT INTO `{$table}` SET {$values} ON DUPLICATE KEY UPDATE {$values}";
+    // logger()->info($sql, $bind);
     
     try {
       $statement = static::exec($sql, $bind);
@@ -506,7 +539,7 @@ class mysqly {
     $sql = "UPDATE `{$table}` SET {$values} {$where}";
     
     try {
-      logger()->info($sql, is_array($bind) ? $bind : []);
+      // logger()->info($sql, is_array($bind) ? $bind : []);
       $statement = static::exec($sql, $bind);
       return $statement->rowCount();
     }
