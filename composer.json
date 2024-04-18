@@ -15,7 +15,8 @@
         "monolog/monolog": "^2.9",
         "phpmailer/phpmailer": "^6.8",
         "ezyang/htmlpurifier": "^4.17",
-        "guzzlehttp/guzzle": "^7.7"
+        "guzzlehttp/guzzle": "^7.7",
+        "flutterwavedev/flutterwave-v3": "^1.0"
     },
     "license": "MIT",
     "autoload": {
@@ -59,6 +60,7 @@
         "add-migration": "./vendor/bin/phinx create",
         "add-seed": "./vendor/bin/phinx seed:create",
         "migrate": "./vendor/bin/phinx migrate",
+        "rollback": "./vendor/bin/phinx rollback -t 0",
         "migrate-test": "vendor/bin/phinx migrate -e testing && vendor/bin/phinx seed:run -e testing",
         "seed": "./vendor/bin/phinx seed:run",
         "test": "./vendor/bin/phpunit tests"

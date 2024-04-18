@@ -22,6 +22,7 @@ use Basttyy\FxDataServer\Controllers\Api\RequestLogController;
 use Basttyy\FxDataServer\Controllers\Api\StrategyController;
 use Basttyy\FxDataServer\Controllers\Api\SubscriptionController;
 use Basttyy\FxDataServer\Controllers\Api\TestSessionController;
+use Basttyy\FxDataServer\Controllers\Api\TransactionController;
 use Basttyy\FxDataServer\Controllers\Api\UserController;
 use Basttyy\FxDataServer\Controllers\Api\UserExplicitController;
 use Basttyy\FxDataServer\Controllers\NotFoundController;
@@ -62,12 +63,19 @@ delete('/plans/$id', new PlanController('delete'));
 
 /// Subscription Routes
 get('/subscriptions/$id', new SubscriptionController());
+put('/subscriptions/$id/cancel', new SubscriptionController('cancel'));
 get('/subscriptions', new SubscriptionController('list'));
 get('/subscriptions/all/count', new SubscriptionController('count'));
 get('/subscriptions/all/count/$query', new SubscriptionController('count'));
 get('/subscriptions/query/$query', new SubscriptionController('list'));
 get('/subscriptions/palns/$id', new SubscriptionController('list_plan'));
-post('/subscriptions', new SubscriptionController('create'));
+// post('/subscriptions', new SubscriptionController('create'));
+
+get('/transactions/$id', new TransactionController(''));
+get('/transactions', new TransactionController('list'));
+get('/transactions/generate/ref', new TransactionController('trans_ref'));
+post('/transactions/verify', new TransactionController('create'));
+post('/transactions/webhook', new TransactionController('update'));
 
 /// Strategy Routes
 get('/strategies/$id', new StrategyController());

@@ -52,7 +52,7 @@ class PairSeeder extends AbstractSeed
                 'name' => 'XAUUSD',
                 'description' => 'Gold vs US Dollar',
                 'status' => Pair::ENABLED,
-                'dollar_per_pip' => 1,
+                'dollar_per_pip' => 10,
                 'history_start' => '2016-01-01 00:00:00',
                 'history_end' => '2023-06-30 00:00:00',
                 'exchange' => 'Dukascopy',

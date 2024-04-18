@@ -4,22 +4,22 @@ namespace Basttyy\FxDataServer\Models;
 
 use Basttyy\FxDataServer\Models\Model;
 
-final class Subscription extends Model
+final class TempTransactionRef extends Model
 {
-    protected $softdeletes = true;
+    protected $softdeletes = false;
 
-    protected $table = 'subscriptions';
+    protected $table = 'temp_transaction_refs';
 
     protected $primaryKey = 'id';
 
     //object properties
     public $id;
-    public $duration;
     public $user_id;
-    public $plan_id;
+    public $tx_ref;
     public $created_at;
-    public $expires_at;
     public $updated_at;
+    public $deleted_at;
+    //add more TempTransactionRef's properties here
 
     /**
      * Indicates what database attributes of the model can be filled at once
@@ -27,7 +27,8 @@ final class Subscription extends Model
      * @var array
      */
     protected $fillable = [
-        'id', 'duration', 'user_id', 'plan_id', 'created_at', 'expires_at', 'updated_at'
+        'id', 'user_id', 'tx_ref', 'created_at', 'updated_at'
+        //add more fillable columns here
     ];
 
     /**
@@ -37,10 +38,11 @@ final class Subscription extends Model
      */
     protected $guarded = [
         'created_at', 'updated_at'
+        //add more guarded columns here
     ];
 
     /**
-     * Create a new user instance.
+     * Create a new TempTransactionRef instance.
      *
      * @return void
      */

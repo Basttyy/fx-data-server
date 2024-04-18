@@ -8,6 +8,7 @@ final class Plan extends Model
 
     const INTERVALS = [
         'year',
+        'bi-annual',
         'month',
         'week',
         'day',
@@ -25,6 +26,8 @@ final class Plan extends Model
     public $price;
     public $status;
     public $features;
+    public $third_party_id;
+    public $plan_token;
     public $deleted_at;
     public $created_at;
     public $updated_at;
@@ -35,7 +38,7 @@ final class Plan extends Model
      * @var array
      */
     protected $fillable = [
-        'id', 'name', 'description', 'duration_interval', 'price', 'status', 'features', 'deleted_at', 'created_at', 'updated_at'
+        'id', 'name', 'description', 'duration_interval', 'price', 'status', 'features', 'plan_token', 'third_party_id', 'deleted_at', 'created_at', 'updated_at'
     ];
     
     /**

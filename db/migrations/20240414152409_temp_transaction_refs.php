@@ -3,9 +3,9 @@ declare(strict_types=1);
 
 use Phinx\Migration\AbstractMigration;
 
-final class Subscriptions extends AbstractMigration
+final class TempTransactionRefs extends AbstractMigration
 {
-    const TABLE_NAME = 'subscriptions';
+    const TABLE_NAME = 'temp_transaction_refs';
     /**
      * Change Method.
      *
@@ -20,15 +20,9 @@ final class Subscriptions extends AbstractMigration
     public function change(): void
     {
         $table = $this->table($this::TABLE_NAME);
-        $table->addColumn('duration', 'integer')
-            ->addColumn('total_cost', 'decimal', ['precision' => 9, 'scale' => 2])
-            ->addColumn('user_id', 'integer', ['signed' => false])
-            ->addColumn('plan_id', 'integer', ['signed' => false])
-            ->addColumn('is_canceled', 'boolean')
-            ->addColumn('expires_at', 'timestamp', ['null' => true])
-            ->addColumn('deleted_at', 'timestamp', ['null' => true])
+        $table->addColumn('user_id', 'integer', ['signed' => false])
+            ->addColumn('tx_ref', 'string')
             ->addForeignKey('user_id', 'users', 'id', ['delete' => 'CASCADE', 'update' => 'NO_ACTION'])
-            ->addForeignKey('plan_id', 'plans', 'id', ['delete' => 'CASCADE', 'update' => 'NO_ACTION'])
             ->addTimestamps()
             ->create();
     }

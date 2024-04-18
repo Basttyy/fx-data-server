@@ -64,11 +64,11 @@ trait QueryBuilder
     protected $bind_or_filter;
 
     /**
-     * Wether to run queries as transaction
+     * Wether queries are currently running in a transaction
      * 
      * @var bool
      */
-    protected $use_transaction;
+    protected $transaction_mode;
 
     /**
      * Sets how the query should be ordered
@@ -108,7 +108,7 @@ trait QueryBuilder
         $this->or_ands = 'AND';
         $this->operators = '=';
         $this->order = '';
-        $this->use_transaction = false;
+        $this->transaction_mode = false;
     }
 
     public function orderBy($column = "id", $direction = "ASC")
@@ -217,16 +217,15 @@ trait QueryBuilder
 
     public function find($id = 0, $is_protected = true)
     {
-        $id = $id > 0 ? $id : $this->child->{$this->child->primaryKey};
         $query_arr = [];
-        if ($id === 0 && isset($this->child->id)) {
-            $id = $this->child->id;
+        if ($id === 0 && isset($this->child->{$this->child->primaryKey})) {
+            $id = $this->child->{$this->child->primaryKey};
         }
         if ($this->bind_or_filter)
             $query_arr = $this->bind_or_filter;
 
         
-        if ($id < 0)
+        if ($id > 0)
             $query_arr['id'] = $id;
         if ($this->child->softdeletes) {
             $query_arr['deleted_at'] = "IS NULL";
@@ -243,7 +242,7 @@ trait QueryBuilder
         return $this->fill($model[0]);
     }
 
-    public function findOr($id, $callable, $is_protected = true)
+    public function findOr($id = 0, $is_protected = true, $callable = null)
     {
         throw new NotImplementedException('oops! this feature is yet to be implemented');
     }
@@ -400,7 +399,9 @@ trait QueryBuilder
         
         $query_arr = $this->bind_or_filter === null ? [] : $this->bind_or_filter;
 
-        $query_arr['id'] = $id;
+        if ($id == 0 && count($query_arr) < 1)
+            $query_arr['id'] = $id;
+
         if ($this->child->softdeletes) {
             $query_arr['deleted_at'] = "IS NULL";
             is_string($this->or_ands) ? $this->or_ands = ["AND"] : array_push($this->or_ands, "AND");
@@ -519,7 +520,18 @@ trait QueryBuilder
 
     public function beginTransaction()
     {
-        $this->use_transaction = true;
+        mysqly::beginTransaction();
+        $this->transaction_mode = true;
+    }
+
+    public function commit()
+    {
+        mysqly::commit();
+    }
+
+    public function rollback()
+    {
+        mysqly::rollback();
     }
 
     /**
@@ -588,14 +600,4 @@ trait QueryBuilder
         // }
         return $this;
     }
-
-    // public function commit()
-    // {
-    //     $this->builder->commit();
-    // }
-
-    // public function rollback()
-    // {
-    //     $this->builder->rollback();
-    // }
 }
