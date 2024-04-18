@@ -4,6 +4,7 @@ namespace Basttyy\FxDataServer\Controllers\Api;
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\libs\JsonResponse;
+use Basttyy\FxDataServer\libs\Traits\Flutterwave;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\Models\Plan;
 use Basttyy\FxDataServer\Models\Role;
@@ -16,6 +17,7 @@ use PDOException;
 
 final class SubscriptionController
 {
+    use Flutterwave;
     private $method;
     private $user;
     private $authenticator;
@@ -45,15 +47,9 @@ final class SubscriptionController
             case 'list':
                 $resp = $this->list();
                 break;
-            case 'create':
-                $resp = $this->create();
+            case 'cancel':
+                $resp = $this->cancel($id);
                 break;
-            // case 'update':
-            //     $resp = $this->update($id);
-            //     break;
-            // case 'delete':
-            //     $resp = $this->delete($id);
-            //     break;
             default:
                 $resp = JsonResponse::serverError('bad method call');
         }
@@ -159,71 +155,106 @@ final class SubscriptionController
         }
     }
 
-    private function create()
+    private function cancel(string $id)
     {
         try {
             if (!$this->authenticator->validate()) {
                 return JsonResponse::unauthorized();
             }
-            // Check if the request has a body
-            if ( $_SERVER['CONTENT_LENGTH'] <= env('CONTENT_LENGTH_MIN')) {
-                //return "body is required" response;
-                return JsonResponse::badRequest("bad request", "body is required");
-            }
 
             if (!$this->authenticator->verifyRole($this->user, 'user')) {
-                return JsonResponse::unauthorized("you can't subscribe to a plan");
+                return JsonResponse::unauthorized("you can't cancel this subscription");
             }
+            $id = sanitize_data($id);
+            $subscription = $this->subscription->find($id);
             
-            $inputJSON = file_get_contents('php://input');
+            if (!$subscription)
+                return JsonResponse::ok("subscription not found in list", []);
 
-            $body = sanitize_data(json_decode($inputJSON, true));
-
-            if ($validated = Validator::validate($body, [
-                'duration' => 'required|integer',
-                'plan_id' => 'required|integer'
-            ])) {
-                return JsonResponse::badRequest('errors in request', $validated);
-            }
-            // if (!$this->subscription->findByArray())  TODO: we need to ensure the user does not have an active subscription
-            if (!$this->plan->find($body['plan_id'])) {
-                return JsonResponse::notFound("unable to retrieve plan");
-            }
-            $durationInterval = function() use ($body) {
-                if ($this->plan->duration_interval == 'bi-annual')
-                    return ($body['duration'] * 6).' '.'months';
-                $plural = $body['duration'] > 1 ? 's' : '';
-
-                return $body['duration'] .' '. $this->plan->duration_interval . $plural;
-            };
-
-            $body['total_cost'] = $this->plan->price;
-            $body['expires_at'] = Carbon::now()->modify('+' . $durationInterval());
-            // $body['total_cost'] = ($body['duration'] - ($body['duration']/6)) * $this->plan->price;  // Give one month discount for every 6 months subscribed
-            // $body['expires_at'] = Carbon::now()->modify('+'.$body['duration'].' '.$this->plan->duration_interval. $body['duration'] > 1 ? 's' : '');
-
-            ///TODO:  We Still Need To Make Sure The User Had Completed A Payment That Is Worth The Amount Above, Before We Can Create The Subscription
-
-            if (!$subscription = $this->subscription->create($body)) {
-                return JsonResponse::serverError("unable to create subscription");
+            if ($subscription instanceof Subscription) {
+                if ($subscription->user_id === $this->user->id || Carbon::now()->greaterThanOrEqualTo($subscription->expires_at)) {
+                    return JsonResponse::badRequest('cannot cancel this subscription');
+                }
             }
 
-            ///TODO: send success notification to the user about the new subscription he made
+            if (!$this->cancelPaymentPlan($id)) //this should be changed to the id of the subscription on the third party's end
+                return JsonResponse::serverError('unable to cancel subscription');
 
-            return JsonResponse::ok("subscription creation successful", $subscription);
+            $subscription->where('id', $id)->update('is_canceled', true);
+
+            return JsonResponse::ok("subscription canceled successfully", $subscription);
         } catch (PDOException $e) {
-            if (env("APP_ENV") === "local")
-                $message = $e->getMessage();
-            else if (str_contains($e->getMessage(), 'Duplicate entry'))
-                return JsonResponse::badRequest('subscription already exist');
-            else $message = "we encountered a problem";
-            
-            return JsonResponse::serverError($message);
+            return JsonResponse::serverError("we encountered a problem");
         } catch (Exception $e) {
-            $message = env("APP_ENV") === "local" ? $e->getMessage() : "we encountered a problem";
-            return JsonResponse::serverError("we got some error here".$message);
+            return JsonResponse::serverError("we encountered a problem");
         }
     }
+
+    // private function create()
+    // {
+    //     try {
+    //         if (!$this->authenticator->validate()) {
+    //             return JsonResponse::unauthorized();
+    //         }
+    //         // Check if the request has a body
+    //         if ( $_SERVER['CONTENT_LENGTH'] <= env('CONTENT_LENGTH_MIN')) {
+    //             //return "body is required" response;
+    //             return JsonResponse::badRequest("bad request", "body is required");
+    //         }
+
+    //         if (!$this->authenticator->verifyRole($this->user, 'user')) {
+    //             return JsonResponse::unauthorized("you can't subscribe to a plan");
+    //         }
+            
+    //         $inputJSON = file_get_contents('php://input');
+
+    //         $body = sanitize_data(json_decode($inputJSON, true));
+
+    //         if ($validated = Validator::validate($body, [
+    //             'duration' => 'required|integer',
+    //             'plan_id' => 'required|integer'
+    //         ])) {
+    //             return JsonResponse::badRequest('errors in request', $validated);
+    //         }
+    //         // if (!$this->subscription->findByArray())  TODO: we need to ensure the user does not have an active subscription
+    //         if (!$this->plan->find($body['plan_id'])) {
+    //             return JsonResponse::notFound("unable to retrieve plan");
+    //         }
+    //         $durationInterval = function() use ($body) {
+    //             if ($this->plan->duration_interval == 'bi-annual')
+    //                 return ($body['duration'] * 6).' '.'months';
+    //             $plural = $body['duration'] > 1 ? 's' : '';
+
+    //             return $body['duration'] .' '. $this->plan->duration_interval . $plural;
+    //         };
+
+    //         $body['total_cost'] = $this->plan->price;
+    //         $body['expires_at'] = Carbon::now()->modify('+' . $durationInterval());
+    //         // $body['total_cost'] = ($body['duration'] - ($body['duration']/6)) * $this->plan->price;  // Give one month discount for every 6 months subscribed
+    //         // $body['expires_at'] = Carbon::now()->modify('+'.$body['duration'].' '.$this->plan->duration_interval. $body['duration'] > 1 ? 's' : '');
+
+    //         ///TODO:  We Still Need To Make Sure The User Had Completed A Payment That Is Worth The Amount Above, Before We Can Create The Subscription
+
+    //         if (!$subscription = $this->subscription->create($body)) {
+    //             return JsonResponse::serverError("unable to create subscription");
+    //         }
+
+    //         ///TODO: send success notification to the user about the new subscription he made
+
+    //         return JsonResponse::ok("subscription creation successful", $subscription);
+    //     } catch (PDOException $e) {
+    //         if (env("APP_ENV") === "local")
+    //             $message = $e->getMessage();
+    //         else if (str_contains($e->getMessage(), 'Duplicate entry'))
+    //             return JsonResponse::badRequest('subscription already exist');
+    //         else $message = "we encountered a problem";
+            
+    //         return JsonResponse::serverError($message);
+    //     } catch (Exception $e) {
+    //         $message = env("APP_ENV") === "local" ? $e->getMessage() : "we encountered a problem";
+    //         return JsonResponse::serverError("we got some error here".$message);
+    //     }
+    // }
 
     // private function update(string $id)
     // {

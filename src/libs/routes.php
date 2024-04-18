@@ -63,16 +63,19 @@ delete('/plans/$id', new PlanController('delete'));
 
 /// Subscription Routes
 get('/subscriptions/$id', new SubscriptionController());
+put('/subscriptions/$id/cancel', new SubscriptionController('cancel'));
 get('/subscriptions', new SubscriptionController('list'));
 get('/subscriptions/all/count', new SubscriptionController('count'));
 get('/subscriptions/all/count/$query', new SubscriptionController('count'));
 get('/subscriptions/query/$query', new SubscriptionController('list'));
 get('/subscriptions/palns/$id', new SubscriptionController('list_plan'));
-post('/subscriptions', new SubscriptionController('create'));
+// post('/subscriptions', new SubscriptionController('create'));
 
-get('/transaction/generate/ref', new TransactionController('trans_ref'));
-get('/transaction/verify', new TransactionController('create'));
-post('/transaction/verify', new TransactionController('update'));
+get('/transactions/$id', new TransactionController(''));
+get('/transactions', new TransactionController('list'));
+get('/transactions/generate/ref', new TransactionController('trans_ref'));
+post('/transactions/verify', new TransactionController('create'));
+post('/transactions/webhook', new TransactionController('update'));
 
 /// Strategy Routes
 get('/strategies/$id', new StrategyController());

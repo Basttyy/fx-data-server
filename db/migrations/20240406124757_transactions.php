@@ -21,13 +21,16 @@ final class Transactions extends AbstractMigration
     {
         $table = $this->table($this::TABLE_NAME);
         $table->addColumn('status', 'string')
-            ->addColumn('user_id', 'integer', ['signed', false])
-            ->addColumn('transaction_id', 'integer', ['signed', false])
-            ->addColumn('amount', 'string')
+            ->addColumn('user_id', 'integer', ['signed' => false])
+            ->addColumn('transaction_id', 'integer', ['signed' => false])
+            ->addColumn('subscription_id', 'integer', ['signed' => false])
+            ->addColumn('amount', 'decimal', ['precision' => 9, 'scale' => 2])
             ->addColumn('currency', 'string')
             ->addColumn('tx_ref', 'string')
             ->addColumn('third_party_ref', 'string')
             ->addColumn('type', 'string')
+            ->addForeignKey('user_id', 'users', 'id', ['delete' => 'CASCADE', 'update' => 'NO_ACTION'])
+            ->addForeignKey('subscription_id', 'subscriptions', 'id', ['delete' => 'CASCADE', 'update' => 'NO_ACTION'])
             ->addTimestamps()
             ->create();
     }

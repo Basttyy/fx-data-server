@@ -20,7 +20,6 @@ final class Subscription extends Model
     public $created_at;
     public $expires_at;
     public $updated_at;
-    public $deleted_at;
 
     /**
      * Indicates what database attributes of the model can be filled at once
@@ -28,7 +27,7 @@ final class Subscription extends Model
      * @var array
      */
     protected $fillable = [
-        'id', 'duration', 'user_id', 'plan_id', 'created_at', 'expires_at', 'updated_at', 'deleted_at'
+        'id', 'duration', 'user_id', 'plan_id', 'created_at', 'expires_at', 'updated_at'
     ];
 
     /**
@@ -37,7 +36,7 @@ final class Subscription extends Model
      * @var array
      */
     protected $guarded = [
-        'deleted_at', 'created_at', 'updated_at'
+        'created_at', 'updated_at'
     ];
 
     /**

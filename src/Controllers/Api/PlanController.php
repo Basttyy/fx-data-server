@@ -3,6 +3,7 @@ namespace Basttyy\FxDataServer\Controllers\Api;
 
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
+use Basttyy\FxDataServer\libs\Arr;
 use Basttyy\FxDataServer\libs\JsonResponse;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\Models\Plan;
@@ -117,6 +118,7 @@ final class PlanController
                 'price' => 'required|numeric',
                 'status' => "sometimes|string|in:$status",
                 'features' => 'required|string',
+                'currency' => 'required|string',
                 'duration_interval' => "required|string|in:$intervals"
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
@@ -124,7 +126,8 @@ final class PlanController
 
             $this->plan->beginTransaction();
 
-            if (!$plan = $this->plan->create($body)) {
+            $body['price'] = (float)$body['price'];
+            if (!$plan = $this->plan->create(Arr::except($body, 'currency'))) {
                 return JsonResponse::serverError("unable to create plan");
             }
             $this->plan->fill($plan);
@@ -140,7 +143,7 @@ final class PlanController
                 return $body['duration_interval'].'ly';
             };
 
-            $response = $this->createPaymentPlan($body['price'], $body['name'], $convertInterval());
+            $response = $this->createPaymentPlan($body['price'], $body['currency'], $body['name'], $convertInterval());
 
             // $payload = new \Flutterwave\Payload();
 

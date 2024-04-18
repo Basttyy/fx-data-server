@@ -217,16 +217,15 @@ trait QueryBuilder
 
     public function find($id = 0, $is_protected = true)
     {
-        $id = $id > 0 ? $id : $this->child->{$this->child->primaryKey};
         $query_arr = [];
-        if ($id === 0 && isset($this->child->id)) {
-            $id = $this->child->id;
+        if ($id === 0 && isset($this->child->{$this->child->primaryKey})) {
+            $id = $this->child->{$this->child->primaryKey};
         }
         if ($this->bind_or_filter)
             $query_arr = $this->bind_or_filter;
 
         
-        if ($id < 0)
+        if ($id > 0)
             $query_arr['id'] = $id;
         if ($this->child->softdeletes) {
             $query_arr['deleted_at'] = "IS NULL";
@@ -400,7 +399,9 @@ trait QueryBuilder
         
         $query_arr = $this->bind_or_filter === null ? [] : $this->bind_or_filter;
 
-        $query_arr['id'] = $id;
+        if ($id == 0 && count($query_arr) < 1)
+            $query_arr['id'] = $id;
+
         if ($this->child->softdeletes) {
             $query_arr['deleted_at'] = "IS NULL";
             is_string($this->or_ands) ? $this->or_ands = ["AND"] : array_push($this->or_ands, "AND");

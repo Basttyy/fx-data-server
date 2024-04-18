@@ -60,6 +60,7 @@
         "add-migration": "./vendor/bin/phinx create",
         "add-seed": "./vendor/bin/phinx seed:create",
         "migrate": "./vendor/bin/phinx migrate",
+        "rollback": "./vendor/bin/phinx rollback -t 0",
         "migrate-test": "vendor/bin/phinx migrate -e testing && vendor/bin/phinx seed:run -e testing",
         "seed": "./vendor/bin/phinx seed:run",
         "test": "./vendor/bin/phpunit tests"

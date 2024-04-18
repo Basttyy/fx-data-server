@@ -6,7 +6,7 @@ use Basttyy\FxDataServer\Models\Model;
 
 final class Transaction extends Model
 {
-    protected $softdeletes = true;
+    protected $softdeletes = false;
 
     protected $table = 'transactions';
 
@@ -14,7 +14,9 @@ final class Transaction extends Model
 
     //object properties
     public $id;
+    public $user_id;
     public $transaction_id;
+    public $subscription_id;
     public $status;
     public $amount;
     public $currency;
@@ -33,7 +35,7 @@ final class Transaction extends Model
      * @var array
      */
     protected $fillable = [
-        'id', 'status', 'transaction_id', 'amount', 'currency', 'tx_ref', 'third_party_ref', 'type', 'created_at', 'updated_at',
+        'id', 'status', 'user_id', 'transaction_id', 'subscription_id', 'amount', 'currency', 'tx_ref', 'third_party_ref', 'type', 'created_at', 'updated_at',
         //add more fillable columns here
     ];
 
@@ -43,7 +45,7 @@ final class Transaction extends Model
      * @var array
      */
     protected $guarded = [
-        'created_at', 'updated_at'
+        'user_id', 'transaction_id', 'subscription_id', 'third_party_ref', 'updated_at'
         //add more guarded columns here
     ];
 
