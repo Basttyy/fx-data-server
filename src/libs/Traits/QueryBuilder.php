@@ -399,9 +399,8 @@ trait QueryBuilder
         
         $query_arr = $this->bind_or_filter === null ? [] : $this->bind_or_filter;
 
-        if ($id == 0 && count($query_arr) < 1)
+        if ($id !== 0 && count($query_arr) < 1)
             $query_arr['id'] = $id;
-
         if ($this->child->softdeletes) {
             $query_arr['deleted_at'] = "IS NULL";
             is_string($this->or_ands) ? $this->or_ands = ["AND"] : array_push($this->or_ands, "AND");

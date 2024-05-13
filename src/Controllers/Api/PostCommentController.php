@@ -106,12 +106,11 @@ final class PostCommentController
             } else {
                 $params = count($_GET) ? sanitize_data($_GET) : [];
                 $post_comments = isset($params['post_comment_id']) ?
-                            $this->post_comment->where('status', value: PostComment::APPROVED)
-                                ->where('post_id', value: $post_id)
-                                ->where('post_comment_id', value: $params['post_comment_id'])->all() :
-                            $this->post_comment->where('status', value: PostComment::APPROVED)
-                                ->where('post_id', value: $post_id)
-                                ->where('post_comment_id', value: 'IS NULL')->all();
+                            $this->post_comment->where('status', PostComment::APPROVED)
+                                ->where('post_id', $post_id)
+                                ->where('post_comment_id', $params['post_comment_id'])->all() :
+                            $this->post_comment->where('status', PostComment::APPROVED)
+                                ->where('post_id', $post_id)->all();
             }
             
             if (!$post_comments)

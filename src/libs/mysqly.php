@@ -286,7 +286,7 @@ class mysqly {
       
       $sql .= $order;
     }
-    // logger()->info($sql, isset($bind) &&  is_array($bind) ? $bind : []);
+    logger()->info($sql, isset($bind) &&  is_array($bind) ? $bind : []);
     
     $res = isset($bind) ? static::exec($sql, $bind) : static::exec($sql);
     return $res;
@@ -320,7 +320,7 @@ class mysqly {
     return $list;
   }
 
-  // /**
+  //**
   //  * fetchOr() fetch one or mor row from a table
   //  * 
   //  * @param string $sql_or_table

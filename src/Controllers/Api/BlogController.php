@@ -188,9 +188,9 @@ final class BlogController
             $targetmd = uniqid().'.md';
             file_put_contents($mdpath . $targetmd, $body['text']);
             if (isset($body['status']) && $body['status'] === Blog::PUBLISHED) {
-                $body['text'] = "/public/uploads/blogs/$targetmd";
+                $body['text'] = "public/uploads/blogs/$targetmd";
             } else {
-                $body['draft_text'] = "/public/uploads/blogs/$targetmd";
+                $body['draft_text'] = "public/uploads/blogs/$targetmd";
                 $body['text'] = null;
             }
             if (isset($body['banner'])) {
@@ -201,7 +201,7 @@ final class BlogController
                     mkdir($path, 0777, true);
                 
                 $target_file = uniqid(). '.jpg';
-                $body['banner'] = "/public/uploads/blogs/$target_file";
+                $body['banner'] = "public/uploads/blogs/$target_file";
     
                 file_put_contents($path . $target_file, $banner);
             }
@@ -293,13 +293,13 @@ final class BlogController
                     //     $body['text'] = "/public/uploads/blogs/$targetmd";
                     //     $body['draft_text'] = null;
                     // } else {
-                        if ($this->blog->draft_text && file_exists(storage_path().'files'. str_replace('/public', '', $this->blog->draft_text))) unlink(storage_path().'files'. str_replace('/public', '', $this->blog->draft_text));
-                        $body['draft_text'] = "/public/uploads/blogs/$targetmd";
+                        if ($this->blog->draft_text && file_exists(storage_path().'files'. str_replace('public', '', $this->blog->draft_text))) unlink(storage_path().'files'. str_replace('public', '', $this->blog->draft_text));
+                        $body['draft_text'] = "public/uploads/blogs/$targetmd";
                         unset($body['text']);
                     // }
                 }
             } else if (isset($body['status']) && $body['status'] === Blog::PUBLISHED) {
-                if ($this->blog->text && file_exists(storage_path().'files'. str_replace('/public', '', $this->blog->text))) unlink(storage_path().'files'. str_replace('/public', '', $this->blog->text));
+                if ($this->blog->text && file_exists(storage_path().'files'. str_replace('public', '', $this->blog->text))) unlink(storage_path().'files'. str_replace('public', '', $this->blog->text));
                 $body['text'] = $this->blog->draft_text;
                 $body['draft_text'] = null;
             }
@@ -314,8 +314,8 @@ final class BlogController
                 $target_file = uniqid(). '.jpg';
     
                 if (file_put_contents($path . $target_file, $banner)) {
-                    unlink(storage_path().'files'. str_replace('/public', '', $prev_banner));
-                    $body['banner'] = "/public/uploads/blogs/$target_file";
+                    unlink(storage_path().'files'. str_replace('public', '', $prev_banner));
+                    $body['banner'] = "public/uploads/blogs/$target_file";
                 }
             }
             if (isset($body['status']) && $body['status'] == 'published') {
@@ -359,8 +359,16 @@ final class BlogController
             }
             $id = sanitize_data($id);
 
-            if (!$this->blog->delete((int)$id)) {
-                return JsonResponse::notFound("unable to delete blog or blog not found");
+            if (!$this->blog->find((int)$id)) {
+                return JsonResponse::notFound("blog does not exist");
+            }
+
+            unlink(storage_path().'files'. str_replace('public', '', $this->blog->text));
+
+            logger()->info('testing', $this->blog->toArray());
+
+            if (!$this->blog->delete()) {
+                return JsonResponse::serverError("unable to delete blog");
             }
 
             return JsonResponse::ok("blog deleted successfully");

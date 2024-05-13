@@ -47,7 +47,7 @@ if ($_ENV['APP_ENV'] === "local" && (!str_contains($server, 'apache') && (!str_c
         applyCorsHeaders($http_origin);
     }
 
-    if (preg_match('/\.(?:js|css|svg|ico|woff2|ttf|webp|pdf|png|jpg|json|jpeg|gif)$/', $_SERVER["REQUEST_URI"])) {
+    if (preg_match('/\.(?:js|css|svg|ico|woff2|ttf|webp|pdf|png|jpg|json|jpeg|gif|md)$/', $_SERVER["REQUEST_URI"])) {
         $path = $_SERVER['DOCUMENT_ROOT'].$_SERVER["REQUEST_URI"];
         if (file_exists($path)) {
             $mime = mime_content_type($path);
@@ -73,3 +73,51 @@ if (preg_match('/^.*$/i', $_SERVER["REQUEST_URI"])) {
 } else {
     return false; // Let php bultin server serve
 }
+
+// <?php
+
+// use Aws\Credentials\Credentials;
+
+// require_once "./vendor/autoload.php";
+
+// // AWS credentials
+// $credentials = new Credentials('a8nfN9th7NG9w3j2WniE', 'uPp9vs9oLumcHnQutJT7USoM6R0gZCEdzxSQqOUs');
+
+// // AWS S3 client options
+// $options = [
+//     'version' => 'latest',
+//     'region'  => 'fr-par', // Specify your desired AWS region
+//     'credentials' => $credentials, // Pass the credentials object
+//     'endpoint' => 'https://onehmsprod.l5x4.par.idrivee2-41.com', // Custom S3 endpoint
+//     'use_path_style_endpoint' => true, // Use path-style endpoint if necessary
+//     'bucket_endpoint' => true, // Set to true if bucket name is part of endpoint
+//     'bucket_name' => 'onehmsprod', // Specify your bucket name if not included in endpoint
+// ];
+
+// /** @var Aws\S3\S3ClientInterface $client */
+// $client = new Aws\S3\S3Client($options);
+
+// // The internal adapter
+// $adapter = new League\Flysystem\AwsS3V3\AwsS3V3Adapter(
+//     // S3Client
+//     $client,
+//     // Bucket name
+//     'onehmsprod',
+//     '',
+//     new League\Flysystem\AwsS3V3\PortableVisibilityConverter(
+//         // Optional default for directories
+//         League\Flysystem\Visibility::PUBLIC // or ::PRIVATE
+//     )
+// );
+
+// // The FilesystemOperator
+// $filesystem = new League\Flysystem\Filesystem($adapter);
+
+// try {
+//     $content = $filesystem->readStream('.env.example');
+
+//     file_put_contents('.env.example02', $content);
+//     // $filesystem->writeStream('.env.example02', fopen('.env.example', 'r'));
+// } catch (Exception $e) {
+//     echo $e->getMessage();
+// }

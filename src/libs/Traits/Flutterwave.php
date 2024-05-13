@@ -18,7 +18,7 @@ trait Flutterwave
      * @param string $name
      * @param string $interval
      * 
-     * @return false | \stdClass
+     * @return false|\stdClass
      */
     protected static function createPaymentPlan($amount, $currency, $name, $interval)
     {
@@ -51,7 +51,7 @@ trait Flutterwave
      * @param string $name
      * @param string $interval
      * 
-     * @return false | \stdClass
+     * @return false|\stdClass
      */
     protected static function updatePaymentPlan($id, $name, $interval)
     {
@@ -80,7 +80,7 @@ trait Flutterwave
      * 
      * @param int $id
      * 
-     * @return false | \stdClass
+     * @return false|\stdClass
      */
     protected static function cancelPaymentPlan($id)
     {
@@ -105,7 +105,7 @@ trait Flutterwave
      * 
      * @param int $id
      * 
-     * @return false | \stdClass
+     * @return false|\stdClass
      */
     protected static function cancelSubscriptionPlan($id)
     {
@@ -131,7 +131,7 @@ trait Flutterwave
      * 
      * @param int $id
      * 
-     * @return false | \stdClass
+     * @return false|\stdClass
      */
     protected static function verifyTransaction($id)
     {
@@ -156,7 +156,7 @@ trait Flutterwave
      * 
      * @param string $tx_ref
      * 
-     * @return false | \stdClass
+     * @return false|\stdClass
      */
     protected static function verifyTransactionByRef($tx_ref)
     {
