@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "aea67bd8d27ced2f996ff916cfb82e55",
+    "content-hash": "aee17ffaae90511da7d899c5ecf776a0",
     "packages": [
         {
             "name": "cakephp/core",
@@ -1122,6 +1122,67 @@
                 "source": "https://github.com/hybridauth/hybridauth/tree/v3.9.0"
             },
             "time": "2023-03-12T09:30:26+00:00"
+        },
+        {
+            "name": "ip2location/ip2location-php",
+            "version": "9.7.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/chrislim2888/IP2Location-PHP-Module.git",
+                "reference": "67c7bf13b0571b70925435e640ea5598e9fdeee9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/chrislim2888/IP2Location-PHP-Module/zipball/67c7bf13b0571b70925435e640ea5598e9fdeee9",
+                "reference": "67c7bf13b0571b70925435e640ea5598e9fdeee9",
+                "shasum": ""
+            },
+            "require": {
+                "ext-bcmath": "*",
+                "ext-curl": "*",
+                "ext-json": "*",
+                "php": ">=7.2"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^9.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "IP2Location\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "IP2Location",
+                    "email": "support@ip2location.com",
+                    "homepage": "https://www.ip2location.com"
+                }
+            ],
+            "description": "[Official Release] IP2Location PHP API to get location info from IPv4 and IPv6 address.",
+            "homepage": "https://www.ip2location.com",
+            "keywords": [
+                "area code",
+                "geolocation",
+                "ip geolocation",
+                "ip2location",
+                "ip2locationlite",
+                "isp",
+                "mcc",
+                "mnc",
+                "time zone",
+                "usage type",
+                "zip code"
+            ],
+            "support": {
+                "issues": "https://github.com/chrislim2888/IP2Location-PHP-Module/issues",
+                "source": "https://github.com/chrislim2888/IP2Location-PHP-Module/tree/9.7.3"
+            },
+            "time": "2024-02-26T22:30:40+00:00"
         },
         {
             "name": "monolog/monolog",
