@@ -10,6 +10,7 @@ use Basttyy\FxDataServer\Controllers\Api\Auth\AuthController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\CaptchaController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\TwoFaController;
 use Basttyy\FxDataServer\Controllers\Api\BlogController;
+use Basttyy\FxDataServer\Controllers\Api\CheapCountryController;
 use Basttyy\FxDataServer\Controllers\Api\FeedbackController;
 use Basttyy\FxDataServer\Controllers\Api\FxDataController;
 use Basttyy\FxDataServer\Controllers\Api\MigrateController;
@@ -146,7 +147,13 @@ post('/blog/posts/$id/comments', new PostCommentController('create'));
 put('/blog/posts/$id/comments/$id', new PostCommentController('update'));
 delete('/blog/posts/$id/comments/$id', new PostCommentController('delete'));
 
-// group('/admin', function() {
+get('/admin/cheapcountries/$id', new CheapCountryController());
+get('/admin/cheapcountries', new CheapCountryController('list'));
+post('/admin/cheapcountries', new CheapCountryController('create'));
+put('/admin/cheapcountries/$id', new CheapCountryController('update'));
+delete('/admin/cheapcountries/$id', new CheapCountryController('delete'));
+
+// group('/admin', function(string $prefix) {
 //     get('/blogs', new BlogController('list'));
 //     get('/blogs/$id', new BlogController());
 // });

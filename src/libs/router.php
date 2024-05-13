@@ -10,9 +10,9 @@ if (strtolower($_SERVER["REQUEST_METHOD"]) !== "options") {
   //}
 }
 
-// function group(string $route, callable $method) {
-//   call_user_func ($method);
-// }
+function group(string $route, callable $method) {
+  call_user_func ($method, $route);
+}
 
 function get(string $route, callable|string ...$paths_to_include){
   if( $_SERVER['REQUEST_METHOD'] == 'GET' ){ route($route, ...$paths_to_include); }
