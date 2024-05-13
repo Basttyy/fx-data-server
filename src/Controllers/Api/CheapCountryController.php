@@ -117,12 +117,12 @@ final class CheapCountryController
             $inputJSON = file_get_contents('php://input');
 
             $body = sanitize_data(json_decode($inputJSON, true));
-            $status = 'some, values';
+            $continents = CheapCountry::AFRICA.', '.CheapCountry::ANTARTICA.', '.CheapCountry::ASIA.', '.CheapCountry::EUROPE
+                        .', '.CheapCountry::NORTH_AMERICA.', '.CheapCountry::OCEANIA.', '.CheapCountry::SOUTH_AMERICA;
 
             if ($validated = Validator::validate($body, [
-                'foo' => 'required|string',
-                'bar' => 'sometimes|numeric',
-                'baz' => "sometimes|string|in:$status",
+                'name' => 'required|string',
+                'continent' => "required|string|in:$continents",
                 //add more validation rules here
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
@@ -164,13 +164,12 @@ final class CheapCountryController
             $inputJSON = file_get_contents('php://input');
 
             $body = sanitize_data(json_decode($inputJSON, true));
-
-            $status = 'some, values';
+            $continents = CheapCountry::AFRICA.', '.CheapCountry::ANTARTICA.', '.CheapCountry::ASIA.', '.CheapCountry::EUROPE
+                        .', '.CheapCountry::NORTH_AMERICA.', '.CheapCountry::OCEANIA.', '.CheapCountry::SOUTH_AMERICA;
 
             if ($validated = Validator::validate($body, [
-                'foo' => 'sometimes|boolean',
-                'bar' => 'sometimes|numeric',
-                'baz' => "sometimes|string|in:$status",
+                'name' => 'sometimes|string',
+                'continent' => "sometimes|string|in:$continents",
                 //add more validation rules here
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);

@@ -26,6 +26,7 @@ final class Plans extends AbstractMigration
             ->addColumn('price', 'decimal', ['precision' => 9, 'scale' => 2])
             ->addColumn('duration_interval', 'string', ['default' => Plan::INTERVALS[2]])
             ->addColumn('status', 'string', ['default' => Plan::ENABLED])
+            ->addColumn('for_cheap_regions', 'boolean', ['default' => 0])
             ->addColumn('features', 'string')
             ->addColumn('plan_token', 'string')
             ->addColumn('third_party_id', 'string')

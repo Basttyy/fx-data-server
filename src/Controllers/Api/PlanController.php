@@ -10,6 +10,7 @@ use Basttyy\FxDataServer\Models\Plan;
 use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\User;
 use Basttyy\FxDataServer\libs\Traits\Flutterwave;
+use Basttyy\FxDataServer\Models\CheapCountry;
 use Exception;
 use GuzzleHttp\Client;
 use LogicException;
@@ -78,7 +79,26 @@ final class PlanController
     private function list()
     {
         try {
-            $plans = $this->plan->all();
+            if ($this->authenticator->validate()) {
+                if ($this->authenticator->verifyRole($this->user, 'admin')) {
+                    $plans = $this->plan->all();
+                } else {
+                    $ischeapcountry = CheapCountry::getBuilder()->where('name', $this->user->country)->count();
+
+                    $plans = $ischeapcountry ? $this->plan->where('for_cheap_regions', 1)->get() : $this->plan->all();
+                }
+            } else {
+                $ipaddress = getenv('HTTP_X_FORWARDED_FOR') ? getenv('HTTP_X_FORWARDED_FOR') : getenv('REMOTE_ADDR');
+
+                // $ws = new \IP2Location\WebService(env('IP2LOC_API_KEY'), 'WS25', false);
+                $ws = new \IP2Location\WebService(env('IP2LOC_API_KEY'));           // Not using SSL for faster response time
+                $records = $ws->lookup($ipaddress, [
+                    'country',
+                ], 'en');
+
+                $ischeapcountry = CheapCountry::getBuilder()->where('name', $records['countryName'])->count();
+                $plans = $ischeapcountry ? $this->plan->where('for_cheap_regions', 1)->get() : $this->plan->all();
+            }
             if (!$plans)
                 return JsonResponse::ok('no plan found in list', []);
 

@@ -6,6 +6,13 @@ use Basttyy\FxDataServer\Models\Model;
 
 final class CheapCountry extends Model
 {
+    const AFRICA = 'africa';
+    const ASIA = 'asia';
+    const SOUTH_AMERICA = 'south america';
+    const NORTH_AMERICA = 'north america';
+    const EUROPE = 'europe';
+    const OCEANIA = 'oceania';
+    const ANTARTICA = 'antarctica';
     protected $softdeletes = true;
 
     protected $table = 'cheap_countries';
