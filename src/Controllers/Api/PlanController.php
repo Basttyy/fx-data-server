@@ -145,6 +145,7 @@ final class PlanController
                 'price' => 'required|numeric',
                 'status' => "sometimes|string|in:$status",
                 'features' => 'required|string',
+                'for_cheap_regions' => 'required|boolean',
                 'currency' => 'required|string',
                 'duration_interval' => "required|string|in:$intervals"
             ])) {
@@ -154,6 +155,8 @@ final class PlanController
             $this->plan->beginTransaction();
 
             $body['price'] = (float)$body['price'];
+            $body['for_cheap_regions'] = (int)$body['for_cheap_regions'];
+
             if (!$plan = $this->plan->create(Arr::except($body, 'currency'))) {
                 return JsonResponse::serverError("unable to create plan");
             }
@@ -242,11 +245,15 @@ final class PlanController
                 'description' => 'sometimes|string',
                 'price' => 'sometimes|numeric',
                 'status' => "sometimes|string|in:$status",
+                'for_cheap_regions' => 'sometimes|boolean',
                 'features' => 'sometimes|string',
                 'duration_interval' => "sometimes|string|in:$intervals"
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
+
+            $body['price'] = (float)$body['price'];
+            $body['for_cheap_regions'] = (int)$body['for_cheap_regions'];
 
             if (!$this->plan->update($body, (int)$id)) {
                 return JsonResponse::notFound("unable to update plan not found");
