@@ -28,6 +28,7 @@ final class TestSessions extends AbstractMigration
             ->addColumn('pair', 'string')
             ->addColumn('chart', 'mediumblob', ['null' => true])  //chart data should be a compressed serialized array of three objects ['overlays', 'style', 'positions']
             ->addColumn('chart_timestamp', 'biginteger', ['null' => true])
+            ->addColumn('chart_ui', 'string')
             ->addColumn('start_date', 'timestamp')
             ->addColumn('end_date', 'timestamp')
             ->addColumn('deleted_at', 'timestamp', ['null' => true])

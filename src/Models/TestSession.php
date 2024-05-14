@@ -17,6 +17,7 @@ final class TestSession extends Model
     public $pair;
     public $chart;
     public $chart_timestamp;
+    public $chart_ui;
     public $start_date;
     public $end_date;
     public $deleted_at;
@@ -24,7 +25,7 @@ final class TestSession extends Model
     public $updated_at;
 
     public $listkeys = [
-        'id', 'starting_bal', 'current_bal', 'equity', 'strategy_id', 'user_id', 'pair', 'chart_timestamp', 'start_date', 'end_date', 'deleted_at', 'created_at', 'updated_at'
+        'id', 'starting_bal', 'current_bal', 'equity', 'strategy_id', 'user_id', 'pair', 'chart_timestamp', 'chart_ui', 'start_date', 'end_date', 'deleted_at', 'created_at', 'updated_at'
     ];
     /**
      * Indicates what database attributes of the model can be filled at once
@@ -32,7 +33,7 @@ final class TestSession extends Model
      * @var array
      */
     protected $fillable = [
-        'id', 'starting_bal', 'current_bal', 'equity', 'strategy_id', 'user_id', 'pair', 'chart', 'chart_timestamp', 'start_date', 'end_date', 'deleted_at', 'created_at', 'updated_at'
+        'id', 'starting_bal', 'current_bal', 'equity', 'strategy_id', 'user_id', 'pair', 'chart', 'chart_timestamp', 'chart_ui', 'start_date', 'end_date', 'deleted_at', 'created_at', 'updated_at'
     ];
     
     /**

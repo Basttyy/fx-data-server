@@ -41,7 +41,7 @@ final class PlanController
                 $resp = $this->show($id);
                 break;
             case 'list':
-                $resp = $this->list();
+                $resp = $this->list($id);
                 break;
             case 'create':
                 $resp = $this->create();
@@ -76,10 +76,13 @@ final class PlanController
         }
     }
 
-    private function list()
+    private function list(string $standard = null)
     {
         try {
-            if ($this->authenticator->validate()) {
+            if (is_null($standard)) {
+                $plans = $this->plan->all();
+            }
+            else if ($this->authenticator->validate()) {
                 if ($this->authenticator->verifyRole($this->user, 'admin')) {
                     $plans = $this->plan->all();
                 } else {
@@ -96,13 +99,17 @@ final class PlanController
                     'country',
                 ], 'en');
 
-                $ischeapcountry = CheapCountry::getBuilder()->where('name', $records['countryName'])->count();
+                $ischeapcountry = $records != false ? CheapCountry::getBuilder()->where('name', $records['countryName'])->count() : false;
                 $plans = $ischeapcountry ? $this->plan->where('for_cheap_regions', 1)->get() : $this->plan->all();
             }
             if (!$plans)
                 return JsonResponse::ok('no plan found in list', []);
 
-            return JsonResponse::ok("plans retrieved success", $plans);
+            $data = ['plans' => $plans];
+            if (isset($ischeapcountry))
+                $data['standard'] = !$ischeapcountry;
+
+            return JsonResponse::ok("plans retrieved success", $data);
         } catch (PDOException $e) {
             return JsonResponse::serverError("we encountered a problem");
         } catch (Exception $e) {

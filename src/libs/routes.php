@@ -57,6 +57,7 @@ post('/users/method/$method', new UserExplicitController());
 /// Plan Routes
 get('/plans/$id', new PlanController());
 get('/plans', new PlanController('list'));
+get('/plans/standard/$standard', new PlanController('list'));
 get('/plans/query/$query', new PlanController('list'));
 post('/plans', new PlanController('create'));
 put('/plans/$id', new PlanController('update'));

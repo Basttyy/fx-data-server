@@ -28,6 +28,7 @@ final class Plan extends Model
     public $features;
     public $third_party_id;
     public $plan_token;
+    public $for_cheap_regions;
     public $deleted_at;
     public $created_at;
     public $updated_at;
@@ -38,7 +39,7 @@ final class Plan extends Model
      * @var array
      */
     protected $fillable = [
-        'id', 'name', 'description', 'duration_interval', 'price', 'status', 'features', 'plan_token', 'third_party_id', 'deleted_at', 'created_at', 'updated_at'
+        'id', 'name', 'description', 'duration_interval', 'price', 'status', 'features', 'plan_token', 'for_cheap_regions', 'third_party_id', 'deleted_at', 'created_at', 'updated_at'
     ];
     
     /**
