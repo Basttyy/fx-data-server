@@ -3,6 +3,9 @@ namespace Basttyy\FxDataServer\Models;
 
 final class TestSession extends Model
 {
+    const TV = 'tradingview';
+    const KLINE = 'klinecharts';
+    
     protected $softdeletes = true;
     protected $table = 'test_sessions';
     protected $primaryKey = 'id';

@@ -156,6 +156,8 @@ final class TestSessionController
 
             $body = sanitize_data(json_decode($inputJSON, true));
 
+            $uis = TestSession::TV. ', '. TestSession::KLINE;
+
             if ($validated = Validator::validate($body, [
                 'starting_bal' => 'required|float',
                 'current_bal' => 'required|float',
@@ -163,7 +165,8 @@ final class TestSessionController
                 'pair' => 'required|string',
                 'start_date' => 'required|string',
                 'end_date' => 'required|string',
-                'chart_timestamp' => 'required|int'
+                'chart_timestamp' => 'required|int',
+                'chart_ui' => "required|string|in:$uis"
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
@@ -214,6 +217,7 @@ final class TestSessionController
 
             $body = sanitize_data(json_decode($inputJSON, true));
             $id = sanitize_data($id);
+            $uis = TestSession::TV. ', '. TestSession::KLINE;
 
             if ($validated = Validator::validate($body, [
                 'starting_bal' => 'sometimes|float',
@@ -224,7 +228,8 @@ final class TestSessionController
                 'chart' => 'sometimes|string',
                 'chart_timestamp' => 'sometimes|integer',
                 'start_date' => 'sometimes|string',
-                'end_date' => 'sometimes|string'
+                'end_date' => 'sometimes|string',
+                'chart_ui' => "sometimes|string|in:$uis"
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }

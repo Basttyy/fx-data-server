@@ -15,9 +15,11 @@ class Validator {
     public static function validate(array $req_obj, array $params, string $separator = '|'): bool|array
     {
         $errors = [];
+        $me = new self($req_obj);
+
         foreach ($params as $paramKey => $paramValue) {
             $validations = explode($separator, $paramValue);
-            $resp = (new self($req_obj))->validateValue($paramKey, $validations);
+            $resp = $me->validateValue($paramKey, $validations);
             if (!is_array($resp)) {
                 continue;
             }
@@ -58,7 +60,7 @@ class Validator {
         }
         switch ($type) {
             case 'required':
-                if ($paramval != false)
+                if (gettype($paramval) !== 'boolean' || $paramval != false)
                     $resp = '';
                 else
                     $resp = "{$param} is required";

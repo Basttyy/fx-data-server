@@ -13,7 +13,8 @@ final class CheapCountry extends Model
     const EUROPE = 'europe';
     const OCEANIA = 'oceania';
     const ANTARTICA = 'antarctica';
-    protected $softdeletes = true;
+
+    protected $softdeletes = false;
 
     protected $table = 'cheap_countries';
 
@@ -21,6 +22,8 @@ final class CheapCountry extends Model
 
     //object properties
     public $id;
+    public string $name;
+    public string $continent;
     public $created_at;
     public $updated_at;
     //add more CheapCountry's properties here
@@ -31,7 +34,7 @@ final class CheapCountry extends Model
      * @var array
      */
     protected $fillable = [
-        'id', 'created_at', 'updated_at',
+        'id', 'name', 'continent', 'created_at', 'updated_at',
         //add more fillable columns here
     ];
 

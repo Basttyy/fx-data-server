@@ -4,6 +4,7 @@ namespace Basttyy\FxDataServer\Controllers\Api;
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\libs\Arr;
+use Basttyy\FxDataServer\libs\Geolocation\IP2Location\WebService;
 use Basttyy\FxDataServer\libs\JsonResponse;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\Models\Plan;
@@ -81,39 +82,43 @@ final class PlanController
         try {
             if (is_null($standard)) {
                 $plans = $this->plan->all();
+                return JsonResponse::ok("plans retrieved success", $plans);
             }
-            else if ($this->authenticator->validate()) {
+
+            if ($standard == 'low') {
+                $plans = $this->plan->where('for_cheap_regions', 1)->get();
+            } else if ($standard == 'high') {
+                $plans = $this->plan->where('for_cheap_regions', 0)->get();
+            } else if ($this->authenticator->validate()) {
                 if ($this->authenticator->verifyRole($this->user, 'admin')) {
                     $plans = $this->plan->all();
                 } else {
                     $ischeapcountry = CheapCountry::getBuilder()->where('name', $this->user->country)->count();
 
-                    $plans = $ischeapcountry ? $this->plan->where('for_cheap_regions', 1)->get() : $this->plan->all();
+                    $plans = $ischeapcountry ? $this->plan->where('for_cheap_regions', 1)->get() : $this->plan->where('for_cheap_regions', 0)->get();
                 }
             } else {
                 $ipaddress = getenv('HTTP_X_FORWARDED_FOR') ? getenv('HTTP_X_FORWARDED_FOR') : getenv('REMOTE_ADDR');
 
                 // $ws = new \IP2Location\WebService(env('IP2LOC_API_KEY'), 'WS25', false);
-                $ws = new \IP2Location\WebService(env('IP2LOC_API_KEY'));           // Not using SSL for faster response time
-                $records = $ws->lookup($ipaddress, [
-                    'country',
-                ], 'en');
+                $ws = new WebService(env('IPLOC_API_KEY'));           // Not using SSL for faster response time
+                $records = $ws->lookup($ipaddress, language: 'en');
 
-                $ischeapcountry = $records != false ? CheapCountry::getBuilder()->where('name', $records['countryName'])->count() : false;
-                $plans = $ischeapcountry ? $this->plan->where('for_cheap_regions', 1)->get() : $this->plan->all();
+                $ischeapcountry = $records != false ? CheapCountry::getBuilder()->where('name', $records['country_name'])->count() : false;
+                $plans = $ischeapcountry ? $this->plan->where('for_cheap_regions', 1)->get() : $this->plan->where('for_cheap_regions', 0)->get();
             }
             if (!$plans)
                 return JsonResponse::ok('no plan found in list', []);
 
-            $data = ['plans' => $plans];
+            $data = ['plans' => $plans, 'standard' => $standard];
             if (isset($ischeapcountry))
-                $data['standard'] = !$ischeapcountry;
+                $data['standard'] = $ischeapcountry ? 'low' : 'high';
 
             return JsonResponse::ok("plans retrieved success", $data);
         } catch (PDOException $e) {
-            return JsonResponse::serverError("we encountered a problem");
+            return JsonResponse::serverError("we encountered a problem ");
         } catch (Exception $e) {
-            return JsonResponse::serverError("we encountered a problem");
+            return JsonResponse::serverError("we encountered a problem ");
         }
     }
 
@@ -139,13 +144,15 @@ final class PlanController
             $status = Plan::DISABLED.', '.Plan::ENABLED;
             $intervals = implode(', ', Plan::INTERVALS);
 
+            // logger()->info('body is: ', $body);
+
             if ($validated = Validator::validate($body, [
                 'name' => 'required|string',
                 'description' => 'required|string',
                 'price' => 'required|numeric',
                 'status' => "sometimes|string|in:$status",
                 'features' => 'required|string',
-                'for_cheap_regions' => 'required|boolean',
+                'for_cheap_regions' => 'required|numeric',
                 'currency' => 'required|string',
                 'duration_interval' => "required|string|in:$intervals"
             ])) {
@@ -245,7 +252,7 @@ final class PlanController
                 'description' => 'sometimes|string',
                 'price' => 'sometimes|numeric',
                 'status' => "sometimes|string|in:$status",
-                'for_cheap_regions' => 'sometimes|boolean',
+                'for_cheap_regions' => 'sometimes|numeric',
                 'features' => 'sometimes|string',
                 'duration_interval' => "sometimes|string|in:$intervals"
             ])) {

@@ -53,10 +53,11 @@ if (! function_exists('sanitize_data')) {
     {
         if (is_iterable($data)) {
             foreach ($data as $key => $dat) {
-                $data[$key] = is_int($dat) || is_null($dat) ? $dat : htmlspecialchars(strip_tags($dat));
+                $data[$key] = is_string($dat) ? htmlspecialchars(strip_tags($dat)) : $dat;
             }
         } else {
-            $data = is_int($data) || is_null($data) ? $data : htmlspecialchars(strip_tags($data));
+            // is_int($data) || is_float($data) || is_double($data) || is_null($data) || is_bool($data)
+            $data = is_string($data) ? htmlspecialchars(strip_tags($data)) : $data;
         }
 
         return $data;
