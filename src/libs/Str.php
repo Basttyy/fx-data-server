@@ -460,14 +460,69 @@ class Str
     /**
      * Get the plural form of an English word.
      *
-     * @param  string  $value
+     * @param  string  $word
      * @param  int  $count
      * @return string
      */
-    public static function plural($value, $count = 2)
+    public static function plural($word, $count = 2)
     {
-        throw new \Exception("The method is not implemented yet", 1);
-        //return Pluralizer::plural($value, $count);
+        $plural = array(
+            array('/(quiz)$/i',               "$1zes"),
+            array('/^(ox)$/i',                "$1en"),
+            array('/([m|l])ouse$/i',          "$1ice"),
+            array('/(matr|vert|ind)ix|ex$/i', "$1ices"),
+            array('/(x|ch|ss|sh)$/i',         "$1es"),
+            array('/([^aeiouy]|qu)y$/i',      "$1ies"),
+            array('/(hive)$/i',               "$1s"),
+            array('/(?:([^f])fe|([lr])f)$/i', "$1$2ves"),
+            array('/sis$/i',                  "ses"),
+            array('/([ti])um$/i',             "$1a"),
+            array('/(buffal|tomat)o$/i',      "$1oes"),
+            array('/(bu)s$/i',                "$1ses"),
+            array('/(alias|status)$/i',       "$1es"),
+            array('/(octop|vir)us$/i',        "$1i"),
+            array('/(ax|test)is$/i',          "$1es"),
+            array('/s$/i',                    "s"),
+            array('/$/',                      "s")
+        );
+    
+        $irregular = array(
+            array('move',   'moves'),
+            array('foot',   'feet'),
+            array('goose',  'geese'),
+            array('sex',    'sexes'),
+            array('child',  'children'),
+            array('man',    'men'),
+            array('tooth',  'teeth'),
+            array('person', 'people')
+        );
+    
+        $uncountable = array(
+            'sheep', 'fish', 'deer', 'series', 'species', 'money', 'rice', 'information', 'equipment'
+        );
+    
+        // Check for uncountable words
+        foreach ($uncountable as $uncount) {
+            if (strtolower($uncount) == strtolower($word)) {
+                return $word;
+            }
+        }
+    
+        // Check for irregular words
+        foreach ($irregular as $noun) {
+            if (strtolower($noun[0]) == strtolower($word)) {
+                return $noun[1];
+            }
+        }
+    
+        // Check for matches using regular expressions
+        foreach ($plural as $pattern) {
+            if (preg_match($pattern[0], $word)) {
+                return preg_replace($pattern[0], $pattern[1], $word);
+            }
+        }
+    
+        return $word;
     }
 
     /**

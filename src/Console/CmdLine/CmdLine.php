@@ -32,7 +32,7 @@ exit($exit);
 
 function createModel (string $name) {
     $name = Str::pascal($name);
-    $name_lower = Str::snake($name);
+    $name_lower = Str::plural(Str::snake($name));
     $model_folder = strtolower(PHP_OS_FAMILY) === "windows" ? __DIR__."\\..\\..\\Models\\" : __DIR__."/../../Models/";
 $model_template = "<?php
 
@@ -44,7 +44,7 @@ final class {$name} extends Model
 {
     protected \$softdeletes = true;
 
-    protected \$table = '{$name_lower}s';
+    protected \$table = '$name_lower';
 
     protected \$primaryKey = 'id';
 
@@ -99,6 +99,8 @@ function createController (string $name, $type = 'api') {
     $name = Str::pascal($name);
     $controller_str = Str::snake($name);
     $controller_str_spc = str_replace('_', ' ', $controller_str);
+    $controller_str_plural = Str::plural($controller_str);
+    $controller_str_spc_plural = Str::plural($controller_str_spc);
     if ($type === 'api') {
         $api = '\Api';
         $controller_folder = strtolower(PHP_OS_FAMILY) === "windows" ? __DIR__."\\..\\..\\Controllers\\Api\\" : __DIR__."/../../Controllers/Api/";
@@ -183,11 +185,11 @@ final class {$name}Controller
     private function list()
     {
         try {
-            \${$controller_str}s = \$this->{$controller_str}->all();
-            if (!\${$controller_str}s)
-                return JsonResponse::ok('no $controller_str_spc found in list', []);
+            \$$controller_str_plural = \$this->{$controller_str}->all();
+            if (!\$$controller_str_plural)
+                return JsonResponse::ok('no $controller_str_spc_plural found in list', []);
 
-            return JsonResponse::ok(\"$controller_str_spc's retrieved success\", \${$controller_str}s);
+            return JsonResponse::ok(\"$controller_str_spc_plural retrieved success\", \$$controller_str_plural);
         } catch (PDOException \$e) {
             return JsonResponse::serverError('we encountered a problem');
         } catch (Exception \$e) {
