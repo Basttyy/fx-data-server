@@ -3,11 +3,13 @@
 namespace Basttyy\FxDataServer\Models;
 
 use Basttyy\FxDataServer\libs\Interfaces\UserModelInterface;
+use Basttyy\FxDataServer\libs\Str;
+use Basttyy\FxDataServer\libs\Traits\HasRelationships;
 use Basttyy\FxDataServer\libs\Traits\UserAwareQueryBuilder;
 
 final class User extends Model implements UserModelInterface
 {
-    use UserAwareQueryBuilder;
+    use UserAwareQueryBuilder, HasRelationships;
     
     const INACTIVE = "inactive";
     const UNVERIFIED = "unverified";
@@ -46,6 +48,8 @@ final class User extends Model implements UserModelInterface
     public string $twofa_default_type;
     public string $status;
     public string $avatar;
+    public string $referral_code;
+    public int $points;
     public string $created_at;
     public string | null $updated_at;
     public string | null $deleted_at;
@@ -69,7 +73,7 @@ final class User extends Model implements UserModelInterface
         'phone', 'level', 'country', 'city', 'postal_code', 'address',
         'role_id', 'access_token', 'twofa_secret', 'email2fa_token', 'status',
         'avatar', 'created_at', 'updated_at', 'deleted_at', 'email2fa_expire',
-        'twofa_types', 'twofa_default_type'
+        'twofa_types', 'twofa_default_type', 'referral_code', 'points'
     ];
 
     /**
@@ -86,8 +90,27 @@ final class User extends Model implements UserModelInterface
      *
      * @return void
      */
-    public function __construct()
+    public function __construct($values = [])
     {
-        parent::__construct($this);
+        parent::__construct($values, $this);
+    }
+
+    /**
+     * @return Strategy[]
+     */
+    public function strategies ()
+    {
+        return $this->hasMany(Strategy::class);
+    }
+
+    public static function boot($model)
+    {
+        logger()->info('boot called');
+        // parent::boot();
+        static::creating($model, function ($model) {
+            logger()->info('adding refferal code');
+            $model->referral_code = Str::random(10);
+        });
+        logger()->info('boot done');
     }
 }

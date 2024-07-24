@@ -3,103 +3,28 @@
 namespace Basttyy\FxDataServer\libs\Traits;
 
 use Basttyy\FxDataServer\libs\Arr;
-use Basttyy\FxDataServer\libs\Interfaces\ModelInterface;
 use Basttyy\FxDataServer\libs\Interfaces\UserModelInterface;
 use Basttyy\FxDataServer\libs\mysqly;
 use Basttyy\FxDataServer\Models\Model;
-use DateTime;
 use Exception;
 use Hybridauth\Exception\NotImplementedException;
-use PDO;
 
 trait QueryBuilder
 {
-    /**
-     * Indicates if the IDs are auto-incrementing.
-     *
-     * @var bool
-     */
-    public $incrementing = true;
+    use ModelHelpers;
 
-    /**
-     * The number of models to return for pagination.
-     *
-     * @var int
-     */
-    protected $perPage = 15;
-
-    /**
-     * Indicates if the model exists.
-     *
-     * @var bool
-     */
-    public $exists = false;
-
-    /**
-     * Indicates if the model was inserted during the current request lifecycle.
-     *
-     * @var bool
-     */
-    public $wasRecentlyCreated = false;
-
-    /**
-     * The operators for query
-     * 
-     * @var array|string
-     */
-    protected $operators;
-
-    /**
-     * The booleans to add queries together
-     * 
-     * @var array|string
-     */
-    protected $or_ands;
-
-    /**
-     * The filter key values
-     * 
-     * @var array|null
-     */
-    protected $bind_or_filter;
-
-    /**
-     * Wether queries are currently running in a transaction
-     * 
-     * @var bool
-     */
-    protected $transaction_mode;
-
-    /**
-     * Sets how the query should be ordered
-     * 
-     * @var string
-     */
-    protected $order = "";
-
-    /**
-     * The child class that currently using the parent class
-     * 
-     * @var Model|Model&UserModelInterface
-     */
-    protected $child;
-
-    /**
-     * Indicates if the model already has a copy in the db or not
-     * 
-     * @var bool
-     */
-    private $exists_in_db = false;
     public static function getBuilder()
     {
         $classname = get_called_class();
         return new $classname;
     }
 
-    private function prepareModel()
+    private function prepareModel($values = [])
     {
         $this->or_ands = 'AND';
         $this->operators = '=';
+        if (count($values))
+            $this->child->fill($values);
     }
 
     protected function resetInstance()
@@ -108,7 +33,7 @@ trait QueryBuilder
         $this->or_ands = 'AND';
         $this->operators = '=';
         $this->order = '';
-        $this->transaction_mode = false;
+        // $this->transaction_mode = false;
     }
 
     public function orderBy($column = "id", $direction = "ASC")
@@ -174,18 +99,36 @@ trait QueryBuilder
 
     public function create($values, $is_protected = true, $select = [])
     {
+        logger()->info('values are', $values);
+        $this->child->fill($values);
+
+        $this->child->boot($this->child);
+        $this->child->booted($this->child);
+        $this->child->booting($this->child);
+
+        $values = $this->child->toArray(false);
+
+        logger()->info('values are now ', $values);
         if (!$id = mysqly::insert($this->table, $values)) {
             return false;
         }
+        
         if (count($select)) {
             $fields = $select;
         } else {
             $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
         }
+
         if (!$model = mysqly::fetch($this->table, ['id' => $id], $fields)) {
             return true;
         }
-        return $model[0];
+        $this->child->fill($model);
+
+        $this->child->boot($this->child);
+        $this->child->booted($this->child);
+        $this->child->booting($this->child);
+
+        return $this->child;
     }
 
     public function save()
@@ -194,7 +137,7 @@ trait QueryBuilder
             return true;
         }, ARRAY_FILTER_USE_BOTH);
 
-        if ($this->child->{$this->child->primaryKey} === 0) {
+        if ($this->isSaved()) {
             if (!$id = mysqly::insert($this->table, $values)) {
                 return false;
             }
@@ -346,6 +289,11 @@ trait QueryBuilder
         return $fields;
     }
 
+    public function with($model)
+    {
+        $this->with_model_name = $model;
+    }
+
     public function get($is_protected = true, $select = [])
     {
         return $this->all($is_protected, $select);
@@ -427,9 +375,9 @@ trait QueryBuilder
         return $this->_update(['deleted_at', null], $id, true);
     }
 
-    public function where($column, $operatorOrValue = null, $value = null)
+    public function where($column, $operatorOrValueOrMethod = null, $value = null)
     {
-        return $this->_where($column, $operatorOrValue, $value, 'AND');
+        return $this->_where($column, $operatorOrValueOrMethod, $value, 'AND');
     }
     
     public function whereLike($column, $value = null)
@@ -526,11 +474,13 @@ trait QueryBuilder
     public function commit()
     {
         mysqly::commit();
+        $this->transaction_mode = false;
     }
 
     public function rollback()
     {
         mysqly::rollback();
+        $this->transaction_mode = false;
     }
 
     /**

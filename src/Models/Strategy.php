@@ -1,8 +1,12 @@
 <?php
 namespace Basttyy\FxDataServer\Models;
 
+use Basttyy\FxDataServer\libs\Traits\HasRelationships;
+
 final class Strategy extends Model
 {
+    use HasRelationships;
+
     protected $softdeletes = true;
     protected $table = 'strategies';
     protected $primaryKey = 'id';
@@ -41,8 +45,13 @@ final class Strategy extends Model
      *
      * @return void
      */
-    public function __construct()
+    public function __construct($values = [])
     {
-        parent::__construct($this);
+        parent::__construct($values, $this);
+    }
+
+    public function user(): User
+    {
+        return $this->belongsTo(User::class);
     }
 }

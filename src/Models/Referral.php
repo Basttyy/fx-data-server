@@ -1,31 +1,26 @@
 <?php
+
 namespace Basttyy\FxDataServer\Models;
 
-final class Feedback extends Model
+use Basttyy\FxDataServer\libs\Traits\HasRelationships;
+use Basttyy\FxDataServer\Models\Model;
+
+final class Referral extends Model
 {
-    const PENDING = 'pending';
-    const REOPENED = 'reopened';
-    const RESOLVING = 'resolving';
-    const STALED = 'staled';
-    const RESOLVED = 'resolved';
+    use HasRelationships;
 
     protected $softdeletes = true;
-    protected $table = 'feedbacks';
+
+    protected $table = 'referrals';
+
     protected $primaryKey = 'id';
 
-    //oject properties
+    //object properties
     public $id;
-    public $title;
-    public $description;
-    public $image;
-    public $user_id;
-    public $pair;
-    public $resolve_count;
-    public $status;
-    public $date;
-    public $deleted_at;
     public $created_at;
     public $updated_at;
+    public $deleted_at;
+    //add more Referral's properties here
 
     /**
      * Indicates what database attributes of the model can be filled at once
@@ -33,9 +28,10 @@ final class Feedback extends Model
      * @var array
      */
     protected $fillable = [
-        'id', 'title', 'description', 'pair', 'user_id', 'image', 'resolve_count', 'status', 'date', 'deleted_at', 'created_at', 'updated_at'
+        'id', 'created_at', 'updated_at', 'deleted_at',
+        //add more fillable columns here
     ];
-    
+
     /**
      * Indicates what database attributes of the model can be exposed outside the application
      * 
@@ -43,15 +39,26 @@ final class Feedback extends Model
      */
     protected $guarded = [
         'deleted_at', 'created_at', 'updated_at'
+        //add more guarded columns here
     ];
 
     /**
-     * Create a new Strategy instance.
+     * Create a new Referral instance.
      *
      * @return void
      */
     public function __construct($values = [])
     {
         parent::__construct($values, $this);
+    }
+
+    public function referredUsers ()
+    {
+        return $this->hasMany(User::class, 'referred_user_id', 'id');
+    }
+
+    public function referee ()
+    {
+        return $this->hasMany(User::class, 'user_id', 'id');
     }
 }

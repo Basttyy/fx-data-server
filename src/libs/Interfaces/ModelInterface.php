@@ -2,10 +2,62 @@
 
 namespace Basttyy\FxDataServer\libs\Interfaces;
 
-use Closure;
-
-interface ModelInterface
+interface ModelInterface extends ModelEventsInterface
 {
+    /**
+     * The table associated with the model.
+     *
+     * @property string $table
+     */
+
+    /**
+     * The primary key for the model in db
+     *
+     * @property string $primaryKey
+     */
+
+    /**
+     * Wether the model can be soft deleted
+     * 
+     * @property string $softdeletes
+     */
+
+    /**
+     * id property of the model
+     * 
+     * @property int $id
+     */
+
+    /**
+     * The "type" of the primary key ID.
+     *
+     * @property string $keyType
+     */
+
+    /**
+     * Indicates what database attributes of the model can be filled at once
+     * 
+     * @var array $fillable
+     */
+
+    /**
+     * Indicates what database attributes of the model can be exposed outside the application
+     * 
+     * @var array $guarded
+     */
+
+    /**
+     * The name of the "created at" column.
+     *
+     * @var string|null $created_at
+     */
+
+    /**
+     * The name of the "updated at" column.
+     *
+     * @var string|null $updated_at
+     */
+
     /**
      * Get a new querybuilder instance of the called class
      * 
@@ -56,7 +108,7 @@ interface ModelInterface
      * @param bool $is_protected 'wether to hide or show protected values'
      * @param array $select 'what parameters of model to fetch in results'
      * 
-     * @return array|bool
+     * @return self|bool
      */
     public function create($values, $is_protected = true, $select = []);
 
@@ -166,6 +218,16 @@ interface ModelInterface
      * @return array|false
      */
     public function all($is_protected = true, $select = []);
+
+    /**
+     * Attach the related model to a model's query result
+     * 
+     * @param string $model
+     * 
+     * @return self
+     */
+
+    public function with($model);
 
     
     /**

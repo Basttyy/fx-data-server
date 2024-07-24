@@ -42,7 +42,7 @@ class CheapCountrySeeder extends AbstractSeed
             ]
         ];
 
-        $roles = $this->table('roles');
-        $roles->insert($data)->saveData();
+        $countries = $this->table('cheap_countries');
+        $countries->insert($data)->saveData();
     }
 }

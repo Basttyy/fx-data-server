@@ -43,13 +43,15 @@ final class Users extends AbstractMigration
             ->addColumn('postal_code', 'biginteger', ['null' => true])
             ->addColumn('status', 'string', ['default' => User::UNVERIFIED])
             ->addColumn('level', 'integer', ['null' => true, 'default' => 1])
+            ->addColumn('referral_code', 'string', ['null' => true])
+            ->addColumn('points', 'integer', ['default' => 0])
             ->addColumn('role_id', 'integer', ['default' => Role::USER, 'signed' => false])
             ->addForeignKey('role_id', 'roles', 'id', ['delete' => 'CASCADE', 'update' => 'NO_ACTION'])
             ->addColumn('deleted_at', 'timestamp', ['null' => true])
             ->addTimestamps()
             ->addIndex(['username'], ['unique' => true])
             ->addIndex(['email'], ['unique' => true])
-            ->addIndex(['uuid'], ['unique' => true])
+            ->addIndex(['uuid', 'referral_code'], ['unique' => true])
             ->create();
     }
 }

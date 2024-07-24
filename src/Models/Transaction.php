@@ -54,8 +54,8 @@ final class Transaction extends Model
      *
      * @return void
      */
-    public function __construct()
+    public function __construct($values = [])
     {
-        parent::__construct($this);
+        parent::__construct($values, $this);
     }
 }
