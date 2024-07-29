@@ -78,7 +78,14 @@ final class AuthController
             
             $inputJSON = file_get_contents('php://input');
 
-            $body = sanitize_data(json_decode($inputJSON, true));
+            $decoded_obj = json_decode($inputJSON, true);
+            if (isset($decoded_obj['password']) && is_local_postman()) {
+                $decoded_obj['password'] = base64_encode($decoded_obj['password']);
+            }
+
+            logger()->info('decoded obj is: ', $decoded_obj);
+
+            $body = sanitize_data($decoded_obj);
 
             if ($validated = Validator::validate($body, [
                 'email' => 'sometimes|string',
@@ -114,7 +121,7 @@ final class AuthController
                 'data' => $user
             ]);
         } catch (NotFoundException $ex) {
-            return JsonResponse::unauthorized("the requested user was not found");
+            return JsonResponse::unauthorized($ex->getMessage());
         } catch (Exception $e) {
             logger()->error($e->getMessage(), $e->getTrace());
             return JsonResponse::serverError("something happened try again ");

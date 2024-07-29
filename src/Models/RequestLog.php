@@ -13,7 +13,7 @@ final class RequestLog extends Model
     protected $primaryKey = 'id';
 
     //object properties
-    public $id;
+    // public $id;
     public $ip;
     public $origin;
     public $method;

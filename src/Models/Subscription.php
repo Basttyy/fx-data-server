@@ -13,7 +13,7 @@ final class Subscription extends Model
     protected $primaryKey = 'id';
 
     //object properties
-    public $id;
+    // public $id;
     public $duration;
     public $user_id;
     public $plan_id;

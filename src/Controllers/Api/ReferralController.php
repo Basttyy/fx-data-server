@@ -3,12 +3,14 @@ namespace Basttyy\FxDataServer\Controllers\Api;
 
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
+use Basttyy\FxDataServer\libs\Arr;
 use Basttyy\FxDataServer\libs\JsonResponse;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\Models\Referral;
 use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\User;
 use Exception;
+use Hybridauth\Exception\NotImplementedException;
 use LogicException;
 use PDOException;
 
@@ -57,9 +59,19 @@ final class ReferralController
     private function show(string $id)
     {
         $id = sanitize_data($id);
+        if (!$this->authenticator->validate()) {
+            return JsonResponse::unauthorized();
+        }
+
+        $is_user = $this->authenticator->verifyRole($this->user, 'user');
+
         try {
             if (!$this->referral->find((int)$id))
                 return JsonResponse::notFound('unable to retrieve referral');
+
+            if ($is_user && ($this->referral->user_id != $this->user->id || $this->referral->referred_user_id != $this->user->id)) {
+                return JsonResponse::unauthorized();
+            }
 
             return JsonResponse::ok('referral retrieved success', $this->referral->toArray());
         } catch (PDOException $e) {
@@ -74,14 +86,48 @@ final class ReferralController
     private function list()
     {
         try {
-            $referrals = $this->referral->all();
+            if (!$this->authenticator->validate()) {
+                return JsonResponse::unauthorized();
+            }
+
+            if ($is_admin = $this->authenticator->verifyRole($this->user, 'admin')) {
+                $referrals = $referrals = $this->referral->all();
+            } else {
+                $referrals = $this->user->referrals();
+            }
+            
             if (!$referrals)
                 return JsonResponse::ok('no referrals found in list', []);
 
-            return JsonResponse::ok("referrals retrieved success", $referrals);
+            $ids = Arr::map($referrals, function ($referral) {
+                return is_array($referral) ? $referral['referred_user_id'] : $referral->referred_user_id;
+            });
+
+            logger()->info("id's are: ", $ids);
+            $users = User::getBuilder()->where('id', 'IN', $ids)->get(); //because this can be done in one query using whereIn
+            logger()->info("users are: ", $users);
+
+            $_referrals = [];
+            foreach ($referrals as $key => $referral) { //this is a bad design and needs to change
+                logger()->info("key is $key: referrals is: ". json_encode($referral));
+                if (is_array($referrals[$key])) {
+                    $referrals[$key]['refferedUser'] = array_shift($users);
+                    continue;
+                }
+                $referrals[$key] = $referral->toArray(false);
+                $referrals[$key]['refferedUser'] = array_shift($users);
+            }
+            $this->user->find($this->user->id);
+
+            return JsonResponse::ok("referrals retrieved success", [
+                'referrals' => $referrals,
+                'points' => $is_admin ? null : $this->user->points
+            ]);
         } catch (PDOException $e) {
+            logger()->info('pdo exception '.$e->getMessage(), $e->getTrace());
             return JsonResponse::serverError('we encountered a problem');
         } catch (Exception $e) {
+            logger()->info('exception '.$e->getMessage(), $e->getTrace());
             return JsonResponse::serverError('we encountered a problem');
         }
     }
@@ -89,6 +135,7 @@ final class ReferralController
     private function create()
     {
         try {
+            throw new NotImplementedException('this feature is not implemented');
             if (!$this->authenticator->validate()) {
                 return JsonResponse::unauthorized();
             }
@@ -122,6 +169,8 @@ final class ReferralController
             else $message = 'we encountered a problem';
             
             return JsonResponse::serverError($message);
+        } catch (NotImplementedException $e) {
+            return JsonResponse::badRequest($e->getMessage());
         } catch (Exception $e) {
             return JsonResponse::serverError('we encountered a problem');
         }
@@ -130,6 +179,8 @@ final class ReferralController
     private function update(string $id)
     {
         try {
+            throw new NotImplementedException('this feature is not implemented');
+
             if (!$user = $this->authenticator->validate()) {
                 return JsonResponse::unauthorized();
             }
@@ -166,6 +217,8 @@ final class ReferralController
             else $message = 'we encountered a problem';
             
             return JsonResponse::serverError($message);
+        } catch (NotImplementedException $e) {
+            return JsonResponse::badRequest($e->getMessage());
         } catch (Exception $e) {
             return JsonResponse::serverError('we encountered a problem');
         }
@@ -174,6 +227,8 @@ final class ReferralController
     private function delete(int $id)
     {
         try {
+            throw new NotImplementedException('this feature is not implemented');
+
             $id = sanitize_data($id);
 
             if (!$this->authenticator->validate()) {
@@ -196,6 +251,8 @@ final class ReferralController
             else $message = 'we encountered a problem';
             
             return JsonResponse::serverError($message);
+        } catch (NotImplementedException $e) {
+            return JsonResponse::badRequest($e->getMessage());
         } catch (Exception $e) {
             return JsonResponse::serverError('we encountered a problem');
         }

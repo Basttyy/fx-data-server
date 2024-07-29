@@ -98,6 +98,28 @@ if (! function_exists('format_int_leading_zero')) {
     }
 }
 
+if (! function_exists('is_dev_mode')) {
+    function is_dev_mode ()
+    {
+        return env('APP_ENV') == 'dev';
+    }
+}
+
+if (! function_exists('is_local_mode')) {
+    function is_local_mode ()
+    {
+        return env('APP_ENV') == 'local';
+    }
+}
+
+if (! function_exists('is_local_postman')) {
+    function is_local_postman ()
+    {
+        logger()->info('server is: ', $_SERVER);
+        return env('APP_ENV') == 'local' && isset($_SERVER["HTTP_DEV_POSTMAN"]) && $_SERVER['HTTP_DEV_POSTMAN'] == true;
+    }
+}
+
 if (! function_exists('validate_data_structure')) {
     /**
      * Validate that an array data matches a given structure

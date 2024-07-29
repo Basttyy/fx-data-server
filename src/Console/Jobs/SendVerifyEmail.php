@@ -28,6 +28,9 @@ class SendVerifyEmail implements QueueInterface
      */
     public function handle()
     {
+        if (env('APP_ENV') == 'local' || env('SEND_EMAIL_ON_LOCAL') != 'true') {
+            return $this->delete();
+        }
         try {
             logger(storage_path()."logs/email.log")->info("sending verification email to {$this->user['email']}");
 

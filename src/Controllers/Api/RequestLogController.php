@@ -147,9 +147,9 @@ final class RequestLogController
                 $this->log->create($data);
             }
         } catch (PDOException $e) {
-            consoleLog(0, $e->getMessage(). '   '.$e->getTraceAsString());
+            // consoleLog(0, $e->getMessage(). '   '.$e->getTraceAsString());
         } catch (Exception $e) {
-            consoleLog(0, $e->getMessage(). '   '.$e->getTraceAsString());
+            // consoleLog(0, $e->getMessage(). '   '.$e->getTraceAsString());
         }
     }
 }

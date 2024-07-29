@@ -18,7 +18,7 @@ final class Role extends Model
     protected $primaryKey = 'id';
 
     //object properties
-    public $id;
+    // public $id;
     public $name;
     public $previleges;
     public $created_at;

@@ -7,6 +7,7 @@ use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\Console\Jobs\SendVerifyEmail;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\libs\JsonResponse;
+use Basttyy\FxDataServer\libs\Str;
 use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\User;
 use Exception;
@@ -62,7 +63,7 @@ final class TwoFaController
                 ]);
             }
             if ($mode == User::EMAIL) {
-                $code = implode([rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9)]);
+                $code = Str::random(6); implode([rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9)]);
                 if (!$this->user->update(['email2fa_token' => (string)$code, 'email2fa_expire' => time() + env('EMAIL2FA_MAX_AGE')])) {  //TODO:: this token should be timeed and should expire
                     return JsonResponse::serverError("unable to generate token");
                 }

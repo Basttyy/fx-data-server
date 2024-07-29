@@ -9,17 +9,18 @@ final class Referral extends Model
 {
     use HasRelationships;
 
-    protected $softdeletes = true;
+    protected $softdeletes = false;
 
     protected $table = 'referrals';
 
     protected $primaryKey = 'id';
 
     //object properties
-    public $id;
+    // public $id;
+    public int $user_id;
+    public int $referred_user_id;
     public $created_at;
     public $updated_at;
-    public $deleted_at;
     //add more Referral's properties here
 
     /**
@@ -28,7 +29,7 @@ final class Referral extends Model
      * @var array
      */
     protected $fillable = [
-        'id', 'created_at', 'updated_at', 'deleted_at',
+        'id', 'user_id', 'referred_user_id', 'created_at', 'updated_at',
         //add more fillable columns here
     ];
 
@@ -38,7 +39,7 @@ final class Referral extends Model
      * @var array
      */
     protected $guarded = [
-        'deleted_at', 'created_at', 'updated_at'
+        'created_at', 'updated_at'
         //add more guarded columns here
     ];
 
@@ -50,15 +51,5 @@ final class Referral extends Model
     public function __construct($values = [])
     {
         parent::__construct($values, $this);
-    }
-
-    public function referredUsers ()
-    {
-        return $this->hasMany(User::class, 'referred_user_id', 'id');
-    }
-
-    public function referee ()
-    {
-        return $this->hasMany(User::class, 'user_id', 'id');
     }
 }

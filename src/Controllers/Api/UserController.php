@@ -5,8 +5,11 @@ use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\Console\Jobs\SendVerifyEmail;
 use Basttyy\FxDataServer\libs\Arr;
+use Basttyy\FxDataServer\libs\DB;
 use Basttyy\FxDataServer\libs\JsonResponse;
+use Basttyy\FxDataServer\libs\Str;
 use Basttyy\FxDataServer\libs\Validator;
+use Basttyy\FxDataServer\Models\Referral;
 use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\Subscription;
 use Basttyy\FxDataServer\Models\User;
@@ -48,6 +51,9 @@ final class UserController
                 break;
             case 'delete':
                 $resp = $this->delete($id);
+                break;
+            case 'exchange_points':
+                $resp = $this->exchangePoints();
                 break;
             default:
                 $resp = JsonResponse::serverError('bad method call');
@@ -98,9 +104,9 @@ final class UserController
             if (!$user = $this->authenticator->validate()) {
                 return JsonResponse::unauthorized();
             }
-            $is_admin = $this->authenticator->verifyRole($user, 'admin');
+            
 
-            if ($is_admin) {
+            if ($this->authenticator->verifyRole($user, 'admin')) {
                 $users = $this->user->all();
             } else {
                 $users = $this->user->findBy("role_id", 1);
@@ -132,31 +138,54 @@ final class UserController
             $body = sanitize_data(json_decode($inputJSON, true));
 
             if ($validated = Validator::validate($body, [
-                'email' => 'required|string',
+                'email' => 'required|string|not_exist:users,email',
                 'password' => 'required|string',
                 'firstname' => 'required|string',
                 'lastname' => 'required|string',
-                'username' => 'sometimes|string'
+                'username' => 'sometimes|string|not_exist:users,username',
+                'referral_code' => 'sometimes|string|exist:users,referral_code',
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
+            
+            $_SESSION['email2fa_token'] = Str::random(6);
 
             $body['password'] = password_hash($body['password'], PASSWORD_BCRYPT);
             $body['username'] = $body['username'] ?? $body['email'];
-            $body['email2fa_token'] = implode([rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9)]);
+            $body['email2fa_token'] = $_SESSION['email2fa_token']; //implode([rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9)]);
             $body['email2fa_expire'] = time() + env('EMAIL2FA_MAX_AGE');
 
+            DB::beginTransaction();
             if (!$user = $this->user->create($body)) {
+                DB::rollback();
                 return JsonResponse::serverError("unable to create user");
             }
 
-            $mail_job = new SendVerifyEmail(array_merge($user, ['email2fa_token' => $body['email2fa_token']]));
-            $mail_job->init()->delay(5)->run();
+            if (!$user instanceof User) {
+                DB::rollback();
+                return JsonResponse::serverError('unable to create user');
+            }
 
-            $user['is_admin'] = false;
-            $user['subscription'] = null;
-            return JsonResponse::ok("user creation successful", $user);
+            if (isset($body['referral_code'])) {
+                if ($referrer = User::getBuilder()->where('referral_code', $body['referral_code'])->first()) {
+                    Referral::getBuilder()->create([
+                        'user_id' => $referrer->id,
+                        'referred_user_id' => $user->id,
+                    ]);
+
+                    // Award points to the referrer
+                    $referrer->points += env('POINTS_PER_REFERRAL') ?? 10; // Award 10 points for each referral
+                    $referrer->save();
+                }
+            }
+
+            $resp = $user->toArray();
+            $resp['is_admin'] = false;
+            $resp['subscription'] = null;
+            DB::commit();
+            return JsonResponse::ok("user creation successful", $resp);
         } catch (PDOException $e) {
+            DB::rollback();
             if (env("APP_ENV") === "local")
                 $message = $e->getMessage();
             else if (str_contains($e->getMessage(), 'Duplicate entry'))
@@ -165,6 +194,7 @@ final class UserController
             
             return JsonResponse::serverError($message);
         } catch (Exception $e) {
+            DB::rollback();
             $message = env("APP_ENV") === "local" ? $e->getMessage() : "we encountered a problem";
             return JsonResponse::serverError("we got some error here".$message);
         }
@@ -206,7 +236,8 @@ final class UserController
                 'city' => 'sometimes|string',
                 'address' => 'sometimes|string',
                 'postal_code' => 'sometimes|string',
-                'avatar' => 'sometimes|string'
+                'avatar' => 'sometimes|string',
+                'dollar_per_point' => 'sometimes|float'
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
@@ -264,6 +295,34 @@ final class UserController
         } catch (Exception $e) {
             $message = env("APP_ENV") === "local" ? $e->getMessage() : "we encountered a problem";
             return JsonResponse::serverError("we got some error here".$message);
+        }
+    }
+    
+    public function exchangePoints()
+    {
+        if (!$this->authenticator->validate()) {
+            return JsonResponse::unauthorized();
+        }
+
+        if (!$this->authenticator->verifyRole($this->user, 'user')) {
+            return JsonResponse::unauthorized("you are not allowed to exchange points");
+        }
+
+        $inputJSON = file_get_contents('php://input');
+
+        $body = sanitize_data(json_decode($inputJSON, true));
+
+        if ($validated = Validator::validate($body, [
+            'points' => 'required|integer|min:1',
+        ])) {
+            return JsonResponse::badRequest('errors in request', $validated);
+        }
+
+        try {
+            $cash = $this->user->exchangePointsForCash($body['points']);
+            return JsonResponse::ok("Exchanged points for \${$cash}");
+        } catch (\Exception $e) {
+            return JsonResponse::badRequest('unable to exchange point', ['error' => $e->getMessage()]);
         }
     }
 }

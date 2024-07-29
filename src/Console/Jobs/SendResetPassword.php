@@ -28,6 +28,9 @@ class SendResetPassword implements QueueInterface
      */
     public function handle()
     {
+        if (env('APP_ENV') == 'local' || env('SEND_EMAIL_ON_LOCAL') != 'true') {
+            return $this->delete();
+        }
         try {
             if ($this->job['tries'] >= $this->max_attempts)
             return $this->fail();

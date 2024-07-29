@@ -265,8 +265,13 @@ class mysqly {
               $or_and = '';
             else
               $or_and = is_array($or_ands) ? "$or_ands[$j]" : "$or_ands";
+
+            if (is_array($operators)){
+              $operator = is_string($v) ? (str_contains($v, 'NULL') ? '' : $operators[$i]) : $operators[$i];
+            } else {
+              $operator = $operators;
+            }
             
-            $operator = is_array($operators) ? (str_contains($v, 'NULL') ? '' : $operators[$i]) : $operators;
             static::condition($k, $v, $where, $bind, $incr_operator, $or_and, $operator);
             $j++;
             if ($incr_operator)

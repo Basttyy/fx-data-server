@@ -3,9 +3,7 @@
 namespace Basttyy\FxDataServer\libs\Traits;
 
 use Basttyy\FxDataServer\libs\Arr;
-use Basttyy\FxDataServer\libs\Interfaces\UserModelInterface;
 use Basttyy\FxDataServer\libs\mysqly;
-use Basttyy\FxDataServer\Models\Model;
 use Exception;
 use Hybridauth\Exception\NotImplementedException;
 
@@ -15,7 +13,7 @@ trait QueryBuilder
 
     public static function getBuilder()
     {
-        $classname = get_called_class();
+        $classname = static::class;
         return new $classname;
     }
 
@@ -33,7 +31,7 @@ trait QueryBuilder
         $this->or_ands = 'AND';
         $this->operators = '=';
         $this->order = '';
-        // $this->transaction_mode = false;
+        $this->transaction_mode = false;
     }
 
     public function orderBy($column = "id", $direction = "ASC")
@@ -61,17 +59,12 @@ trait QueryBuilder
         return $this->child;
     }
 
-    public function toArray($guard = true, $select = [])
+    public function toArray($guard = true, $select = [], $ignore = [])
     {
         $result = array();
-        // if ($self == null) {
-        //     $self = \get_called_class();
-        // }
-        // if ($self == null) {
-        //     return $result;
-        // }
+
         $obj_props = array_diff(array_keys(get_object_vars($this->child)), [
-            'fillable', 'guarded', 'table', 'primaryKey', 'exists', 'db', 'builder',
+            'fillable', 'guarded', 'table', 'primaryKey', 'exists', 'db', 'builder', 'dynamicProperties',
             'connection', 'keyType', 'incrementing', 'perPage', 'wasRecentlyCreated', 'child'
         ]);
         if (sizeof($select)) {
@@ -82,7 +75,7 @@ trait QueryBuilder
             }
             return $result;
         }
-        $items = $guard ? array_diff($this->child->fillable, $this->child->guarded) : $this->child->fillable;
+        $items = $guard ? array_diff($this->child->fillable, array_merge($this->child->guarded, $ignore)) : array_diff($this->child->fillable, $ignore);
         foreach ($items as $item) {
             if (Arr::exists($obj_props, $item, true)) {
                 $result[$item] = $this->child->{$item};
@@ -99,16 +92,14 @@ trait QueryBuilder
 
     public function create($values, $is_protected = true, $select = [])
     {
-        logger()->info('values are', $values);
         $this->child->fill($values);
 
-        $this->child->boot($this->child);
-        $this->child->booted($this->child);
-        $this->child->booting($this->child);
+        $this->child->boot($this->child, 'creating');
+        $this->child->booted($this->child, 'creating');
+        $this->child->booting($this->child, 'creating');
 
-        $values = $this->child->toArray(false);
+        $values = $this->child->toArray(false, ignore: ['created_at', 'updated_at', 'deleted_at']);
 
-        logger()->info('values are now ', $values);
         if (!$id = mysqly::insert($this->table, $values)) {
             return false;
         }
@@ -122,11 +113,11 @@ trait QueryBuilder
         if (!$model = mysqly::fetch($this->table, ['id' => $id], $fields)) {
             return true;
         }
-        $this->child->fill($model);
+        $this->child->fill($model[0]);
 
-        $this->child->boot($this->child);
-        $this->child->booted($this->child);
-        $this->child->booting($this->child);
+        $this->child->boot($this->child, 'created');
+        $this->child->booted($this->child, 'created');
+        $this->child->booting($this->child, 'created');
 
         return $this->child;
     }
@@ -138,6 +129,10 @@ trait QueryBuilder
         }, ARRAY_FILTER_USE_BOTH);
 
         if ($this->isSaved()) {
+            $model = $this->_update($values, $this->child->{$this->child->primaryKey}, true, should_fill: false);
+            if (!$model)
+                return false;
+        } else {
             if (!$id = mysqly::insert($this->table, $values)) {
                 return false;
             }
@@ -146,14 +141,12 @@ trait QueryBuilder
             if (!$model = mysqly::fetch($this->table, ['id' => $id], $fields)) {
                 return true;
             }
-        } else {
-            $model = $this->_update($values, $this->child->{$this->child->primaryKey}, true, should_fill: false);
-            if (!$model)
-                return false;
         }
 
-        array_key_exists($this->child->{$this->child::UPDATED_AT}, $model[0]) ? $this->child->{$this->child::UPDATED_AT} = $model[$this->child->{$this->child::UPDATED_AT}] : null;
-        array_key_exists($this->child->{$this->child->primaryKey}, $model[0]) ? $this->child->{$this->child->primaryKey} = $model[$this->child->{$this->child->primaryKey}] : null;
+        $this->child->{$this->child::UPDATED_AT} = $model[0][$this->child->{$this->child::UPDATED_AT}] ?? null;
+        $this->child->{$this->child->primaryKey} = $model[0][$this->child->{$this->child->primaryKey}] ?? null;
+        // array_key_exists($this->child->{$this->child::UPDATED_AT}, $model[0]) ? $this->child->{$this->child::UPDATED_AT} = $model[$this->child->{$this->child::UPDATED_AT}] : null;
+        // array_key_exists($this->child->{$this->child->primaryKey}, $model[0]) ? $this->child->{$this->child->primaryKey} = $model[$this->child->{$this->child->primaryKey}] : null;
 
         return true;
     }
@@ -291,6 +284,7 @@ trait QueryBuilder
 
     public function with($model)
     {
+        throw new NotImplementedException('method not fully implemented');
         $this->with_model_name = $model;
     }
 
@@ -529,7 +523,6 @@ trait QueryBuilder
         } else {
             is_string($this->operators) ? $this->operators = [$operatorOrValue] : array_push($this->operators, $operatorOrValue);
         }
-
 
         is_string($this->or_ands) ? $this->or_ands = [$boolean] : array_push($this->or_ands, $boolean);
         is_null($this->bind_or_filter) ? $this->bind_or_filter = array($column => $value) : $this->bind_or_filter[$column] = $value;

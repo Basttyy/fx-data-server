@@ -45,7 +45,7 @@ final class Transaction extends Model
      * @var array
      */
     protected $guarded = [
-        'user_id', 'transaction_id', 'subscription_id', 'third_party_ref', 'updated_at'
+        'user_id', 'transaction_id', 'subscription_id', 'third_party_ref', 'deleted_at', 'created_at', 'updated_at'
         //add more guarded columns here
     ];
 

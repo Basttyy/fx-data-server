@@ -2,14 +2,15 @@
 
 namespace Basttyy\FxDataServer\libs\Traits;
 
-use Basttyy\FxDataServer\libs\Arr;
+use Basttyy\FxDataServer\libs\Interfaces\ModelInterface;
+use Basttyy\FxDataServer\libs\Interfaces\UserModelInterface;
 use Basttyy\FxDataServer\libs\mysqly;
-use DateTime;
-use Exception;
-use PDO;
 
 trait UserAwareQueryBuilder
 {
+    public static function boot(ModelInterface | UserModelInterface | null $user)
+    {
+    }
     public function findByUsername($name, $is_protected = true)
     {
         $query_arr = $this->bind_or_filter === null ? [] : $this->bind_or_filter;

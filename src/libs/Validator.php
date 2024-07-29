@@ -22,6 +22,7 @@ class Validator {
             $resp = $me->validateValue($paramKey, $validations);
             if (!is_array($resp)) {
                 continue;
+                // array_push($validatedData, [$paramKey => $req_obj[$paramKey]]);
             }
             $errors[$paramKey] = $resp;  //Correction needded, it should be key value pair
         }
@@ -134,11 +135,26 @@ class Validator {
                     $resp = $paramval < (int)$items[1] ? "{$param} should not be less than {$items[1]}" : '';
                     break;
                 case 'in':
-                    // echo $paramval.PHP_EOL;
                     $resp = !Arr::exists(explode(', ', $items[1]), $paramval, true) ? "{$param} should contain one of {$items[1]}" : '';
                     break;
                 case 'not_in':
                     $resp = Arr::exists(explode(', ', $items[1]), $paramval, true) ? "{$param} should not contain any of {$items[1]}" : '';
+                    break;
+                case 'exist':
+                    $_items = explode(',', $items[1]);
+                    $resp = mysqly::count($_items[0], [$_items[1] => $paramval]) > 0 ? "" : "{$param} should exist in {$_items[1]} column of table {$_items[0]}";
+                    break;
+                case 'not_exist':
+                    $_items = explode(',', $items[1]);
+                    $resp = mysqly::count($_items[0], [$_items[1] => $paramval]) < 1 ? "" : "{$param} should not exist in {$_items[1]} column of table {$_items[0]}";
+                    break;
+                case 'contains':
+                    $stat = Str::contains($items[0], $items[1]);
+                    $resp = !$stat ? "{$param} should should be a string that contains $items[1]" : '';
+                    break;
+                case 'includes':
+                    $stat = Arr::has($items[0], $items[1]);
+                    $resp = !$stat ? "{$param} should should be an array that has $items[1]" : '';
                     break;
                 default:
                     $resp = '';

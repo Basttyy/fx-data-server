@@ -3,43 +3,56 @@
 namespace Basttyy\FxDataServer\libs\Traits;
 
 use Basttyy\FxDataServer\libs\Interfaces\ModelInterface;
+use Basttyy\FxDataServer\libs\Interfaces\UserModelInterface;
 
 trait InitsModelEvents
 {
-    public static function boot(ModelInterface | null $model)
+    public static function boot(ModelInterface | UserModelInterface | null $model, string $event)
+    {
+        logger()->info('doing this in init model events instead');
+    }
+
+    public static function booting(ModelInterface | UserModelInterface | null $model, string $event)
     {
     }
 
-    public static function booting()
+    public static function booted(ModelInterface | UserModelInterface | null $model, string $event)
     {
     }
 
-    public static function booted()
+    public static function creating($model, string $event, callable $callback)
     {
+        if ($event == 'creating')
+            $callback($model);
     }
 
-    public static function creating($model, callable $callback)
+    public static function created($model, string $event, callable $callback)
     {
-        $callback($model);
+        if ($event == 'created')
+            $callback($model);
     }
 
-    public static function created()
+    public static function saving($model, string $event, callable $callback)
     {
+        if ($event == 'saving')
+            $callback($model);
     }
 
-    public static function saving()
+    public static function saved($model, string $event, callable $callback)
     {
+        if ($event == 'saved')
+            $callback($model);
     }
 
-    public static function saved()
+    public static function deleting($model, string $event, callable $callback)
     {
+        if ($event == 'deleting')
+            $callback($model);
     }
 
-    public static function deleting()
+    public static function deleted($model, string $event, callable $callback)
     {
-    }
-
-    public static function deleted()
-    {
+        if ($event == 'deleted')
+            $callback($model);
     }
 }

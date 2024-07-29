@@ -681,7 +681,6 @@ Class Arr
      */
     public static function where($array, callable $callback)
     {
-        echo "got to where";
         return array_filter($array, $callback, ARRAY_FILTER_USE_BOTH);
     }
 

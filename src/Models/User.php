@@ -2,10 +2,13 @@
 
 namespace Basttyy\FxDataServer\Models;
 
+use Basttyy\FxDataServer\Console\Jobs\SendVerifyEmail;
+use Basttyy\FxDataServer\libs\DB;
 use Basttyy\FxDataServer\libs\Interfaces\UserModelInterface;
 use Basttyy\FxDataServer\libs\Str;
 use Basttyy\FxDataServer\libs\Traits\HasRelationships;
 use Basttyy\FxDataServer\libs\Traits\UserAwareQueryBuilder;
+use Exception;
 
 final class User extends Model implements UserModelInterface
 {
@@ -40,6 +43,7 @@ final class User extends Model implements UserModelInterface
     public string | null $postal_code;
     public string | null $address;
     public int $role_id;
+    public string | null $referral_code;
     public string | null $access_token;
     public string | null $twofa_secret;
     public string | null $email2fa_token;
@@ -48,11 +52,11 @@ final class User extends Model implements UserModelInterface
     public string $twofa_default_type;
     public string $status;
     public string $avatar;
-    public string $referral_code;
     public int $points;
-    public string $created_at;
-    public string | null $updated_at;
-    public string | null $deleted_at;
+    public float | null $dollar_per_point;
+    public $created_at;
+    public $updated_at;
+    public $deleted_at;
 
     /**
      * user twofa properties
@@ -73,7 +77,7 @@ final class User extends Model implements UserModelInterface
         'phone', 'level', 'country', 'city', 'postal_code', 'address',
         'role_id', 'access_token', 'twofa_secret', 'email2fa_token', 'status',
         'avatar', 'created_at', 'updated_at', 'deleted_at', 'email2fa_expire',
-        'twofa_types', 'twofa_default_type', 'referral_code', 'points'
+        'twofa_types', 'twofa_default_type', 'referral_code', 'points', 'dollar_per_point'
     ];
 
     /**
@@ -82,7 +86,7 @@ final class User extends Model implements UserModelInterface
      * @var array
      */
     protected $guarded = [
-        'password', 'deleted_at', 'role_id', 'access_token', 'twofa_secret', 'email2fa_token', 'email2fa_expire',
+        'password', 'deleted_at', 'created_at', 'updated_at', 'role_id', 'access_token', 'twofa_secret', 'email2fa_token', 'email2fa_expire',
     ];
 
     /**
@@ -95,6 +99,20 @@ final class User extends Model implements UserModelInterface
         parent::__construct($values, $this);
     }
 
+    public static function boot($user, $event)
+    {
+        parent::boot($user, $event);
+        static::creating($user, $event, function ($user) {
+            $user->referral_code = Str::random(10);
+        });
+        static::created($user, $event, function (self $user) {
+            $dollar_per_point = env("DOLLAR_PER_POINTS") ?? 0.1;
+            $user->dollar_per_point = $user->dollar_per_point ?? $dollar_per_point;
+            $mail_job = new SendVerifyEmail(array_merge($user->toArray(), ['email2fa_token' => $_SESSION['email2fa_token']]));
+            $mail_job->init()->delay(5)->run();
+        });
+    }
+
     /**
      * @return Strategy[]
      */
@@ -103,14 +121,40 @@ final class User extends Model implements UserModelInterface
         return $this->hasMany(Strategy::class);
     }
 
-    public static function boot($model)
+    public function referrals ()
     {
-        logger()->info('boot called');
-        // parent::boot();
-        static::creating($model, function ($model) {
-            logger()->info('adding refferal code');
-            $model->referral_code = Str::random(10);
-        });
-        logger()->info('boot done');
+        return $this->hasMany(Referral::class);
+    }
+
+    public function referredBy(callable|string $with)
+    {
+        return $this->hasOne(Referral::class, 'referred_user_id', with: $with);
+    }
+
+    public function exchangePointsForCash($points)
+    {
+        try {
+            DB::beginTransaction();
+            if ($this->points < $points) {
+                throw new \Exception('Not enough points');
+            }
+            $dollar_per_point = env("DOLLAR_PER_POINTS") ?? 0.1;
+            $dollar_per_point = $this->dollar_per_point ?? $dollar_per_point;
+            $cash = $points * $dollar_per_point; // Assume 1 point = $0.1
+            $this->points -= $points;
+            $this->save();
+    
+            // Logic to transfer cash to user
+            // This could involve integrating with a payment gateway
+            // For now, we will just log the cash amount
+            logger()->info("User {$this->id} exchanged {$points} points for \${$cash}");
+            DB::commit();
+        } catch (Exception $e) {
+            DB::rollback();
+            $this->points += $points;
+            logger()->info("Unable to exchange User {$this->username}'s points {$points} for \${$cash}");
+        }
+
+        return $cash;
     }
 }

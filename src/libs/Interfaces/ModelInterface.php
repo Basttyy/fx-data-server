@@ -25,7 +25,7 @@ interface ModelInterface extends ModelEventsInterface
     /**
      * id property of the model
      * 
-     * @property int $id
+     * @property $id
      */
 
     /**
@@ -59,6 +59,12 @@ interface ModelInterface extends ModelEventsInterface
      */
 
     /**
+     * The placeholder for model dynamic properties
+     * 
+     * @var array $dynamicProperties;
+     */
+
+    /**
      * Get a new querybuilder instance of the called class
      * 
      * @return ModelInterface|ModelInterface&UserModelInterface
@@ -87,10 +93,11 @@ interface ModelInterface extends ModelEventsInterface
      * Convert a model to key value pairs array
      * @param bool $guard 'wether to show or hide model guarded params'
      * @param array $select 'which parameters of the model to include, if given $guard will be ignored'
+     * @param array $ignore 'which parameters to force ignore'
      * 
      * @return array
      */
-    public function toArray($guard = true, $select = []);
+    public function toArray($guard = true, $select = [], $ignore = []);
 
     /**
      * exec() General SQL query execution

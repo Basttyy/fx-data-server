@@ -19,6 +19,7 @@ use Basttyy\FxDataServer\Controllers\Api\PairController;
 use Basttyy\FxDataServer\Controllers\Api\PlanController;
 use Basttyy\FxDataServer\Controllers\Api\PositionController;
 use Basttyy\FxDataServer\Controllers\Api\PostCommentController;
+use Basttyy\FxDataServer\Controllers\Api\ReferralController;
 use Basttyy\FxDataServer\Controllers\Api\RequestLogController;
 use Basttyy\FxDataServer\Controllers\Api\StrategyController;
 use Basttyy\FxDataServer\Controllers\Api\SubscriptionController;
@@ -53,6 +54,7 @@ put('/users/$id', new UserController('update'));
 delete('/users/$id', new UserController('delete'));
 /// User Special Routes
 post('/users/method/$method', new UserExplicitController());
+post('/users/exchange-points', new UserController('exchange_points'));
 
 /// Plan Routes
 get('/plans/$id', new PlanController());
@@ -168,6 +170,7 @@ get('/fx/tickers/query', new MiscellaneousController('search_ticker'));
 /// Others
 post('/misc/contact-us', new MiscellaneousController());
 get('/landing/data', new MiscellaneousController('fetch_landing'));
+get('/referrals', new ReferralController('list'));
 
 any('/404', new NotFoundController);
 

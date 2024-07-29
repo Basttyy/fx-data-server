@@ -2,6 +2,9 @@
 
 namespace Basttyy\FxDataServer\libs\Traits;
 
+use Basttyy\FxDataServer\Models\Model;
+use Basttyy\FxDataServer\libs\Interfaces\UserModelInterface;
+
 trait ModelProperties
 {
     /**
@@ -131,6 +134,13 @@ trait ModelProperties
      * @property string
      */
     protected $with_model_name = "";
+
+    /**
+     * The placeholder for model dynamic properties
+     * 
+     * @property array $dynamicProperties;
+     */
+    protected $dynamicProperties = [];
 
     /**
      * The name of the "created at" column.
