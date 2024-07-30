@@ -365,7 +365,7 @@ final class BlogController
 
             unlink(storage_path().'files'. str_replace('public', '', $this->blog->text));
 
-            logger()->info('testing', $this->blog->toArray());
+            // logger()->info('testing', $this->blog->toArray());
 
             if (!$this->blog->delete()) {
                 return JsonResponse::serverError("unable to delete blog");

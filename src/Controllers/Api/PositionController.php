@@ -180,6 +180,7 @@ final class PositionController
                 'takeprofit' => 'sometimes|float',
                 'pl' => 'sometimes|double',
                 'currentprice' => 'required|float',
+                'pair' => 'required|string|exist:pairs,name'
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
@@ -329,7 +330,8 @@ final class PositionController
                 'pips' => 'sometimes|float',
                 'pl' => 'sometimes|double',
                 'partials' => 'sometimes|string',
-                'exittype' => "sometimes|string|in:$closetypes"
+                'exittype' => "sometimes|string|in:$closetypes",
+                'pair' => 'sometimes|string|exist:pairs,name'
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }

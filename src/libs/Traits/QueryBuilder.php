@@ -145,8 +145,6 @@ trait QueryBuilder
 
         $this->child->{$this->child::UPDATED_AT} = $model[0][$this->child->{$this->child::UPDATED_AT}] ?? null;
         $this->child->{$this->child->primaryKey} = $model[0][$this->child->{$this->child->primaryKey}] ?? null;
-        // array_key_exists($this->child->{$this->child::UPDATED_AT}, $model[0]) ? $this->child->{$this->child::UPDATED_AT} = $model[$this->child->{$this->child::UPDATED_AT}] : null;
-        // array_key_exists($this->child->{$this->child->primaryKey}, $model[0]) ? $this->child->{$this->child->primaryKey} = $model[$this->child->{$this->child->primaryKey}] : null;
 
         return true;
     }
@@ -293,7 +291,28 @@ trait QueryBuilder
         return $this->all($is_protected, $select);
     }
 
-    public function count()
+    public function paginate($currentPage = 1, $recordsPerPage = null)
+    {
+        $totalRecords = $this->count();
+        // Calculate total pages
+        $totalPages = ceil($totalRecords / $recordsPerPage ?? $this->recordsPerPage);
+        // Calculate the offset
+        $offset = ($currentPage - 1) * $recordsPerPage;
+
+        return $this->all();
+    }
+
+    public function random()
+    {
+        throw new NotImplementedException('oops! this feature is yet to be implemented');
+    }
+
+    public function count($column = "*")
+    {
+        return $this->_count($column);
+    }
+
+    public function _count($column = "*", $reset_instance = true)
     {
         $query_arr = $this->bind_or_filter === null ? [] : $this->bind_or_filter;
 
@@ -308,24 +327,27 @@ trait QueryBuilder
         }
 
         if (!$count = mysqly::count($this->table, $query_arr, $this->operators, $this->or_ands)) {
-            $this->resetInstance();
+            if ($reset_instance)
+                $this->resetInstance();
             return false;
         }
-        $this->resetInstance();
+        if ($reset_instance)
+            $this->resetInstance();
+
         return $count;
     }
 
-    public function avg()
+    public function avg($column)
     {
         throw new NotImplementedException('oops! this feature is yet to be implemented');
     }
 
-    public function max()
+    public function max($column)
     {
         throw new NotImplementedException('oops! this feature is yet to be implemented');
     }
     
-    public function min()
+    public function min($column)
     {
         throw new NotImplementedException('oops! this feature is yet to be implemented');
     }
@@ -367,6 +389,18 @@ trait QueryBuilder
         $id = $id > 0 ? $id : $this->child->{$this->child->primaryKey};
 
         return $this->_update(['deleted_at', null], $id, true);
+    }
+
+    public function limit($amount)
+    {
+        $this->bind_or_filter['LIMIT'] = $amount;
+        return $this;
+    }
+
+    public function offset($postion)
+    {
+        $this->bind_or_filter['OFFSET'] = $postion;
+        return $this;
     }
 
     public function where($column, $operatorOrValueOrMethod = null, $value = null)
@@ -514,6 +548,13 @@ trait QueryBuilder
 
     private function _where(string $column, string $operatorOrValue = null, $value = null, $boolean = "AND")
     {
+        if (!is_null($this->bind_or_filter)) {
+            foreach ($this->bind_or_filter as $key => $value) {
+                if (($key == 'LIMIT' || $key == 'OFFSET') && gettype($value) == 'integer') {
+                    throw new Exception("all where queries should come before $key queries");
+                }
+            }
+        }
         if (is_null($value) && !is_null($operatorOrValue) && str_contains($operatorOrValue, ' NULL')) {// only column and value was given but value is like `IS NULL` or `NOT NULL`
             is_string($this->operators) ? $this->operators = [$operatorOrValue] : array_push($this->operators, $operatorOrValue);
         }
@@ -527,19 +568,11 @@ trait QueryBuilder
         is_string($this->or_ands) ? $this->or_ands = [$boolean] : array_push($this->or_ands, $boolean);
         is_null($this->bind_or_filter) ? $this->bind_or_filter = array($column => $value) : $this->bind_or_filter[$column] = $value;
 
-
-        // if (is_null($operator) && !is_null($value)) { //operator was not given
-        //     if (!str_contains($value, 'NULL'))
-        //         is_string($this->operators) ? $this->operators = ['='] : array_push($this->operators, '=');
-        // }
-        // else if (!\is_null($operator) && \is_null($value) && str_contains($operator, 'NULL')) { //operator is `IS NULL` and value wasn't given
-        //     // if (!str_contains($value, 'NULL'))
-        //         is_string($this->operators) ? $this->operators = [$operator] : array_push($this->operators, $operator);
-        // } else if (!is_null($operator) && !is_null($value)) {
-        //     is_string($this->operators) ? $this->operators = [$operator] : array_push($this->operators, $operator);
-        // } else {
-        //     throw new Exception("invalid where statement $column, $operator, $value, $boolean");
-        // }
         return $this;
+    }
+
+    public function distinct($column)
+    {
+        is_string($this->operators) ? $this->operators = ["DISTINCT `$column`"] : array_push($this->operators, "DISTINCT `$column`");
     }
 }

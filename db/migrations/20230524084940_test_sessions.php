@@ -25,6 +25,7 @@ final class TestSessions extends AbstractMigration
             ->addColumn('equity', 'decimal', ['precision' => 10, 'scale' => 2])
             ->addColumn('strategy_id', 'integer', ['null' => true, 'signed' => false])
             ->addColumn('user_id', 'integer', ['null' => true, 'signed' => false])
+            ->addColumn('pairs', 'string')
             ->addColumn('pair', 'string')
             ->addColumn('chart', 'mediumblob', ['null' => true])  //chart data should be a compressed serialized array of three objects ['overlays', 'style', 'positions']
             ->addColumn('chart_timestamp', 'biginteger', ['null' => true])

@@ -248,33 +248,56 @@ interface ModelInterface extends ModelEventsInterface
     public function get($is_protected = true, $select = []);
 
     /**
+     * Return a paginated results for the current query
+     * 
+     * @param int $currentPage indicate the current page
+     * @param int $recordsPerPage indicate the number of records to display per page
+     * 
+     * @return array|false
+     */
+    public function paginate($currentPage = 1, $recordsPerPage = null);
+
+    /**
+     * Return a random result from the current query
+     * 
+     * @return self|false;
+     */
+    public function random();
+
+    /**
      * Count total number of elements in a model from results of a query
+     * @param string $column
      * 
      * @return int|false
      */
-    public function count();
+    public function count(string $column = '');
     
     /**
      * Given a column, return the avearage of all values of that
      * column from results of a query
+     * @param string $column
      * 
      * @return int|false
      */
-    public function avg();
+    public function avg(string $column);
     
     /**
      * Given a column, return the element in a model with greatest value of that
      * column from results of a query
+     * @param string $column
+     * 
      * @return int|false
      */
-    public function max();
+    public function max(string $column);
         
     /**
      * Given a column, return the element in a model with smallest value of that
      * column from results of a query
+     * @param string $column
+     * 
      * @return int|false
      */
-    public function min();
+    public function min(string $column);
 
     /**
      * update a model
@@ -304,6 +327,24 @@ interface ModelInterface extends ModelEventsInterface
      * @throws Exception
      */
     public function restore($id = 0);
+
+    /**
+     * limit the number results from a query
+     * 
+     * @param int $amount the maximum number of query results to show
+     * 
+     * @return self
+     */
+    public function limit($amount);
+
+    /**
+     * set the position of the first query result
+     * 
+     * @param int $position indicates the position of the first query result
+     * 
+     * @return self
+     */
+    public function offset($postion);
 
     /**
      * Add a where clause to the query instance
@@ -505,4 +546,12 @@ interface ModelInterface extends ModelEventsInterface
      * @return void
      */
     public function rollback();
+
+    /**
+     * rollback all changes made in the transaction chain
+     * @param string $column
+     * 
+     * @return self
+     */
+    public function distinct(string $column);
 }

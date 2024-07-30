@@ -4,17 +4,18 @@ namespace Basttyy\FxDataServer\Models;
 
 use Basttyy\FxDataServer\Models\Model;
 
-final class RequestLog extends Model
+final class Visit extends Model
 {
     protected $softdeletes = false;
 
-    protected $table = 'request_logs';
+    protected $table = 'vists';
 
     protected $primaryKey = 'id';
 
     //object properties
     // public $id;
     public $ip;
+    public $unique_visitor_id;
     public $origin;
     public $method;
     public $uripath;
@@ -28,7 +29,7 @@ final class RequestLog extends Model
      * @var array
      */
     public $analytic = [
-        'id', 'created_at'
+        'id', 'unique_visitor_id', 'ip', 'origin', 'method', 'uripath', 'body', 'created_at'
     ];
 
     /**
@@ -37,7 +38,7 @@ final class RequestLog extends Model
      * @var array
      */
     protected $fillable = [
-        'id', 'ip', 'origin', 'method', 'uripath', 'body', 'created_at', 'updated_at'
+        'id', 'unique_visitor_id', 'ip', 'origin', 'method', 'uripath', 'body', 'created_at', 'updated_at'
     ];
 
     /**

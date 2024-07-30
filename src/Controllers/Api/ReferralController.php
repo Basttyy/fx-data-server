@@ -103,13 +103,9 @@ final class ReferralController
                 return is_array($referral) ? $referral['referred_user_id'] : $referral->referred_user_id;
             });
 
-            logger()->info("id's are: ", $ids);
             $users = User::getBuilder()->where('id', 'IN', $ids)->get(); //because this can be done in one query using whereIn
-            logger()->info("users are: ", $users);
 
-            $_referrals = [];
             foreach ($referrals as $key => $referral) { //this is a bad design and needs to change
-                logger()->info("key is $key: referrals is: ". json_encode($referral));
                 if (is_array($referrals[$key])) {
                     $referrals[$key]['refferedUser'] = array_shift($users);
                     continue;

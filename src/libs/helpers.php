@@ -115,7 +115,6 @@ if (! function_exists('is_local_mode')) {
 if (! function_exists('is_local_postman')) {
     function is_local_postman ()
     {
-        logger()->info('server is: ', $_SERVER);
         return env('APP_ENV') == 'local' && isset($_SERVER["HTTP_DEV_POSTMAN"]) && $_SERVER['HTTP_DEV_POSTMAN'] == true;
     }
 }

@@ -4,25 +4,25 @@ namespace Basttyy\FxDataServer\Controllers\Api;
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\libs\JsonResponse;
-use Basttyy\FxDataServer\Models\RequestLog;
 use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\User;
+use Basttyy\FxDataServer\Models\Visit;
 use Exception;
 use LogicException;
 use PDOException;
 
-final class RequestLogController
+final class VisitController
 {
     private $method;
     private $user;
     private $authenticator;
-    private $log;
+    private $visit;
 
     public function __construct($method = "show")
     {
         $this->method = $method;
         $this->user = new User();
-        $this->log = new RequestLog();
+        $this->visit = new Visit();
         $encoder = new JwtEncoder(env('APP_KEY'));
         $role = new Role();
         $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
@@ -62,10 +62,10 @@ final class RequestLogController
                 return JsonResponse::unauthorized("you don't have this permission");
             }
 
-            if (!$this->log->find((int)$id))
-                return JsonResponse::notFound("unable to retrieve log");
+            if (!$this->visit->find((int)$id))
+                return JsonResponse::notFound("unable to retrieve visit");
 
-            return JsonResponse::ok("log retrieved success", $this->log->toArray());
+            return JsonResponse::ok("visit retrieved success", $this->visit->toArray());
         } catch (PDOException $e) {
             consoleLog(0, $e->getMessage(). '   '.$e->getTraceAsString());
             return JsonResponse::serverError("we encountered a db problem");
@@ -91,16 +91,18 @@ final class RequestLogController
 
             if (count($query)) {
                 foreach ($query as $k => $v) {
-                    $this->log->where($k, value: $v);
+                    $this->visit->where($k, value: $v);
                 }
-                $count = $this->log->count();
-            } else {
-                $count = $this->log->count();
             }
-            if (!$count)
-                return JsonResponse::ok("no log found in list", 0);
+            $uniqueVisits = $this->visit->distinct('unique_visitor_id')->count();
+            $totalVisits = $this->visit->count();
+            if (!$totalVisits)
+                return JsonResponse::ok("no visit found in list", 0);
 
-            return JsonResponse::ok("logs count retrieved success", $count);
+            return JsonResponse::ok("visits count retrieved success", [
+                'total_visits' => $totalVisits,
+                'unique_visits' => $uniqueVisits,
+            ]);
         } catch (PDOException $e) {
             return JsonResponse::serverError("we encountered a problem");
         } catch (Exception $e) {
@@ -119,10 +121,10 @@ final class RequestLogController
                 return JsonResponse::unauthorized("you don't have this permission");
             }
 
-            if (!$logs = $this->log->all(select: $this->log->analytic))
-                return JsonResponse::ok("no log found in list", []);
+            if (!$visits = $this->visit->all(select: $this->visit->analytic))
+                return JsonResponse::ok("no visit found in list", []);
 
-            return JsonResponse::ok("logs retrieved success", $logs);
+            return JsonResponse::ok("visits retrieved success", $visits);
         } catch (PDOException $e) {
             return JsonResponse::serverError("we encountered a problem");
         } catch (Exception $e) {
@@ -144,7 +146,7 @@ final class RequestLogController
                     $data['body'] = gzdeflate(serialize(sanitize_data(json_decode($inputJSON, true))));
                 }
     
-                $this->log->create($data);
+                $this->visit->create($data);
             }
         } catch (PDOException $e) {
             // consoleLog(0, $e->getMessage(). '   '.$e->getTraceAsString());

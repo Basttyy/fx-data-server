@@ -144,8 +144,6 @@ final class PlanController
             $status = Plan::DISABLED.', '.Plan::ENABLED;
             $intervals = implode(', ', Plan::INTERVALS);
 
-            // logger()->info('body is: ', $body);
-
             if ($validated = Validator::validate($body, [
                 'name' => 'required|string',
                 'description' => 'required|string',

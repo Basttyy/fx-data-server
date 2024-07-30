@@ -70,7 +70,7 @@ trait ModelProperties
      *
      * @var int
      */
-    protected $perPage = 15;
+    protected $recordsPerPage = 15;
 
     /**
      * Indicates if the model exists.

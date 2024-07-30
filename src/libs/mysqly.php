@@ -291,7 +291,7 @@ class mysqly {
       
       $sql .= $order;
     }
-    logger()->info($sql, isset($bind) &&  is_array($bind) ? $bind : []);
+    // logger()->info($sql, isset($bind) &&  is_array($bind) ? $bind : []);
     
     $res = isset($bind) ? static::exec($sql, $bind) : static::exec($sql);
     return $res;
@@ -355,7 +355,15 @@ class mysqly {
   
   public static function count($sql_or_table, $bind_or_filter = [], array|string $operators = '=', array|string $or_ands = "AND")
   {
-    $rows = static::fetch($sql_or_table, $bind_or_filter, 'count(*)', $operators, $or_ands);
+    $_select_str = '*';
+    foreach ($operators as $key => $op) {
+      if (str_starts_with($op, 'DISTINCT ')) {
+        $_select_str = Arr::pull($operators, $key) ?? '*';
+        break;
+      }
+    }
+
+    $rows = static::fetch($sql_or_table, $bind_or_filter, "count($_select_str)", $operators, $or_ands);
     $val = array_shift($rows);
     return intval(array_shift($val));
   }

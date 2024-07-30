@@ -20,7 +20,7 @@ use Basttyy\FxDataServer\Controllers\Api\PlanController;
 use Basttyy\FxDataServer\Controllers\Api\PositionController;
 use Basttyy\FxDataServer\Controllers\Api\PostCommentController;
 use Basttyy\FxDataServer\Controllers\Api\ReferralController;
-use Basttyy\FxDataServer\Controllers\Api\RequestLogController;
+use Basttyy\FxDataServer\Controllers\Api\VisitController;
 use Basttyy\FxDataServer\Controllers\Api\StrategyController;
 use Basttyy\FxDataServer\Controllers\Api\SubscriptionController;
 use Basttyy\FxDataServer\Controllers\Api\TestSessionController;
@@ -33,7 +33,7 @@ use Basttyy\FxDataServer\Controllers\NotFoundController;
 // ##################################################
 // ##################################################
 
-call_user_func(new RequestLogController('create'));
+call_user_func(new VisitController('create'));
 
 /// Auth routes
 post('/auth/login', new AuthController());
@@ -128,11 +128,11 @@ delete('/feedbacks/$id', new FeedbackController('delete'));
 
 /// Admin Routes
 get('/migrate', new MigrateController);
-get('/admin/logs/$id', new RequestLogController());
-get('/admin/logs/all/count', new RequestLogController('count'));
-get('/admin/logs/all/count/$query', new RequestLogController('count'));
-get('/admin/logs', new RequestLogController('list'));
-get('/admin/logs/query/$query', new RequestLogController('list'));
+get('/admin/logs/$id', new VisitController());
+get('/admin/logs/all/count', new VisitController('count'));
+get('/admin/logs/all/count/$query', new VisitController('count'));
+get('/admin/logs', new VisitController('list'));
+get('/admin/logs/query/$query', new VisitController('list'));
 post('/admin/landing/data', new MiscellaneousController('update_landing'));
 
 post('/admin/blog/posts', new BlogController('create'));

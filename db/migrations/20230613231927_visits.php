@@ -3,9 +3,9 @@ declare(strict_types=1);
 
 use Phinx\Migration\AbstractMigration;
 
-final class RequestLog extends AbstractMigration
+final class Visits extends AbstractMigration
 {
-    const TABLE_NAME = 'request_logs';
+    const TABLE_NAME = 'visits';
     /**
      * Change Method.
      *
@@ -21,6 +21,7 @@ final class RequestLog extends AbstractMigration
     {
         $table = $this->table($this::TABLE_NAME);
         $table->addColumn('ip', 'string')
+            ->addColumn('unique_visitor_id', 'string')
             ->addColumn('origin', 'string')
             ->addColumn('method', 'string')
             ->addColumn('uripath', 'string')
