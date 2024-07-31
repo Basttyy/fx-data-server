@@ -7,6 +7,7 @@ use Basttyy\FxDataServer\Console\Jobs\SendVerifyEmail;
 use Basttyy\FxDataServer\libs\Arr;
 use Basttyy\FxDataServer\libs\DB;
 use Basttyy\FxDataServer\libs\JsonResponse;
+use Basttyy\FxDataServer\libs\Request;
 use Basttyy\FxDataServer\libs\Str;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\Models\Referral;
@@ -19,14 +20,12 @@ use PDOException;
 
 final class UserController
 {
-    private $method;
     private $user;
     private $subscription;
     private $authenticator;
 
-    public function __construct($method = "show")
+    public function __construct()
     {
-        $this->method = $method;
         $this->user = new User;
         $this->subscription = new Subscription;
         $encoder = new JwtEncoder(env('APP_KEY'));
@@ -34,35 +33,7 @@ final class UserController
         $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
     }
 
-    public function __invoke(string $id = null)
-    {
-        switch ($this->method) {
-            case 'show':
-                $resp = $this->show($id);
-                break;
-            case 'list':
-                $resp = $this->list();
-                break;
-            case 'create':
-                $resp = $this->create();
-                break;
-            case 'update':
-                $resp = $this->update($id);
-                break;
-            case 'delete':
-                $resp = $this->delete($id);
-                break;
-            case 'exchange_points':
-                $resp = $this->exchangePoints();
-                break;
-            default:
-                $resp = JsonResponse::serverError('bad method call');
-        }
-
-        $resp;
-    }
-
-    private function show(string $id)
+    public function show(Request $request, string $id)
     {
         $id = sanitize_data($id);
         try {
@@ -98,7 +69,7 @@ final class UserController
         }
     }
 
-    private function list()
+    public function list()
     {
         try {
             if (!$user = $this->authenticator->validate()) {
@@ -124,7 +95,7 @@ final class UserController
         }
     }
 
-    private function create()
+    public function create()
     {
         try {
             // Check if the request has a body
@@ -200,7 +171,7 @@ final class UserController
         }
     }
 
-    private function update(string $id)
+    public function update(string $id)
     {
         try {
             // Check if the request has a body
@@ -264,7 +235,7 @@ final class UserController
         }
     }
 
-    private function delete(int $id)
+    public function delete(int $id)
     {
         try {
             $id = sanitize_data($id);

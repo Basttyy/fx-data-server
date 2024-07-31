@@ -63,7 +63,7 @@ final class User extends Model implements UserModelInterface
      * 
      * @var array
      */
-    public $twofainfos = [
+    const twofainfos = [
         'twofa_types', 'twofa_default_type'
     ];
 
@@ -72,7 +72,7 @@ final class User extends Model implements UserModelInterface
      * 
      * @var array
      */
-    protected $fillable = [
+    const fillable = [
         'id', 'uuid', 'firstname', 'lastname', 'username', 'email', 'password',
         'phone', 'level', 'country', 'city', 'postal_code', 'address',
         'role_id', 'access_token', 'twofa_secret', 'email2fa_token', 'status',
@@ -85,7 +85,7 @@ final class User extends Model implements UserModelInterface
      * 
      * @var array
      */
-    protected $guarded = [
+    const guarded = [
         'password', 'deleted_at', 'created_at', 'updated_at', 'role_id', 'access_token', 'twofa_secret', 'email2fa_token', 'email2fa_expire',
     ];
 

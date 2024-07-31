@@ -9,6 +9,7 @@ use Basttyy\FxDataServer\Exceptions\QueryException;
 use Basttyy\FxDataServer\libs\Arr;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\libs\JsonResponse;
+use Basttyy\FxDataServer\libs\Request;
 use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\Subscription;
 use Basttyy\FxDataServer\Models\User;
@@ -19,71 +20,21 @@ use Hybridauth\Exception\InvalidAuthorizationCodeException;
 use Hybridauth\Exception\InvalidAuthorizationStateException;
 use Hybridauth\Exception\InvalidOauthTokenException;
 use Hybridauth\Hybridauth;
+use PHPUnit\Event\Telemetry\Info;
 
 final class AuthController
 {
-    //@param \App\Auth\JwtAuthenticator
-    private $authenticator;
-
-    private $user;
-    private $subscription;
-    private $method;
-
-    public function __construct($method = 'login')
-    {
-        $this->method = $method;
-        $this->user = new User;
-        $this->subscription = new Subscription;
-        $encoder = new JwtEncoder(env('APP_KEY'));
-        $role = new Role;
-        $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
-    }
-
-    public function __invoke()
-    {
-        switch ($this->method) {
-            case 'login':
-                $resp = $this->login();
-                break;
-            case 'login_oauth':
-                $resp = $this->loginOauth();
-                break;
-            case 'forgot_pass':
-                $resp = $this->forgotPassword();
-                break;
-            case 'change_pass':
-                $resp = $this->changePassword();
-                break;
-            case 'reset_pass':
-                $resp = $this->resetPassword();
-                break;
-            case 'refresh_token':
-                $resp = $this->refreshToken();
-                break;
-            default:
-                $resp = JsonResponse::serverError('bad method call');
-        }
-
-        return $resp;
-    }
-
-    private function login ()
+    public function login (Request $request)
     {
         try {
-            // Check if the request has a body
-            if ( $_SERVER['CONTENT_LENGTH'] <= 0) {
-                //return "body is required" response;
+            if (!$request->hasBody()) {
                 return JsonResponse::badRequest("bad request", "body is required");
             }
-            
-            $inputJSON = file_get_contents('php://input');
 
-            $decoded_obj = json_decode($inputJSON, true);
+            $decoded_obj = $request->input();
             if (isset($decoded_obj['password']) && is_local_postman()) {
                 $decoded_obj['password'] = base64_encode($decoded_obj['password']);
             }
-
-            logger()->info('decoded obj is: ', $decoded_obj);
 
             $body = sanitize_data($decoded_obj);
 
@@ -94,31 +45,41 @@ final class AuthController
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
-            if (!$_user = $this->user->where('email', $body['email'])->orWhere('username', $body['email'])->first(false)) {
+            if (!$user = User::getBuilder()->where('email', $body['email'])->orWhere('username', $body['email'])->first(false)) {
                 throw new NotFoundException("invalid login details");
             }
             // echo "user found by email";
-            if (!$_user instanceof User) {
+            if (!$user instanceof User) {
                 throw new NotFoundException("invalid login details");
             }
 
-            if (!$token = $this->authenticator->authenticate($this->user, base64_decode($body['password']))) {
+            $authenticator = new JwtAuthenticator(new JwtEncoder(env('APP_KEY')), new User, new Role);
+            if (!$token = $authenticator->authenticate($user, base64_decode($body['password']))) {
                 return JsonResponse::unauthorized("invalid login details");
             }
-            $subscription = $this->subscription->findBy('user_id', $this->user->id, false);
-            $is_admin = $this->authenticator->verifyRole($this->user, 'admin');
+            $subscription = Subscription::getBuilder()->findBy('user_id', $user->id, false);
+            $is_admin = $authenticator->verifyRole($user, 'admin');
 
-            $hidden = [ ...$this->user->twofainfos, 'password'];
-            $user = Arr::except($this->user->toArray(), $hidden);
-            $user['extra']['is_admin'] = $is_admin;
-            $user['extra']['subscription'] = $subscription ? $subscription : null;
-            $user['extra']['twofa']['enabled'] = strlen($this->user->twofa_types) > 0;
-            $user['extra']['twofa']['twofa_types'] = $this->user->twofa_types;
-            $user['extra']['twofa']['twofa_default_type'] = $this->user->twofa_default_type;
+            $hidden = [ ...$user::twofainfos, 'password'];
+            $_user = Arr::except($user->toArray(), $hidden);
+            $_user['extra'] = [
+                'is_admin' => $is_admin,
+                'subscription' => $subscription ? $subscription : null,
+                'twofa' => [
+                    'enabled' => strlen($user->twofa_types) > 0,
+                    'twofa_types' => $user->twofa_types,
+                    'twofa_default_type' => $user->twofa_default_type,
+                ]
+            ];
+            // $_user['extra']['is_admin'] = $is_admin;
+            // $_user['extra']['subscription'] = $subscription ? $subscription : null;
+            // $_user['extra']['twofa']['enabled'] = strlen($user->twofa_types) > 0;
+            // $_user['extra']['twofa']['twofa_types'] = $user->twofa_types;
+            // $_user['extra']['twofa']['twofa_default_type'] = $user->twofa_default_type;
 
             return JsonResponse::ok("login successfull", [
                 'auth_token' => $token,
-                'data' => $user
+                'data' => $_user
             ]);
         } catch (NotFoundException $ex) {
             return JsonResponse::unauthorized($ex->getMessage());
@@ -128,15 +89,15 @@ final class AuthController
         }
     }
 
-    private function loginOauth()
+    public function loginOauth(Request $request)
     {
-        if (strtolower($_SERVER['REQUEST_METHOD']) === "options") {
+        if (strtolower($request->method()) === "options") {
             return JsonResponse::ok();
         }
         try {
-            if (isset($_GET['provider'])) {
-                $_SESSION['provider'] = $_GET['provider'];
-                $provider = $_GET['provider'];
+            if ($request->query('provider')) {
+                $_SESSION['provider'] = $request->query('provider');
+                $provider = $request->query('provider');
             } else {
                 $provider = "facebook"; // $_SESSION['provider'];
             }
@@ -149,7 +110,7 @@ final class AuthController
                 ]);
             }
             
-            $hybridauth = new Hybridauth("{$_SERVER['DOCUMENT_ROOT']}/hybridauth_config.php");  //, null, new DbStorage('SOCIALAUTH::STORAGE'));
+            $hybridauth = new Hybridauth("{$request->documentRoot()}/hybridauth_config.php");  //, null, new DbStorage('SOCIALAUTH::STORAGE'));
             
             $adapter = $hybridauth->authenticate($provider);
     
@@ -163,8 +124,8 @@ final class AuthController
             // Retrieve the user's profile
             $userProfile = $adapter->getUserProfile();
             
-            if (!$user = $this->user->findByArray(['email', 'uuid'], [$userProfile->email, $userProfile->identifier])) {
-                if (!$user = $this->user->create([
+            if (!$user = User::getBuilder()->findByArray(['email', 'uuid'], [$userProfile->email, $userProfile->identifier])) {
+                if (!$user = User::getBuilder()->create([
                     'email' => $userProfile->email,
                     'username' => $userProfile->email,
                     'firstname' => $userProfile->firstName,
@@ -180,15 +141,16 @@ final class AuthController
                 ])) {
                     return JsonResponse::serverError("error creating user please try again");
                 }
+                /** @var User $user */
                 
-                $usr = Arr::except($user[0], $this->user->twofainfos);
-                $subscription = $this->subscription->findBy('user_id', $this->user->id, false);
+                $usr = Arr::except($user->toArray(false), $user::twofainfos);
+                $subscription = Subscription::getBuilder()->findBy('user_id', $user->id, false);
                 
                 $usr['extra']['is_admin'] = false;
                 $usr['extra']['subscription'] = $subscription ? $subscription : null;
-                $usr['extra']['twofa']['enabled'] = strlen($this->user->twofa_types) > 0;
-                $usr['extra']['twofa']['twofa_types'] = $this->user->twofa_types;
-                $usr['extra']['twofa']['twofa_default_type'] = $this->user->twofa_default_type;
+                $usr['extra']['twofa']['enabled'] = strlen($user->twofa_types) > 0;
+                $usr['extra']['twofa']['twofa_types'] = $user->twofa_types;
+                $usr['extra']['twofa']['twofa_default_type'] = $user->twofa_default_type;
 
                 return JsonResponse::created('user account has been created', [
                     'auth_token' => "social_login:". base64_encode($usr['id']),
@@ -196,14 +158,14 @@ final class AuthController
                 ]);
             }
                 
-            $usr = Arr::except($user[0], $this->user->twofainfos);
-            $subscription = $this->subscription->findBy('user_id', $this->user->id, false);
+            $usr = Arr::except($user[0], User::twofainfos);
+            $subscription = Subscription::getBuilder()->findBy('user_id', $user[0]['id'], false);
             
             $usr['extra']['is_admin'] = false;
             $usr['extra']['subscription'] = $subscription ? $subscription : null;
-            $usr['extra']['twofa']['enabled'] = strlen($this->user->twofa_types) > 0;
-            $usr['extra']['twofa']['twofa_types'] = $this->user->twofa_types;
-            $usr['extra']['twofa']['twofa_default_type'] = $this->user->twofa_default_type;
+            $usr['extra']['twofa']['enabled'] = strlen($user['twofa_types']) > 0;
+            $usr['extra']['twofa']['twofa_types'] = $user['twofa_types'];
+            $usr['extra']['twofa']['twofa_default_type'] = $user['twofa_default_type'];
 
             return JsonResponse::ok("login successfull", [
                 'auth_token' => "social_login:". base64_encode($usr['id']),
@@ -231,28 +193,26 @@ final class AuthController
         }
     }
 
-    private function forgotPassword()
+    public function forgotPassword()
     {
 
     }
 
-    private function resetPassword()
+    public function resetPassword()
     {
 
     }
 
-    private function changePassword()
+    public function changePassword()
     {
 
     }
 
-    private function refreshToken()
+    public function refreshToken(Request $request)
     {
         try {
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized("invalid auth token");
-            }
-            if (!$token = $this->authenticator->authenticate($this->user)) {
+            $authenticator = new JwtAuthenticator(new JwtEncoder(env('APP_KEY')), $request->auth_user, new Role);
+            if (!$token = $authenticator->authenticate($request->auth_user)) {
                 return JsonResponse::unauthorized("invalid auth token");
             }
             return JsonResponse::ok("refresh token success", [

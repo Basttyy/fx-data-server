@@ -47,7 +47,7 @@ trait ModelProperties
      * 
      * @var array
      */
-    protected $fillable = [
+    protected const fillable = [
         'id', 'created_at', 'updated_at', 'deleted_at'
     ];
 
@@ -56,7 +56,7 @@ trait ModelProperties
      * 
      * @var array
      */
-    protected $guarded = ['deleted_at'];
+    protected const guarded = ['deleted_at'];
 
     /**
      * Indicates if the IDs are auto-incrementing.

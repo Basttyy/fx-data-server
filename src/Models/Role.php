@@ -30,7 +30,7 @@ final class Role extends Model
      * 
      * @var array
      */
-    protected $fillable = [
+    protected const fillable = [
         'id', 'name', 'previleges', 'created_at', 'updated_at', 'deleted_at'
     ];
 
@@ -39,7 +39,7 @@ final class Role extends Model
      * 
      * @var array
      */
-    protected $guarded = [
+    protected const guarded = [
         'deleted_at', 'created_at', 'updated_at'
     ];
 

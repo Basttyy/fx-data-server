@@ -90,7 +90,6 @@ class mysqly {
   }
   
   
-  
   /**
    * exec() General SQL query execution
    * 
@@ -241,13 +240,15 @@ class mysqly {
     else {
       $select_str = is_array($select_what) ? implode(', ', $select_what) : $select_what;
       $sql = "SELECT {$select_str} FROM `{$sql_or_table}`";
-      $order = '';
+      $order_limit_or_offset = '';
       
       if ( $bind_or_filter ) {
         if ( is_array($bind_or_filter) ) {
           $i = 0; $j = 0; $len = count($bind_or_filter);
-          if (array_key_exists('order_by', $bind_or_filter)) {
-            $len--;
+          foreach (['order_by', 'LIMIT', 'OFFSET'] as $_val) {
+            if (array_key_exists($_val, $bind_or_filter)) {
+              $len--;
+            }
           }
 
           if (is_array($or_ands)) {
@@ -257,7 +258,14 @@ class mysqly {
 
           foreach ( $bind_or_filter as $k => $v ) {
             if ( $k == 'order_by' ) {
-              $order = ' ORDER BY ' . $v;
+              $order_limit_or_offset .= " ORDER BY $v";
+              $j++;
+              continue;
+            }
+            if ( in_array($k, ['LIMIT', 'OFFSET']) ) {
+              $__k = strtolower($k);
+              $order_limit_or_offset .= " $k :$__k";
+              $bind[":{$__k}"] = $v;
               $j++;
               continue;
             }
@@ -288,11 +296,11 @@ class mysqly {
           $bind[":id"] = $bind_or_filter;
         }
       }
-      
-      $sql .= $order;
+
+      $sql .= $order_limit_or_offset;
     }
     // logger()->info($sql, isset($bind) &&  is_array($bind) ? $bind : []);
-    
+
     $res = isset($bind) ? static::exec($sql, $bind) : static::exec($sql);
     return $res;
   }
@@ -307,7 +315,6 @@ class mysqly {
    * @return array
    */
   public static function fetch($sql_or_table, $bind_or_filter = [], $select_what = '*', array|string $operators = '=', array|string $or_ands = "AND") {
-    
     $statement = static::fetch_cursor($sql_or_table, $bind_or_filter, $select_what, $operators, $or_ands);
     $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
 

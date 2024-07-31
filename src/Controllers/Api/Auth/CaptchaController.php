@@ -2,37 +2,14 @@
 namespace Basttyy\FxDataServer\Controllers\Api\Auth;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\libs\JsonResponse;
+use Basttyy\FxDataServer\libs\Request;
 use Exception;
 use Gregwar\Captcha\CaptchaBuilder;
 use Gregwar\Captcha\PhraseBuilder;
 
 final class CaptchaController
 {
-    private $method;
-
-    public function __construct($method = 'generate')
-    {
-        $this->method = $method;
-        // $authMiddleware = new Guard($authenticator);
-    }
-
-    public function __invoke()
-    {
-        switch ($this->method) {
-            case 'generate':
-                $resp = $this->generate();
-                break;
-            case 'validate':
-                $resp = $this->comparePhrase();
-                break;
-            default:
-                $resp = JsonResponse::serverError('bad method call');
-        }
-
-        return $resp;
-    }
-
-    private function generate ()
+    public function generate ()
     {
         try {
             $captcha = new CaptchaBuilder;
@@ -47,11 +24,9 @@ final class CaptchaController
         }
     }
 
-    private function comparePhrase()
+    public function comparePhrase(Request $request)
     {
-        $inputJSON = file_get_contents('php://input');
-
-        $body = sanitize_data(json_decode($inputJSON, true));
+        $body = sanitize_data($request->input());
 
         if ($validated = Validator::validate($body, [
             'captcha-phrase' => 'required|string'

@@ -51,7 +51,7 @@ trait QueryBuilder
         //     return $self;
         // }
 
-        foreach ($this->child->fillable as $item) {
+        foreach ($this->child::fillable as $item) {
             if (Arr::exists($values, $item)) {
                 $this->child->{$item} = $values[$item];
             }
@@ -75,7 +75,7 @@ trait QueryBuilder
             }
             return $result;
         }
-        $items = $guard ? array_diff($this->child->fillable, array_merge($this->child->guarded, $ignore)) : array_diff($this->child->fillable, $ignore);
+        $items = $guard ? array_diff($this->child::fillable, array_merge($this->child::guarded, $ignore)) : array_diff($this->child::fillable, $ignore);
         foreach ($items as $item) {
             if (Arr::exists($obj_props, $item, true)) {
                 $result[$item] = $this->child->{$item};
@@ -107,7 +107,7 @@ trait QueryBuilder
         if (count($select)) {
             $fields = $select;
         } else {
-            $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
+            $fields = $is_protected ? \array_diff($this::fillable, $this::guarded) : $this::fillable;
         }
 
         if (!$model = mysqly::fetch($this->table, ['id' => $id], $fields)) {
@@ -137,7 +137,7 @@ trait QueryBuilder
                 return false;
             }
 
-            $fields = $this->fillable;
+            $fields = $this::fillable;
             if (!$model = mysqly::fetch($this->table, ['id' => $id], $fields)) {
                 return true;
             }
@@ -166,7 +166,7 @@ trait QueryBuilder
             is_string($this->or_ands) ? $this->or_ands = ["AND"] : array_push($this->or_ands, "AND");
         }
         
-        $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
+        $fields = $is_protected ? \array_diff($this::fillable, $this::guarded) : $this::fillable;
 
         if (!$model = mysqly::fetch($this->table, $query_arr, $fields, $this->operators, $this->or_ands)) {
             $this->resetInstance();
@@ -216,7 +216,7 @@ trait QueryBuilder
         if (count($select)) {
             $fields = $select;
         } else {
-            $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
+            $fields = $is_protected ? \array_diff($this::fillable, $this::guarded) : $this::fillable;
         }
 
         if (!$model = mysqly::fetch($this->table, $query_arr, $fields, $this->operators, $this->or_ands)) {
@@ -247,7 +247,7 @@ trait QueryBuilder
         if (count($select)) {
             $fields = $select;
         } else {
-            $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
+            $fields = $is_protected ? \array_diff($this::fillable, $this::guarded) : $this::fillable;
         }
         if (!$fields = mysqly::fetch($this->table, $query_arr, $fields)) {
             return false;
@@ -269,7 +269,7 @@ trait QueryBuilder
         if (count($select)) {
             $fields = $select;
         } else {
-            $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
+            $fields = $is_protected ? \array_diff($this::fillable, $this::guarded) : $this::fillable;
         }
 
         if (!$fields = mysqly::fetch($this->table, $query_arr, $fields, $this->operators, $this->or_ands)) {
@@ -293,11 +293,15 @@ trait QueryBuilder
 
     public function paginate($currentPage = 1, $recordsPerPage = null)
     {
-        $totalRecords = $this->count();
+        $recordsPerPage = $recordsPerPage ?? $this->recordsPerPage;
+        $totalRecords = $this->count($this->child->primaryKey, false);
         // Calculate total pages
-        $totalPages = ceil($totalRecords / $recordsPerPage ?? $this->recordsPerPage);
+        $totalPages = ceil($totalRecords / $recordsPerPage);
         // Calculate the offset
         $offset = ($currentPage - 1) * $recordsPerPage;
+
+        $this->limit($recordsPerPage);
+        $this->offset($offset);
 
         return $this->all();
     }
@@ -533,7 +537,7 @@ trait QueryBuilder
 
         $count = mysqly::update($this->table, $query_arr, $values, $this->operators, $this->or_ands);
 
-        $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
+        $fields = $is_protected ? \array_diff($this::fillable, $this::guarded) : $this::fillable;
         if (!$model = mysqly::fetch($this->table, $query_arr, $fields, $this->operators, $this->or_ands)) {
             $this->resetInstance();
             return false;
@@ -548,9 +552,10 @@ trait QueryBuilder
 
     private function _where(string $column, string $operatorOrValue = null, $value = null, $boolean = "AND")
     {
-        if (!is_null($this->bind_or_filter)) {
-            foreach ($this->bind_or_filter as $key => $value) {
-                if (($key == 'LIMIT' || $key == 'OFFSET') && gettype($value) == 'integer') {
+        $bind_or_filter = $this->bind_or_filter;
+        if ($bind_or_filter != null) {
+            foreach ($bind_or_filter as $key => $_value) {
+                if (($key == 'LIMIT' || $key == 'OFFSET') && gettype($_value) == 'integer') {
                     throw new Exception("all where queries should come before $key queries");
                 }
             }

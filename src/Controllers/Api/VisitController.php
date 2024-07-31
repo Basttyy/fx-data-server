@@ -40,9 +40,6 @@ final class VisitController
             case 'list':
                 $resp = $this->list();
                 break;
-            case 'create':
-                $resp = $this->create();
-                break;
             default:
                 $resp = JsonResponse::serverError('bad method call');
         }
@@ -129,29 +126,6 @@ final class VisitController
             return JsonResponse::serverError("we encountered a problem");
         } catch (Exception $e) {
             return JsonResponse::serverError("we encountered a problem");
-        }
-    }
-
-    private function create()
-    {
-        try {
-            if (strtolower($_SERVER['REQUEST_METHOD']) !== "options") {
-                $data['ip'] = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : "";
-                $data['method'] = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : "";
-                $data['origin'] = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : "";
-                $data['uripath'] = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : "";
-    
-                if (isset($_SERVER['CONTENT_LENGTH']) && $_SERVER['CONTENT_LENGTH'] > env('CONTENT_LENGTH_MIN')) {
-                    $inputJSON = file_get_contents('php://input');
-                    $data['body'] = gzdeflate(serialize(sanitize_data(json_decode($inputJSON, true))));
-                }
-    
-                $this->visit->create($data);
-            }
-        } catch (PDOException $e) {
-            // consoleLog(0, $e->getMessage(). '   '.$e->getTraceAsString());
-        } catch (Exception $e) {
-            // consoleLog(0, $e->getMessage(). '   '.$e->getTraceAsString());
         }
     }
 }

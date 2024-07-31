@@ -14,21 +14,19 @@ final class JwtAuthenticator
 
     private $encoder;
     private $user;
-    private $role;
 
     // variables used for jwt
     private $key;
     private $iss;
     private $aud;
 
-    public function __construct(JwtEncoder $encoder, User $user, Role $role)
+    public function __construct(JwtEncoder $encoder, User $user)
     {
         $this->key = env('JWT_KEY');
         $this->iss = env('JWT_ISS');
         $this->aud = env('JWT_AUD');
         $this->encoder = $encoder;
         $this->user = $user;
-        $this->role = $role;
     }
 
     /**
@@ -45,7 +43,7 @@ final class JwtAuthenticator
         if (!is_array($_role)) {
             $_role = [$_role];
         }
-        if (!$role = $this->role->orderBy()->findBy('id', $user->role_id)) {
+        if (!$role = Role::getBuilder()->orderBy()->findBy('id', $user->role_id)) {
             return false;
         }
         if (Arr::exists($_role, $role[0]['name'], true)) {
@@ -173,11 +171,8 @@ final class JwtAuthenticator
                 "id" => $user->id,
                 "firstname" => $user->firstname,
                 "lastname" => $user->lastname,
-                "email" => $user->email,
-                "role_id" => $user->role_id,
             ]
         ], $this->key);
-        //echo ("this is token ".$token);
         return $token;
     }
 }

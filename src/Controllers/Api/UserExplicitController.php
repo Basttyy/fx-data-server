@@ -7,6 +7,7 @@ use Basttyy\FxDataServer\Console\Jobs\SendResetPassword;
 use Basttyy\FxDataServer\Console\Jobs\SendVerifyEmail;
 use Basttyy\FxDataServer\libs\Arr;
 use Basttyy\FxDataServer\libs\JsonResponse;
+use Basttyy\FxDataServer\libs\Request;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\User;
@@ -27,7 +28,7 @@ final class UserExplicitController
         $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
     }
 
-    public function __invoke(string $method = "")
+    public function index(Request $request, string $method = "")
     {
         switch ($method) {
             case "request_pass_reset":

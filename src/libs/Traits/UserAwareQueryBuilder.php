@@ -21,7 +21,7 @@ trait UserAwareQueryBuilder
             is_string($this->or_ands) ? $this->or_ands = ["AND"] : array_push($this->or_ands, "AND");
         }
 
-        $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
+        $fields = $is_protected ? \array_diff($this::fillable, $this::guarded) : $this::fillable;
         if (!$user = mysqly::fetch($this->table, $query_arr, $fields, $this->operators, $this->or_ands)) {
             $this->resetInstance();
             return false;
@@ -45,7 +45,7 @@ trait UserAwareQueryBuilder
             is_string($this->or_ands) ? $this->or_ands = ["AND"] : array_push($this->or_ands, "AND");
         }
 
-        $fields = $is_protected ? \array_diff($this->fillable, $this->guarded) : $this->fillable;
+        $fields = $is_protected ? \array_diff($this::fillable, $this::guarded) : $this::fillable;
         if (!$user = mysqly::fetch($this->table, $query_arr, $fields, $this->operators, $this->or_ands)) {
             $this->resetInstance();
             return false;

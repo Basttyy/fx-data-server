@@ -7,6 +7,7 @@ use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\Console\Jobs\SendVerifyEmail;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\libs\JsonResponse;
+use Basttyy\FxDataServer\libs\Request;
 use Basttyy\FxDataServer\libs\Str;
 use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\User;
@@ -15,44 +16,20 @@ use PragmaRX\Google2FA\Google2FA;
 
 final class TwoFaController
 {
-    private $method;
     private $user;
     private $authenticator;
 
-    public function __construct($method = 'generate')
+    public function __construct()
     {
-        $this->method = $method;
         $this->user = new User();
         $encoder = new JwtEncoder(env('APP_KEY'));
         $role = new Role();
         $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
     }
 
-    public function __invoke(string $mode, int $status = 1)
-    {
-        switch ($this->method) {
-            case 'generate':
-                $resp = $this->generate($mode);
-                break;
-            case 'validate':
-                $resp = $this->verifyCode($mode);
-                break;
-            case 'twofaonoff':
-                $resp = $this->twofaonoff($mode, $status);
-                break;
-            default:
-                $resp = JsonResponse::serverError('bad method call');
-        }
-
-        return $resp;
-    }
-
-    private function generate (string $mode)
+    public function generate (Request $request, string $mode)
     {
         try {
-            if (!Guard::tryToAuthenticate($this->authenticator)) {
-                return JsonResponse::unauthorized();
-            }
             $mode = sanitize_data($mode);
 
             $modes = [User::EMAIL, User::GOOGLE2FA];
@@ -94,7 +71,7 @@ final class TwoFaController
         }
     }
 
-    private function verifyCode(string $mode)
+    public function verifyCode(Request $request, string $mode)
     {
         try {            
             if (!Guard::tryToAuthenticate($this->authenticator)) {
@@ -147,7 +124,7 @@ final class TwoFaController
         }
     }
     
-    private function twofaonoff(string $mode, int $status)
+    public function twofaonoff(string $mode, int $status)
     {   
         if (!$user = Guard::tryToAuthenticate($this->authenticator)) {
             return JsonResponse::unauthorized();

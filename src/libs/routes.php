@@ -1,11 +1,5 @@
 <?php
 
-require_once __DIR__.'/router.php';
-
-require_once __DIR__."/../Controllers/Api/Auth/AuthController.php";
-require_once __DIR__.'/../TickController.php';
-require_once __DIR__.'/../MinuteController.php';
-
 use Basttyy\FxDataServer\Controllers\Api\Auth\AuthController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\CaptchaController;
 use Basttyy\FxDataServer\Controllers\Api\Auth\TwoFaController;
@@ -20,159 +14,228 @@ use Basttyy\FxDataServer\Controllers\Api\PlanController;
 use Basttyy\FxDataServer\Controllers\Api\PositionController;
 use Basttyy\FxDataServer\Controllers\Api\PostCommentController;
 use Basttyy\FxDataServer\Controllers\Api\ReferralController;
-use Basttyy\FxDataServer\Controllers\Api\VisitController;
 use Basttyy\FxDataServer\Controllers\Api\StrategyController;
 use Basttyy\FxDataServer\Controllers\Api\SubscriptionController;
 use Basttyy\FxDataServer\Controllers\Api\TestSessionController;
 use Basttyy\FxDataServer\Controllers\Api\TransactionController;
 use Basttyy\FxDataServer\Controllers\Api\UserController;
 use Basttyy\FxDataServer\Controllers\Api\UserExplicitController;
+use Basttyy\FxDataServer\Controllers\Api\VisitController;
 use Basttyy\FxDataServer\Controllers\NotFoundController;
+use Basttyy\FxDataServer\libs\Request;
+use Basttyy\FxDataServer\libs\Router;
+use Basttyy\FxDataServer\Middlewares\AuthMiddleware;
+use Basttyy\FxDataServer\Middlewares\VisitLoggerMiddleware;
 
-// ##################################################
-// ##################################################
-// ##################################################
+Router::middleware(VisitLoggerMiddleware::class, function () {
+    /// Auth routes
+    Router::group('/auth', function () {
+        Router::post('/login', [AuthController::class, 'login']);
+        Router::get('/login', [AuthController::class, 'loginOauth']);
+        Router::get('/captcha', [CaptchaController::class, 'generate']);
+        Router::post('/captcha', [CaptchaController::class, 'comparePhrase']);
+        Router::get('/twofa/mode/$mode', [TwoFaController::class, 'generate']);
+        Router::post('/twofa/mode/$mode', [TwoFaController::class, 'verifyCode']);
+        Router::get('/twofa/mode/$mode/status/$status', [TwoFaController::class, 'twofaonoff']);
+        Router::middleware(AuthMiddleware::class, function () {
+            Router::get('/refresh-token', [AuthController::class, 'refreshToken']);
+        });
+    });
+    /// User Routes
+    Router::group('/users', function () {
+        Router::get('/$id', [UserController::class, 'show']);
+        Router::get('', [UserController::class, 'list']);
+        Router::get('/query/$query', [UserController::class, 'list']);
+        Router::post('', [UserController::class, 'create']);
+        Router::put('/$id', [UserController::class, 'update']);
+        Router::delete('/$id', [UserController::class, 'delete']);
+        /// User Special Routes
+        Router::post('/method/$method', [UserExplicitController::class, 'index']);
+        Router::post('/exchange-points', [UserController::class, 'exchangePoints']);
+    });
+    /// Plan Routes
+    Router::group('/plans', function () {
+        Router::get('/$id', new PlanController());
+        Router::get('', new PlanController('list'));
+        Router::get('/standard/$standard', new PlanController('list'));
+        Router::get('/query/$query', new PlanController('list'));
+        Router::post('', new PlanController('create'));
+        Router::put('/$id', new PlanController('update'));
+        Router::delete('/$id', new PlanController('delete'));
+    });
+    /// Subscription Routes
+    Router::group('/subscriptions', function () {
+        Router::get('/$id', new SubscriptionController());
+        Router::put('/$id/cancel', new SubscriptionController('cancel'));
+        Router::get('', new SubscriptionController('list'));
+        Router::get('/all/count', new SubscriptionController('count'));
+        Router::get('/all/count/$query', new SubscriptionController('count'));
+        Router::get('/query/$query', new SubscriptionController('list'));
+        Router::get('/palns/$id', new SubscriptionController('list_plan'));
+        // Router::post('/subscriptions', new SubscriptionController('create'));
+    });
+    /// Transaction Routes
+    Router::group('/transactions', function () {
+        Router::get('/$id', new TransactionController(''));
+        Router::get('', new TransactionController('list'));
+        Router::get('/generate/ref', new TransactionController('trans_ref'));
+        Router::post('/verify', new TransactionController('create'));
+        Router::post('/webhook', new TransactionController('update'));
+    });
+    /// Strategy Routes
+    Router::group('/strategies', function () {
+        Router::get('/$id', new StrategyController());
+        Router::get('', new StrategyController('list'));
+        Router::get('/query/$query', new StrategyController('list'));
+        Router::get('/users/$id', new StrategyController('list_user'));
+        Router::post('', new StrategyController('create'));
+        Router::put('/$id', new StrategyController('update'));
+        Router::delete('/$id', new StrategyController('delete'));
+    });
+    /// TestSessions Routes
+    Router::group('/test-sessions', function () {
+        Router::get('/$id', new TestSessionController());
+        Router::get('', new TestSessionController('list'));
+        Router::get('/query/$query', new TestSessionController('list'));
+        Router::post('', new TestSessionController('create'));
+        Router::put('/$id', new TestSessionController('update'));
+        Router::delete('/$id', new TestSessionController('delete'));
+    });
+    /// Pairs Routes
+    Router::group('/pairs', function () {
+        Router::get('/$id', new PairController());
+        Router::get('', new PairController('list'));
+        Router::get('/list/onlypair', new PairController('listonlypair'));
+        Router::get('/list/pairorsym/$id/query/$query', new PairController('query'));
+        Router::post('', new PairController('create'));
+        Router::put('/$id', new PairController('update'));
+        Router::delete('/$id', new PairController('delete'));
+    });
+    Router::group('/positions', function () {
+        /// Positions Routes
+        Router::get('/$id', new PositionController());
+        Router::get('', new PositionController('list'));
+        Router::get('/query/$query', new PositionController('list'));
+        Router::get('/users/$id', new PositionController('list_user'));
+        Router::post('', new PositionController('create'));
+        Router::put('/$id', new PositionController('update'));
+        Router::put('/$id/unset/$tporsl', new PositionController('unsetslortp'));
+        Router::delete('/$id', new PositionController('delete'));
+    });
+    /// Feedbacks Routes
+    Router::group('/feedbacks', function () {
+        Router::get('/$id', new FeedbackController());
+        Router::get('', new FeedbackController('list'));
+        Router::get('/query/$query', new FeedbackController('list'));
+        Router::get('/users/$id', new FeedbackController('list_user'));
+        Router::post('', new FeedbackController('create'));
+        Router::put('/$id', new FeedbackController('update'));
+        Router::delete('/$id', new FeedbackController('delete'));
+    });
+    /// Admin Routes
+    Router::group('/admin', function () {
+        Router::group('/logs', function () {
+            Router::get('/$id', new VisitController());
+            Router::get('/all/count', new VisitController('count'));
+            Router::get('/all/count/$query', new VisitController('count'));
+            Router::get('', new VisitController('list'));
+            Router::get('/query/$query', new VisitController('list'));
+        });
+        Router::group('/blog', function () {
+            Router::post('/posts', new BlogController('create'));
+            Router::put('/posts/$id', new BlogController('update'));
+            Router::delete('/posts/$id', new BlogController('delete'));
+        });
+        Router::group('/cheapcountries', function () {
+            Router::get('/$id', new CheapCountryController());
+            Router::get('', new CheapCountryController('list'));
+            Router::post('', new CheapCountryController('create'));
+            Router::put('/$id', new CheapCountryController('update'));
+            Router::delete('/$id', new CheapCountryController('delete'));
+        });
+        Router::post('/landing/data', new MiscellaneousController('update_landing'));
+    });
+    Router::group('/devops', function () {
+        Router::get('/migrate', new MigrateController);
+    });
+    Router::group('/blog', function () {
+        Router::group('/posts', function () {
+            Router::get('', new BlogController('list'));
+            Router::get('/$id', new BlogController());
+            Router::get('/$id/comments', new PostCommentController('list'));
+            Router::get('/$id/comments/$id', new PostCommentController());
+            Router::get('/$id/comments/query/$query', new PostCommentController('list'));
+            Router::post('/$id/comments', new PostCommentController('create'));
+            Router::put('/$id/comments/$id', new PostCommentController('update'));
+            Router::delete('/$id/comments/$id', new PostCommentController('delete'));
+        });
+        Router::get('/comments', new PostCommentController('listall'));
+    });
+    /// Historical Data Routes
+    Router::group('/fx', function () {
+        Router::get('/download/min/ticker/$ticker/offerside/$offerside/period/$period/yr/$year/mn/$month/wk/$week', new FxDataController());
+        Router::get('/currency/conversiondata/ticker/$ticker/year/$year', new FxDataController('currency_conversion_data'));
+        Router::get('/tickers/query/$query', new MiscellaneousController('search_ticker'));
+        Router::get('/tickers/query', new MiscellaneousController('search_ticker'));
+    });
+    /// Others
+    Router::post('/misc/contact-us', new MiscellaneousController());
+    Router::get('/landing/data', new MiscellaneousController('fetch_landing'));
+    Router::get('/referrals', new ReferralController('list'));
+    Router::get('/referrals', new ReferralController('list'));
 
-call_user_func(new VisitController('create'));
+    Router::any('/404', new NotFoundController);
+});
 
-/// Auth routes
-post('/auth/login', new AuthController());
-get('/auth/login', new AuthController('login_oauth'));
-get('/auth/refresh-token', new AuthController('refresh_token'));
-get('/auth/captcha', new CaptchaController());
-post('/auth/captcha', new CaptchaController('validate'));
-get('/auth/twofa/mode/$mode', new TwoFaController());
-post('/auth/twofa/mode/$mode', new TwoFaController('validate'));
-get('/auth/twofa/mode/$mode/status/$status', new TwoFaController('twofaonoff'));
+$request = Request::capture();
+Router::dispatch($request);
 
-/// User Routes
-get('/users/$id', new UserController());
-get('/users', new UserController('list'));
-get('/users/query/$query', new UserController('list'));
-post('/users', new UserController('create'));
-put('/users/$id', new UserController('update'));
-delete('/users/$id', new UserController('delete'));
-/// User Special Routes
-post('/users/method/$method', new UserExplicitController());
-post('/users/exchange-points', new UserController('exchange_points'));
 
-/// Plan Routes
-get('/plans/$id', new PlanController());
-get('/plans', new PlanController('list'));
-get('/plans/standard/$standard', new PlanController('list'));
-get('/plans/query/$query', new PlanController('list'));
-post('/plans', new PlanController('create'));
-put('/plans/$id', new PlanController('update'));
-delete('/plans/$id', new PlanController('delete'));
 
-/// Subscription Routes
-get('/subscriptions/$id', new SubscriptionController());
-put('/subscriptions/$id/cancel', new SubscriptionController('cancel'));
-get('/subscriptions', new SubscriptionController('list'));
-get('/subscriptions/all/count', new SubscriptionController('count'));
-get('/subscriptions/all/count/$query', new SubscriptionController('count'));
-get('/subscriptions/query/$query', new SubscriptionController('list'));
-get('/subscriptions/palns/$id', new SubscriptionController('list_plan'));
-// post('/subscriptions', new SubscriptionController('create'));
+// Example usage
+// class AuthMiddleware implements MiddlewareInterface
+// {
+//     public function handle(array $parameters): bool
+//     {
+//         // Perform authentication check
+//         return true;
+//     }
+// }
 
-get('/transactions/$id', new TransactionController(''));
-get('/transactions', new TransactionController('list'));
-get('/transactions/generate/ref', new TransactionController('trans_ref'));
-post('/transactions/verify', new TransactionController('create'));
-post('/transactions/webhook', new TransactionController('update'));
+/**
+ * Example usage
+ */
 
-/// Strategy Routes
-get('/strategies/$id', new StrategyController());
-get('/strategies', new StrategyController('list'));
-get('/strategies/query/$query', new StrategyController('list'));
-get('/strategies/users/$id', new StrategyController('list_user'));
-post('/strategies', new StrategyController('create'));
-put('/strategies/$id', new StrategyController('update'));
-delete('/strategies/$id', new StrategyController('delete'));
+// Router::group('/api', function () {
+//     Router::middleware(AuthMiddleware::class, function () {
+//         Router::get('/users', function () {
+//             echo 'Users API';
+//         });
 
-/// TestSessions Routes
-get('/test-sessions/$id', new TestSessionController());
-get('/test-sessions', new TestSessionController('list'));
-get('/test-sessions/query/$query', new TestSessionController('list'));
-post('/test-sessions', new TestSessionController('create'));
-put('/test-sessions/$id', new TestSessionController('update'));
-delete('/test-sessions/$id', new TestSessionController('delete'));
+//         Router::group('/v1', function () {
+//             Router::name('v1.users', function () {
+//                 Router::get('/users', function () {
+//                     echo 'Users API Version 1';
+//                 });
+//             });
 
-/// Pairs Routes
-get('/pairs/$id', new PairController());
-get('/pairs', new PairController('list'));
-get('/pairs/list/onlypair', new PairController('listonlypair'));
-get('/pairs/list/pairorsym/$id/query/$query', new PairController('query'));
-post('/pairs', new PairController('create'));
-put('/pairs/$id', new PairController('update'));
-delete('/pairs/$id', new PairController('delete'));
-
-/// Positions Routes
-get('/positions/$id', new PositionController());
-get('/positions', new PositionController('list'));
-get('/positions/query/$query', new PositionController('list'));
-get('/positions/users/$id', new PositionController('list_user'));
-post('/positions', new PositionController('create'));
-put('/positions/$id', new PositionController('update'));
-put('/positions/$id/unset/$tporsl', new PositionController('unsetslortp'));
-delete('/positions/$id', new PositionController('delete'));
-
-/// Feedbacks Routes
-get('/feedbacks/$id', new FeedbackController());
-get('/feedbacks', new FeedbackController('list'));
-get('/feedbacks/query/$query', new FeedbackController('list'));
-get('/feedbacks/users/$id', new FeedbackController('list_user'));
-post('/feedbacks', new FeedbackController('create'));
-put('/feedbacks/$id', new FeedbackController('update'));
-delete('/feedbacks/$id', new FeedbackController('delete'));
-
-/// Admin Routes
-get('/migrate', new MigrateController);
-get('/admin/logs/$id', new VisitController());
-get('/admin/logs/all/count', new VisitController('count'));
-get('/admin/logs/all/count/$query', new VisitController('count'));
-get('/admin/logs', new VisitController('list'));
-get('/admin/logs/query/$query', new VisitController('list'));
-post('/admin/landing/data', new MiscellaneousController('update_landing'));
-
-post('/admin/blog/posts', new BlogController('create'));
-put('/admin/blog/posts/$id', new BlogController('update'));
-delete('/admin/blog/posts/$id', new BlogController('delete'));
-
-get('/blog/posts', new BlogController('list'));
-get('/blog/posts/$id', new BlogController());
-
-get('/blog/comments', new PostCommentController('listall'));
-get('/blog/posts/$id/comments', new PostCommentController('list'));
-get('/blog/posts/$id/comments/$id', new PostCommentController());
-get('/blog/posts/$id/comments/query/$query', new PostCommentController('list'));
-post('/blog/posts/$id/comments', new PostCommentController('create'));
-put('/blog/posts/$id/comments/$id', new PostCommentController('update'));
-delete('/blog/posts/$id/comments/$id', new PostCommentController('delete'));
-
-get('/admin/cheapcountries/$id', new CheapCountryController());
-get('/admin/cheapcountries', new CheapCountryController('list'));
-post('/admin/cheapcountries', new CheapCountryController('create'));
-put('/admin/cheapcountries/$id', new CheapCountryController('update'));
-delete('/admin/cheapcountries/$id', new CheapCountryController('delete'));
-
-// group('/admin', function(string $prefix) {
-//     get('/blogs', new BlogController('list'));
-//     get('/blogs/$id', new BlogController());
+//             Router::post('/users', function () {
+//                 echo 'Create User API Version 1';
+//             });
+//         });
+//     });
 // });
 
-/// Historical Data Routes
-get('/fx/download/min/ticker/$ticker/offerside/$offerside/period/$period/yr/$year/mn/$month/wk/$week', new FxDataController());
-get('/fx/currency/conversiondata/ticker/$ticker/year/$year', new FxDataController('currency_conversion_data'));
-get('/fx/tickers/query/$query', new MiscellaneousController('search_ticker'));
-get('/fx/tickers/query', new MiscellaneousController('search_ticker'));
+// $router = new Router();
+// $router::post('/example', function () {
+//     echo 'Hello, POST world!';
+// });
 
-/// Others
-post('/misc/contact-us', new MiscellaneousController());
-get('/landing/data', new MiscellaneousController('fetch_landing'));
-get('/referrals', new ReferralController('list'));
+// Router::dispatch();
 
-any('/404', new NotFoundController);
+// // Get URL of named route
+// echo Router::route('v1.users'); // Output: /api/v1/users
+
 
 // Static GET
 // In the URL -> http://localhost
