@@ -34,11 +34,11 @@ Router::middleware(VisitLoggerMiddleware::class, function () {
         Router::get('/login', [AuthController::class, 'loginOauth']);
         Router::get('/captcha', [CaptchaController::class, 'generate']);
         Router::post('/captcha', [CaptchaController::class, 'comparePhrase']);
-        Router::get('/twofa/mode/$mode', [TwoFaController::class, 'generate']);
-        Router::post('/twofa/mode/$mode', [TwoFaController::class, 'verifyCode']);
-        Router::get('/twofa/mode/$mode/status/$status', [TwoFaController::class, 'twofaonoff']);
         Router::middleware(AuthMiddleware::class, function () {
             Router::get('/refresh-token', [AuthController::class, 'refreshToken']);
+            Router::get('/twofa/mode/$mode', [TwoFaController::class, 'generate']);
+            Router::post('/twofa/mode/$mode', [TwoFaController::class, 'verifyCode']);
+            Router::get('/twofa/mode/$mode/status/$status', [TwoFaController::class, 'twofaonoff']);
         });
     });
     /// User Routes

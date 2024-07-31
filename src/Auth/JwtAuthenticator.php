@@ -76,7 +76,7 @@ final class JwtAuthenticator
                 $adapter = null;
             }
             if ($adapter instanceof AdapterInterface) {
-                if (!$this->user->find((int)base64_decode(str_replace('social_login:', '', $jwt)))) {
+                if (!$this->user->find((int)base64_decode(str_replace('social_login:', '', $jwt), false))) {
                     return false;
                 }
                 $user_profile = $adapter->getUserProfile();
@@ -92,9 +92,11 @@ final class JwtAuthenticator
             return false;
         }
         
-        $user = $this->user->fill((array)$payload->data);
+        if (!$this->user->find($payload->data->id, false)) {
+            return false;
+        }
 
-        return $user;
+        return $this->user;
     }
 
     /**

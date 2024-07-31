@@ -11,6 +11,7 @@ class Router
     protected static $groupPrefix = '';
     protected static $routeName = '';
     protected static $currentRoute = '';
+    private static $instantiated = '';
 
     public function __construct()
     {
@@ -18,6 +19,7 @@ class Router
             session_set_save_handler(new MysqlSessionHandler, true);
             session_start();
         }
+        static::$instantiated = true;
     }
 
     public static function group(string $prefix, callable $method)
@@ -99,6 +101,9 @@ class Router
 
     public static function dispatch(Request $request)
     {
+        if (! self::$instantiated)
+            new static;
+
         $requestMethod = $request->method();
         $requestUri = rtrim(filter_var($request->server('REQUEST_URI'), FILTER_SANITIZE_URL), '/');
         $requestUri = strtok($requestUri, '?');

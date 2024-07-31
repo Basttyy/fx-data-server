@@ -2,6 +2,8 @@
 
 namespace Basttyy\FxDataServer\libs;
 
+use Basttyy\FxDataServer\Models\User;
+
 class Request
 {
     protected $query;
@@ -11,6 +13,8 @@ class Request
     protected $files;
     protected $server;
     protected $headers;
+
+    public User $auth_user;
 
     public function __construct()
     {
@@ -37,7 +41,7 @@ class Request
     }
 
     public function __set($name, $value) {
-        $this->dynamicProperties[$name] = $value;
+        $this->attributes[$name] = $value;
     }
 
     public static function capture()

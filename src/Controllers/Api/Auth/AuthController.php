@@ -193,17 +193,17 @@ final class AuthController
         }
     }
 
-    public function forgotPassword()
+    public function forgotPassword(Request $request)
     {
 
     }
 
-    public function resetPassword()
+    public function resetPassword(Request $request)
     {
 
     }
 
-    public function changePassword()
+    public function changePassword(Request $request)
     {
 
     }

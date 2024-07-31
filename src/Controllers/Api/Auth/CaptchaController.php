@@ -33,6 +33,7 @@ final class CaptchaController
         ])) {
             return JsonResponse::badRequest('errors in request', $validated);
         }
+        logger()->info('phrases are: ', [$_SESSION['captcha-phrase'], $body['captcha-phrase']]);
         if (isset($_SESSION['captcha-phrase']) && PhraseBuilder::comparePhrases($_SESSION['captcha-phrase'], $body['captcha-phrase'])) {
             return JsonResponse::ok("captcha is valid", ['status' => 'validated']);
         } else {
