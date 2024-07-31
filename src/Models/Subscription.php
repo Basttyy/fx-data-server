@@ -26,7 +26,7 @@ final class Subscription extends Model
      * 
      * @var array
      */
-    protected $fillable = [
+    protected const fillable = [
         'id', 'duration', 'user_id', 'plan_id', 'created_at', 'expires_at', 'updated_at'
     ];
 
@@ -35,7 +35,7 @@ final class Subscription extends Model
      * 
      * @var array
      */
-    protected $guarded = [
+    protected const guarded = [
         'created_at', 'updated_at'
     ];
 

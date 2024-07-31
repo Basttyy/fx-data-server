@@ -38,7 +38,7 @@ final class Plan extends Model
      * 
      * @var array
      */
-    protected $fillable = [
+    protected const fillable = [
         'id', 'name', 'description', 'duration_interval', 'price', 'status', 'features', 'plan_token', 'for_cheap_regions', 'third_party_id', 'deleted_at', 'created_at', 'updated_at'
     ];
     
@@ -47,7 +47,7 @@ final class Plan extends Model
      * 
      * @var array
      */
-    protected $guarded = [
+    protected const guarded = [
         'deleted_at', 'created_at', 'updated_at'
     ];
 

@@ -46,7 +46,7 @@ final class Position extends Model
      * 
      * @var array
      */
-    protected $fillable = [
+    protected const fillable = [
         'id', 'test_session_id', 'user_id', 'action', 'entrypoint', 'exitpoint', 'stoploss', 'takeprofit', 'lotsize', 'pips', 'pl', 'entrytime', 'exittime', 'pair', 'partials', 'exittype', 'deleted_at', 'created_at', 'updated_at'
     ];
     
@@ -55,7 +55,7 @@ final class Position extends Model
      * 
      * @var array
      */
-    protected $guarded = [
+    protected const guarded = [
         'deleted_at', 'created_at', 'updated_at'
     ];
 

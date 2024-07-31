@@ -33,7 +33,7 @@ final class  PostComment extends Model
      * 
      * @var array
      */
-    protected $fillable = [
+    protected const fillable = [
         'id', 'post_id', 'post_comment_id', 'username', 'text', 'status', 'created_at', 'updated_at', 'deleted_at',
         //add more fillable columns here
     ];
@@ -43,7 +43,7 @@ final class  PostComment extends Model
      * 
      * @var array
      */
-    protected $guarded = [
+    protected const guarded = [
         'deleted_at', 'updated_at'
         //add more guarded columns here
     ];

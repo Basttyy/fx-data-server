@@ -35,7 +35,7 @@ final class Blog extends Model
      * 
      * @var array
      */
-    protected $fillable = [
+    protected const fillable = [
         'id', 'user_id', 'title', 'slug', 'description', 'section', 'banner', 'text', 'draft_text', 'status', 'published_at', 'publish_updated_at', 'deleted_at', 'created_at', 'updated_at'
     ];
     
@@ -44,7 +44,7 @@ final class Blog extends Model
      * 
      * @var array
      */
-    protected $guarded = [
+    protected const guarded = [
         'deleted_at', 'created_at', 'updated_at'
     ];
 

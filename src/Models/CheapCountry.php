@@ -33,7 +33,7 @@ final class CheapCountry extends Model
      * 
      * @var array
      */
-    protected $fillable = [
+    protected const fillable = [
         'id', 'name', 'continent', 'created_at', 'updated_at',
         //add more fillable columns here
     ];
@@ -43,7 +43,7 @@ final class CheapCountry extends Model
      * 
      * @var array
      */
-    protected $guarded = [
+    protected const guarded = [
         'created_at', 'updated_at'
         //add more guarded columns here
     ];

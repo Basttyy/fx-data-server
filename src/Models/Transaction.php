@@ -34,7 +34,7 @@ final class Transaction extends Model
      * 
      * @var array
      */
-    protected $fillable = [
+    protected const fillable = [
         'id', 'status', 'user_id', 'transaction_id', 'subscription_id', 'amount', 'currency', 'tx_ref', 'third_party_ref', 'type', 'created_at', 'updated_at',
         //add more fillable columns here
     ];
@@ -44,7 +44,7 @@ final class Transaction extends Model
      * 
      * @var array
      */
-    protected $guarded = [
+    protected const guarded = [
         'user_id', 'transaction_id', 'subscription_id', 'third_party_ref', 'deleted_at', 'created_at', 'updated_at'
         //add more guarded columns here
     ];

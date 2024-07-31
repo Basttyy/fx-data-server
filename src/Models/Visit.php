@@ -28,7 +28,7 @@ final class Visit extends Model
      * 
      * @var array
      */
-    public $analytic = [
+    public const analytic = [
         'id', 'unique_visitor_id', 'ip', 'origin', 'method', 'uripath', 'body', 'created_at'
     ];
 
@@ -37,7 +37,7 @@ final class Visit extends Model
      * 
      * @var array
      */
-    protected $fillable = [
+    protected const fillable = [
         'id', 'unique_visitor_id', 'ip', 'origin', 'method', 'uripath', 'body', 'created_at', 'updated_at'
     ];
 
@@ -46,7 +46,7 @@ final class Visit extends Model
      * 
      * @var array
      */
-    protected $guarded = [
+    protected const guarded = [
         'deleted_at', 'created_at', 'updated_at'
     ];
 

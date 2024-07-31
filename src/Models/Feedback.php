@@ -32,7 +32,7 @@ final class Feedback extends Model
      * 
      * @var array
      */
-    protected $fillable = [
+    protected const fillable = [
         'id', 'title', 'description', 'pair', 'user_id', 'image', 'resolve_count', 'status', 'date', 'deleted_at', 'created_at', 'updated_at'
     ];
     
@@ -41,7 +41,7 @@ final class Feedback extends Model
      * 
      * @var array
      */
-    protected $guarded = [
+    protected const guarded = [
         'deleted_at', 'created_at', 'updated_at'
     ];
 

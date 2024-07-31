@@ -27,7 +27,7 @@ final class Strategy extends Model
      * 
      * @var array
      */
-    protected $fillable = [
+    protected const fillable = [
         'id', 'name', 'description', 'logo', 'user_id', 'pairs', 'deleted_at', 'created_at', 'updated_at'
     ];
     
@@ -36,7 +36,7 @@ final class Strategy extends Model
      * 
      * @var array
      */
-    protected $guarded = [
+    protected const guarded = [
         'deleted_at', 'created_at', 'updated_at'
     ];
 

@@ -68,7 +68,7 @@ final class Pair extends Model
      * 
      * @var array
      */
-    public $pairinfos = [
+    public const pairinfos = [
         'id', 'name', 'description', 'price_precision', 'status', 'history_start', 'history_end'
     ];
     /**
@@ -76,7 +76,7 @@ final class Pair extends Model
      * 
      * @var array
      */
-    public $symbolinfos = [
+    public const symbolinfos = [
         'description', 'exchange', 'market', 'short_name', 'ticker', 'timezone', 'min_move', 'price_precision', 'volume_precision', 'price_currency', 'dollar_per_pip', 'type', 'logo'
     ];
 
@@ -85,7 +85,7 @@ final class Pair extends Model
      * 
      * @var array
      */
-    protected $fillable = [
+    protected const fillable = [
         'id', 'name', 'description', 'status', 'dollar_per_pip', 'exchange', 'market', 'short_name', 'ticker', 'timezone', 'min_move', 'price_precision', 'volume_precision', 'price_currency', 'type', 'logo', 'history_start', 'history_end', 'deleted_at', 'created_at', 'updated_at'
     ];
     
@@ -94,7 +94,7 @@ final class Pair extends Model
      * 
      * @var array
      */
-    protected $guarded = [
+    protected const guarded = [
         'deleted_at', 'created_at', 'updated_at'
     ];
 

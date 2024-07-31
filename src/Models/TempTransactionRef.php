@@ -26,7 +26,7 @@ final class TempTransactionRef extends Model
      * 
      * @var array
      */
-    protected $fillable = [
+    protected const fillable = [
         'id', 'user_id', 'tx_ref', 'created_at', 'updated_at'
         //add more fillable columns here
     ];
@@ -36,7 +36,7 @@ final class TempTransactionRef extends Model
      * 
      * @var array
      */
-    protected $guarded = [
+    protected const guarded = [
         'created_at', 'updated_at'
         //add more guarded columns here
     ];
