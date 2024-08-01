@@ -7,7 +7,7 @@ use PDOException;
 # https://github.com/mrcrypster/mysqly
 
 class mysqly {
-  protected static $db;
+  protected static \PDO $db;
   protected static $auth = [];
   protected static $auth_file = '/var/lib/mysqly/.auth.php';
   protected static $auto_create = false;
@@ -100,7 +100,7 @@ class mysqly {
    */
   
   public static function exec($sql, $bind = []) {
-    if ( !static::$db ) {
+    if ( !isset(static::$db) ) {
       if ( !static::$auth ) {
         static::$auth = @include static::$auth_file;
       }
@@ -123,8 +123,40 @@ class mysqly {
         $params[$k] = $v;
       }
     }
+
+    // Manually replace the placeholders for LIMIT and OFFSET
+    // if (isset($params[':limit']) && isset($params[':offset'])) {
+    //   $sql = str_replace(':limit', (int)$params[':limit'], $sql);
+    //   $sql = str_replace(':offset', (int)$params[':offset'], $sql);
+    //   unset($params[':limit'], $params[':offset']);
+    // }
     
     $statement = static::$db->prepare($sql);
+    foreach ($params as $key => &$value) {
+      switch (true) {
+          case is_int($value):
+              $statement->bindParam($key, $value, PDO::PARAM_INT);
+              break;
+          case is_bool($value):
+              $statement->bindParam($key, $value, PDO::PARAM_BOOL);
+              break;
+          case is_null($value):
+              $statement->bindParam($key, $value, PDO::PARAM_NULL);
+              break;
+          case is_double($value):
+          case is_float($value):
+              // PDO doesn't have a specific type for floats, so we treat them as strings.
+              $statement->bindParam($key, $value, PDO::PARAM_STR);
+              break;
+          case is_resource($value):
+              // For BLOB data
+              $statement->bindParam($key, $value, PDO::PARAM_LOB);
+              break;
+          default:
+              $statement->bindParam($key, $value, PDO::PARAM_STR);
+              break;
+      }
+    }
     $statement->execute($params);
     
     return $statement;
@@ -253,23 +285,21 @@ class mysqly {
 
           if (is_array($or_ands)) {
             while ($len <= count($or_ands))
-              array_shift($or_ands);
+              array_pop($or_ands);
           }
 
           foreach ( $bind_or_filter as $k => $v ) {
             if ( $k == 'order_by' ) {
               $order_limit_or_offset .= " ORDER BY $v";
-              $j++;
+              // $j++;
               continue;
             }
             if ( in_array($k, ['LIMIT', 'OFFSET']) ) {
-              $__k = strtolower($k);
-              $order_limit_or_offset .= " $k :$__k";
-              $bind[":{$__k}"] = $v;
-              $j++;
+              $order_limit_or_offset .= " $k $v";
+              // $j++;
               continue;
             }
-            if ($len - $j === 1)
+            if ($len - $j <= 1)
               $or_and = '';
             else
               $or_and = is_array($or_ands) ? "$or_ands[$j]" : "$or_ands";
@@ -299,7 +329,7 @@ class mysqly {
 
       $sql .= $order_limit_or_offset;
     }
-    // logger()->info($sql, isset($bind) &&  is_array($bind) ? $bind : []);
+    logger()->info($sql, isset($bind) &&  is_array($bind) ? $bind : []);
 
     $res = isset($bind) ? static::exec($sql, $bind) : static::exec($sql);
     return $res;
@@ -363,6 +393,8 @@ class mysqly {
   public static function count($sql_or_table, $bind_or_filter = [], array|string $operators = '=', array|string $or_ands = "AND")
   {
     $_select_str = '*';
+    $operators = Arr::wrap($operators);
+
     foreach ($operators as $key => $op) {
       if (str_starts_with($op, 'DISTINCT ')) {
         $_select_str = Arr::pull($operators, $key) ?? '*';

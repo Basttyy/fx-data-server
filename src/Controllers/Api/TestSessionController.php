@@ -1,9 +1,11 @@
 <?php
 namespace Basttyy\FxDataServer\Controllers\Api;
 
+use Basttyy\FxDataServer\Auth\Guard;
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\libs\JsonResponse;
+use Basttyy\FxDataServer\libs\Request;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\Strategy;
@@ -15,67 +17,20 @@ use PDOException;
 
 final class TestSessionController
 {
-    private $method;
-    private $user;
-    private $authenticator;
-    private $strategy;
-    private $session;
-
-    public function __construct($method = "show")
-    {
-        $this->method = $method;
-        $this->user = new User();
-        $this->session = new TestSession();
-        $this->strategy = new Strategy();
-        $encoder = new JwtEncoder(env('APP_KEY'));
-        $role = new Role();
-        $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
-    }
-
-    public function __invoke(string $id = null)
-    {
-        switch ($this->method) {
-            case 'show':
-                $resp = $this->show($id);
-                break;
-            case 'list':
-                $resp = $this->list();
-                break;
-            case 'list_user':
-                $resp = $this->list_user($id);
-                break;
-            case 'create':
-                $resp = $this->create();
-                break;
-            case 'update':
-                $resp = $this->update($id);
-                break;
-            case 'delete':
-                $resp = $this->delete($id);
-                break;
-            default:
-                $resp = JsonResponse::serverError('bad method call');
-        }
-
-        $resp;
-    }
-
-    private function show(string $id)
+    public function show(Request $request, string $id)
     {
         $id = sanitize_data($id);
         try {
-            if (!$user = $this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
-            $is_admin = $this->authenticator->verifyRole($user, 'admin');
+            $user = $request->auth_user;
+            $is_admin = Guard::roleIs($user, 'admin');
 
-            if (!$this->session->find((int)$id))
+            if (!$session = TestSession::getBuilder()->find((int)$id))
                 return JsonResponse::notFound("unable to retrieve session");
                 
-            if ($is_admin === false && $user->id != $this->session->user_id) {
+            if ($is_admin === false && $user->id != $session->user_id) {
                 return JsonResponse::unauthorized("you can't view this session");
             }
-            $session = $this->session->toArray();
+            $session = $session->toArray();
             $session['chart'] = is_null($session['chart']) | $session['chart'] === '' ? $session['chart'] : gzuncompress($session['chart']);
 
             return JsonResponse::ok("session retrieved success", $session);
@@ -88,18 +43,17 @@ final class TestSessionController
         }
     }
     
-    private function list()
+    public function list(Request $request)
     {
         try {
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
-            $is_admin = $this->authenticator->verifyRole($this->user, 'admin');
+            $user = $request->auth_user;
+            $is_admin = Guard::roleIs($user, 'admin');
 
+            $builder = TestSession::getBuilder();
             if ($is_admin) {
-                $sessions = $this->session->all();
+                $sessions = $builder->all();
             } else {
-                $sessions = $this->session->findBy("user_id", $this->user->id, select: $this->session->listkeys);
+                $sessions = $builder->findBy("user_id", $user->id, select: TestSession::listkeys);
             }
             if (!$sessions)
                 return JsonResponse::ok("no testsession found in list", []);
@@ -112,18 +66,16 @@ final class TestSessionController
         }
     }
 
-    private function list_user(string $id)
+    public function list_user(Request $request, string $id)
     {
         try {
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+            $user = $request->auth_user;
 
-            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+            if (!Guard::roleIs($user, 'admin')) {
                 return JsonResponse::unauthorized("you can't view this user's test sessions");
             }
             $id = sanitize_data($id);
-            $sessions = $this->session->findBy("user_id", $id, select: $this->session->listkeys);
+            $sessions = TestSession::getBuilder()->findBy("user_id", $id, select: TestSession::listkeys);
             
             if (!$sessions)
                 return JsonResponse::ok("no testsession found in list", []);
@@ -136,32 +88,27 @@ final class TestSessionController
         }
     }
 
-    private function create()
+    public function create(Request $request)
     {
         try {
             // Check if the request has a body
-            if ( $_SERVER['CONTENT_LENGTH'] <= env('CONTENT_LENGTH_MIN')) {
-                //return "body is required" response;
+            if ( !$request->hasBody()) {
                 return JsonResponse::badRequest("bad request", "body is required");
             }
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+            $user = $request->auth_user;
 
-            if (!$this->authenticator->verifyRole($this->user, 'user')) {
-                return JsonResponse::unauthorized("only users can create strategy");
+            if (!Guard::roleIs($user, 'user')) {
+                return JsonResponse::unauthorized("only users can create test session");
             }
             
-            $inputJSON = file_get_contents('php://input');
-
-            $body = sanitize_data(json_decode($inputJSON, true));
+            $body = sanitize_data($request->input());
 
             $uis = TestSession::TV. ', '. TestSession::KLINE;
 
             if ($validated = Validator::validate($body, [
                 'starting_bal' => 'required|float',
                 'current_bal' => 'required|float',
-                'strategy_id' => 'required|int',
+                'strategy_id' => 'required|int|exist:strategies,id',
                 'pairs' => 'required|string',
                 'pair' => 'required|string',
                 'start_date' => 'required|string',
@@ -172,14 +119,10 @@ final class TestSessionController
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
-            if (isset($body['strategy_id']) && !$this->strategy->find($body['strategy_id'])) {
-                return JsonResponse::badRequest('this strategy does not exist');
-            }
-
-            $body['user_id'] = $this->user->id;
+            $body['user_id'] = $user->id;
             $body['equity'] = $body['current_bal'];
 
-            if (!$session = $this->session->create($body)) {
+            if (!$session = TestSession::getBuilder()->create($body)) {
                 return JsonResponse::serverError("unable to create test session");
             }
 
@@ -198,25 +141,20 @@ final class TestSessionController
         }
     }
 
-    private function update(string $id)
+    public function update(Request $request, string $id)
     {
         try {
             // Check if the request has a body
-            if ( $_SERVER['CONTENT_LENGTH'] <= env('CONTENT_LENGTH_MIN')) {
-                //return "body is required" response;
+            if ( !$request->hasBody()) {
                 return JsonResponse::badRequest("bad request", "body is required");
             }
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+            $user = $request->auth_user;
 
-            if (!$this->authenticator->verifyRole($this->user, 'user')) {
-                return JsonResponse::unauthorized("only users can create strategy");
+            if (!Guard::roleIs($user, 'user')) {
+                return JsonResponse::unauthorized("only users can create test session");
             }
             
-            $inputJSON = file_get_contents('php://input');
-
-            $body = sanitize_data(json_decode($inputJSON, true));
+            $body = sanitize_data($request->input());
             $id = sanitize_data($id);
             $uis = TestSession::TV. ', '. TestSession::KLINE;
 
@@ -224,7 +162,7 @@ final class TestSessionController
                 'starting_bal' => 'sometimes|float',
                 'current_bal' => 'sometimes|float',
                 'equity' => 'sometimes|float',
-                'strategy_id' => 'sometimes|int',
+                'strategy_id' => 'sometimes|int|exist:strategies,id',
                 'pairs' => 'sometimes|string',
                 'pair' => 'sometimes|string',
                 'chart' => 'sometimes|string',
@@ -235,17 +173,15 @@ final class TestSessionController
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
-            if (isset($body['strategy_id']) && !$this->strategy->find($body['strategy_id'])) {
-                return JsonResponse::badRequest('this strategy does not exist');
-            }
+
             if (isset($body['chart'])) {
                 $body['chart'] = gzcompress($body['chart']);
             }
 
-            if (!$this->session->update($body, (int)$id)) {
+            if (!$session = TestSession::getBuilder()->update($body, (int)$id)) {
                 return JsonResponse::noContent();
             }
-            $session = $this->session->toArray(select: $this->session->listkeys);
+            $session = $session->toArray(select: $session->listkeys);
 
             return JsonResponse::ok("test session updated successfully", $session);
         } catch (PDOException $e) {
@@ -262,19 +198,17 @@ final class TestSessionController
         }
     }
 
-    private function delete(int $id)
+    public function delete(Request $request, int $id)
     {
         try {
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+            $user = $request->auth_user;
 
-            if (!$this->authenticator->verifyRole($this->user, 'user')) {
+            if (!Guard::roleIs($user, 'user')) {
                 return JsonResponse::unauthorized("only users can create session");
             }
             $id = sanitize_data($id);
 
-            if (!$this->session->delete((int)$id)) {
+            if (!TestSession::getBuilder()->delete((int)$id)) {
                 return JsonResponse::notFound("unable to delete test session or session not found");
             }
 

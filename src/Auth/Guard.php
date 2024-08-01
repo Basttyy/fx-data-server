@@ -9,27 +9,23 @@ final class Guard
     /**
      * Try to validate a user
      * 
-     * @param array|string $role
-     * @param JwtAuthenticator $authenticator
-     * 
      * @return bool|User
      */
-    public static function tryToAuthenticate($authenticator)
+    public static function tryToAuthenticate()
     {
-        return $authenticator->validate();
+        return JwtAuthenticator::validate();
     }
 
     /**
      * Verify a user's role using a(n) string/array of roles
      * 
-     * @param array|string $role
      * @param User $user
-     * @param JwtAuthenticator $authenticator
+     * @param array|string $role
      * 
      * @return bool|User
      */
-    public static function roleIs($role, $user, $authenticator)
+    public static function roleIs($user, $role)
     {
-        return $authenticator->verifyRole($user, $role);
+        return JwtAuthenticator::verifyRole($user, $role);
     }
 }

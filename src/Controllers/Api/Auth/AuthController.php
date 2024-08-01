@@ -2,6 +2,7 @@
 
 namespace Basttyy\FxDataServer\Controllers\Api\Auth;
 
+use Basttyy\FxDataServer\Auth\Guard;
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\Exceptions\NotFoundException;
@@ -10,7 +11,6 @@ use Basttyy\FxDataServer\libs\Arr;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\libs\JsonResponse;
 use Basttyy\FxDataServer\libs\Request;
-use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\Subscription;
 use Basttyy\FxDataServer\Models\User;
 use Exception;
@@ -20,7 +20,6 @@ use Hybridauth\Exception\InvalidAuthorizationCodeException;
 use Hybridauth\Exception\InvalidAuthorizationStateException;
 use Hybridauth\Exception\InvalidOauthTokenException;
 use Hybridauth\Hybridauth;
-use PHPUnit\Event\Telemetry\Info;
 
 final class AuthController
 {
@@ -53,12 +52,11 @@ final class AuthController
                 throw new NotFoundException("invalid login details");
             }
 
-            $authenticator = new JwtAuthenticator(new JwtEncoder(env('APP_KEY')), new User, new Role);
-            if (!$token = $authenticator->authenticate($user, base64_decode($body['password']))) {
+            if (!$token = JwtAuthenticator::authenticate($user, base64_decode($body['password']))) {
                 return JsonResponse::unauthorized("invalid login details");
             }
             $subscription = Subscription::getBuilder()->findBy('user_id', $user->id, false);
-            $is_admin = $authenticator->verifyRole($user, 'admin');
+            $is_admin = Guard::roleIs($user, 'admin');
 
             $hidden = [ ...$user::twofainfos, 'password'];
             $_user = Arr::except($user->toArray(), $hidden);
@@ -211,8 +209,7 @@ final class AuthController
     public function refreshToken(Request $request)
     {
         try {
-            $authenticator = new JwtAuthenticator(new JwtEncoder(env('APP_KEY')), $request->auth_user, new Role);
-            if (!$token = $authenticator->authenticate($request->auth_user)) {
+            if (!$token = JwtAuthenticator::authenticate($request->auth_user)) {
                 return JsonResponse::unauthorized("invalid auth token");
             }
             return JsonResponse::ok("refresh token success", [

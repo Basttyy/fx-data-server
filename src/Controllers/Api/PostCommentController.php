@@ -1,73 +1,26 @@
 <?php
 namespace Basttyy\FxDataServer\Controllers\Api;
 
+use Basttyy\FxDataServer\Auth\Guard;
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;
-use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\libs\JsonResponse;
+use Basttyy\FxDataServer\libs\Request;
 use Basttyy\FxDataServer\libs\Validator;
-use Basttyy\FxDataServer\Models\Blog;
 use Basttyy\FxDataServer\Models\PostComment;
-use Basttyy\FxDataServer\Models\Role;
-use Basttyy\FxDataServer\Models\User;
 use Exception;
 use LogicException;
 use PDOException;
 
 final class PostCommentController
 {
-    private $method;
-    private $user;
-    private $authenticator;
-    private $post_comment;
-    private $post;
-
-    public function __construct($method = 'show')
-    {
-        $this->method = $method;
-        $this->user = new User();
-        $this->post_comment = new PostComment();
-        $this->post = new Blog();
-        $encoder = new JwtEncoder(env('APP_KEY'));
-        $role = new Role();
-        $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
-    }
-
-    public function __invoke(string $post_id = null, string $post_comment_id = null)
-    {
-        switch ($this->method) {
-            case 'show':
-                $resp = $this->show($post_id);
-                break;
-            case 'listall':
-                $resp = $this->listall();
-                break;
-            case 'list':
-                $resp = $this->list($post_id);
-                break;
-            case 'create':
-                $resp = $this->create($post_id);
-                break;
-            case 'update':
-                $resp = $this->update($post_comment_id);
-                break;
-            case 'delete':
-                $resp = $this->delete($post_id);
-                break;
-            default:
-                $resp = JsonResponse::serverError('bad method call');
-        }
-
-        $resp;
-    }
-
-    private function show(string $id)
+    public function show(Request $request, string $id)
     {
         $id = sanitize_data($id);
         try {
-            if (!$this->post_comment->find((int)$id))
+            if (!$post_comment = PostComment::getBuilder()->find((int)$id))
                 return JsonResponse::notFound('unable to retrieve post comment');
 
-            return JsonResponse::ok('post comment retrieved success', $this->post_comment->toArray());
+            return JsonResponse::ok('post comment retrieved success', $post_comment->toArray());
         } catch (PDOException $e) {
             return JsonResponse::serverError('we encountered a db problem');
         } catch (LogicException $e) {
@@ -77,17 +30,15 @@ final class PostCommentController
         }
     }
 
-    private function listall()
+    public function listall(Request $request)
     {
         try {
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
-            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+            $user = $request->auth_user;
+            if (!Guard::roleIs($user, 'admin')) {
                 return JsonResponse::unauthorized('you are not allowed to update comment');
             }
             
-            if (!$post_comments = $this->post_comment->all())
+            if (!$post_comments = PostComment::getBuilder()->all())
                 return JsonResponse::ok('no post comment found in list', []);
 
             return JsonResponse::ok('post comment retrieved success', $post_comments);
@@ -98,18 +49,20 @@ final class PostCommentController
         }
     }
 
-    private function list(string $post_id)
+    public function list(Request $request, string $post_id)
     {
         try {
-            if ($this->authenticator->validate() && $this->authenticator->verifyRole($this->user, 'admin')) {
-                    $post_comments = $this->post_comment->all();
+            $user = $request->auth_user;
+            $builder = PostComment::getBuilder();
+            if ($user ?? null && Guard::roleIs($user, 'admin')) {
+                    $post_comments = $builder->where('post_id', $post_id)->all();
             } else {
                 $params = count($_GET) ? sanitize_data($_GET) : [];
                 $post_comments = isset($params['post_comment_id']) ?
-                            $this->post_comment->where('status', PostComment::APPROVED)
+                            $builder->where('status', PostComment::APPROVED)
                                 ->where('post_id', $post_id)
                                 ->where('post_comment_id', $params['post_comment_id'])->all() :
-                            $this->post_comment->where('status', PostComment::APPROVED)
+                            $builder->where('status', PostComment::APPROVED)
                                 ->where('post_id', $post_id)->all();
             }
             
@@ -124,38 +77,33 @@ final class PostCommentController
         }
     }
 
-    private function create(string $post_id)
+    public function create(Request $request, string $post_id)
     {
         try {            
-            if ( $_SERVER['CONTENT_LENGTH'] <= env('CONTENT_LENGTH_MIN')) {
+            if ( !$request->hasBody()) {
                 return JsonResponse::badRequest('bad request', 'body is required');
             }
+            $user = $request->auth_user;
             
-            $inputJSON = file_get_contents('php://input');
-
-            $body = sanitize_data(json_decode($inputJSON, true));
+            $body = sanitize_data($request->input());
             $post_id = sanitize_data($post_id);
             $body['post_id'] = $post_id;
 
             if ($validated = Validator::validate($body, [
                 'text' => 'required|string',
-                'post_id' => 'required|int',
+                'post_id' => 'required|int|exist:posts,id',
                 'username' => 'sometimes|string',
                 'post_comment_id' => 'sometimes|int',
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
-            if (!$this->post->find($body['post_id'])) {
-                return JsonResponse::badRequest("blog post with given id not found");
-            }
-
-            if (!isset($body['username']) && $this->authenticator->validate()) {
-                $body['username'] = $this->user->username;
+            if (!isset($body['username']) && JwtAuthenticator::validate()) {
+                $body['username'] = $user->username;
             }
             $body['status'] = PostComment::PENDING;
 
-            if (!$post_comment = $this->post_comment->create($body)) {
+            if (!$post_comment = PostComment::getBuilder()->create($body)) {
                 return JsonResponse::serverError('unable to create post comment');
             }
 
@@ -171,27 +119,22 @@ final class PostCommentController
         }
     }
 
-    private function update(string $id)
+    public function update(Request $request, string $id)
     {
         try {
-            if (!$user = $this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+            $user = $request->auth_user;
             
-            if ( $_SERVER['CONTENT_LENGTH'] <= env('CONTENT_LENGTH_MIN')) {
+            if ( !$request->hasBody()) {
                 return JsonResponse::badRequest('bad request', 'body is required');
             }
             
-            // Uncomment this for role authorization
-            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+            if (!Guard::roleIs($user, 'admin')) {
                 return JsonResponse::unauthorized("you can't update a post comment");
             }
 
             $id = sanitize_data($id);
             
-            $inputJSON = file_get_contents('php://input');
-
-            $body = sanitize_data(json_decode($inputJSON, true));
+            $body = sanitize_data($request->input());
             
             $statuses = PostComment::APPROVED .', '. PostComment::REJECTED;
             if ($validated = Validator::validate($body, [
@@ -201,11 +144,11 @@ final class PostCommentController
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
-            if (!$this->post_comment->update($body, (int)$id)) {
+            if (!$tpost_comment = PostComment::getBuilder()->update($body, (int)$id)) {
                 return JsonResponse::notFound('unable to update post comment not found');
             }
 
-            return JsonResponse::ok('post comment updated successfull', $this->post_comment->toArray());
+            return JsonResponse::ok('post comment updated successfull', $tpost_comment->toArray());
         } catch (PDOException $e) {
             if (str_contains($e->getMessage(), 'Unknown column'))
                 return JsonResponse::badRequest('column does not exist');
@@ -217,21 +160,19 @@ final class PostCommentController
         }
     }
 
-    private function delete(int $id)
+    public function delete(Request $request, int $id)
     {
         try {
             $id = sanitize_data($id);
 
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+            $user = $request->auth_user;
 
             // Uncomment this for role authorization
-            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+            if (!Guard::roleIs($user, 'admin')) {
                 return JsonResponse::unauthorized("you can't delete a post comment");
             }
 
-            if (!$this->post_comment->delete((int)$id)) {
+            if (!PostComment::getBuilder()->delete((int)$id)) {
                 return JsonResponse::notFound('unable to delete post comment or post comment not found');
             }
 

@@ -3,6 +3,9 @@
 $log_path = $_SERVER["DOCUMENT_ROOT"]."/storage/logs/php_error.log";
 ini_set('error_log', $log_path);
 require_once __DIR__."/vendor/autoload.php";
+require_once __DIR__."/src/libs/helpers.php";
+
+date_default_timezone_set('UTC');
 
 use Dotenv\Dotenv;
 // Copyright Monwoo 2017, service@monwoo.com

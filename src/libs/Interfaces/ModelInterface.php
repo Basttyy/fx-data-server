@@ -2,6 +2,8 @@
 
 namespace Basttyy\FxDataServer\libs\Interfaces;
 
+use Basttyy\FxDataServer\libs\PaginatedData;
+
 interface ModelInterface extends ModelEventsInterface
 {
     /**
@@ -253,7 +255,7 @@ interface ModelInterface extends ModelEventsInterface
      * @param int $currentPage indicate the current page
      * @param int $recordsPerPage indicate the number of records to display per page
      * 
-     * @return array|false
+     * @return PaginatedData|false
      */
     public function paginate($currentPage = 1, $recordsPerPage = null);
 

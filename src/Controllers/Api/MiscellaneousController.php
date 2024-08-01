@@ -2,26 +2,19 @@
 namespace Basttyy\FxDataServer\Controllers\Api;
 
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;
-use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\Console\Jobs\SendContactUs;
 use Basttyy\FxDataServer\libs\Arr;
 use Basttyy\FxDataServer\libs\JsonResponse;
+use Basttyy\FxDataServer\libs\Request;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\Models\Enquiry;
-use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\Pair;
-use Basttyy\FxDataServer\Models\User;
 use Exception;
 use LogicException;
 use PDOException;
 
 final class MiscellaneousController
 {
-    private $method;
-    private $user;
-    private $authenticator;
-    private $pair;
-
     // Define the landingType interface as an array to match the expected structure
     const landingType = [
         'heading' => [
@@ -93,50 +86,16 @@ final class MiscellaneousController
         ]
     ];
 
-    public function __construct($method = "contact_us")
-    {
-        $this->method = $method;
-        $this->user = new User();
-        $this->pair = new Pair();
-        $encoder = new JwtEncoder(env('APP_KEY'));
-        $role = new Role();
-        $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
-    }
-
-    public function __invoke(string $query = null)
-    {
-        switch ($this->method) {
-            case 'search_ticker':
-                $resp = $this->searchTicker($query);
-                break;
-            case 'contact_us':
-                $resp = $this->contact_us();
-                break;
-            case 'fetch_landing':
-                $resp = $this->fetchLanding();
-                break;
-            case 'update_landing':
-                $resp = $this->updateLanding();
-                break;
-            default:
-                $resp = JsonResponse::serverError('bad method call');
-        }
-
-        $resp;
-    }
-
-    private function searchTicker(string $query)
+    public function searchTicker(Request $request, string $query)
     {
         try {
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+            $user = $request->auth_user;
             $query = sanitize_data($query);
-            foreach ($this->pair->symbolinfos as $info) {
+            foreach (Pair::symbolinfos as $info) {
                 $values[] = $query;
             }
             
-            if (!$tickers = $this->pair->findByArray($this->pair->symbolinfos, $values, 'OR', select: $this->pair->symbolinfos)) {
+            if (!$tickers = Pair::getBuilder()->findByArray(Pair::symbolinfos, $values, 'OR', select: Pair::symbolinfos)) {
                 return JsonResponse::ok("no ticker found in list", []);
             }
             return JsonResponse::ok("tickers searched success", $tickers);
@@ -147,18 +106,16 @@ final class MiscellaneousController
         }
     }
 
-    private function contact_us()
+    public function contact_us(Request $request)
     {
         try {
             // Check if the request has a body
-            if ( $_SERVER['CONTENT_LENGTH'] <= env('CONTENT_LENGTH_MIN')) {
+            if ( !$request->hasBody()) {
                 //return "body is required" response;
                 return JsonResponse::badRequest("bad request", "body is required");
             }
             
-            $inputJSON = file_get_contents('php://input');
-
-            $body = sanitize_data(json_decode($inputJSON, true));
+            $body = sanitize_data($request->input());
 
             if ($validated = Validator::validate($body, [
                 'fullname' => 'required|string',
@@ -180,8 +137,6 @@ final class MiscellaneousController
         } catch (PDOException $e) {
             if (env("APP_ENV") === "local")
                 $message = $e->getMessage();
-            else if (str_contains($e->getMessage(), 'Duplicate entry'))
-                return JsonResponse::badRequest('pair already exist');
             else $message = "we encountered a problem";
             
             return JsonResponse::serverError($message);
@@ -191,7 +146,7 @@ final class MiscellaneousController
         }
     }
 
-    private function fetchLanding()
+    public function fetchLanding(Request $request)
     {
         if (! $data = file_get_contents(storage_path().'files/landing.json')) {
             return JsonResponse::notFound('landing page data not found');
@@ -202,14 +157,14 @@ final class MiscellaneousController
         return true;
     }
 
-    private function updateLanding()
+    public function updateLanding(Request $request)
     {
-        if (!$this->authenticator->validate()) {
+        if (!JwtAuthenticator::validate()) {
             return JsonResponse::unauthorized();
         }
 
         // Check if the request has a body
-        if ( $_SERVER['CONTENT_LENGTH'] <= env('CONTENT_LENGTH_MIN')) {
+        if ( !$request->hasBody()) {
             //return "body is required" response;
             return JsonResponse::badRequest("bad request", "body is required");
         }

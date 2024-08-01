@@ -1,9 +1,11 @@
 <?php
 namespace Basttyy\FxDataServer\Controllers\Api;
 
+use Basttyy\FxDataServer\Auth\Guard;
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\libs\JsonResponse;
+use Basttyy\FxDataServer\libs\Request;
 use Basttyy\FxDataServer\libs\Traits\Flutterwave;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\Models\Plan;
@@ -18,53 +20,15 @@ use PDOException;
 final class SubscriptionController
 {
     use Flutterwave;
-    private $method;
-    private $user;
-    private $authenticator;
-    private $plan;
-    private $subscription;
 
-    public function __construct($method = "show")
-    {
-        $this->method = $method;
-        $this->user = new User();
-        $this->plan = new Plan();
-        $this->subscription = new Subscription;
-        $encoder = new JwtEncoder(env('APP_KEY'));
-        $role = new Role();
-        $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
-    }
-
-    public function __invoke(string $id = null)
-    {
-        switch ($this->method) {
-            case 'show':
-                $resp = $this->show($id);
-                break;
-            case 'count':
-                $resp = $this->count();
-                break;
-            case 'list':
-                $resp = $this->list();
-                break;
-            case 'cancel':
-                $resp = $this->cancel($id);
-                break;
-            default:
-                $resp = JsonResponse::serverError('bad method call');
-        }
-
-        $resp;
-    }
-
-    private function show(string $id)
+    public function show(string $id)
     {
         $id = sanitize_data($id);
         try {
-            if (!$this->subscription->find((int)$id))
+            if (!$subscription = Subscription::getBuilder()->find((int)$id))
                 return JsonResponse::notFound("unable to retrieve subscription");
 
-            return JsonResponse::ok("subscription retrieved success", $this->subscription->toArray());
+            return JsonResponse::ok("subscription retrieved success", $subscription->toArray());
         } catch (PDOException $e) {
             consoleLog(0, $e->getMessage(). '   '.$e->getTraceAsString());
             return JsonResponse::serverError("we encountered a db problem");
@@ -75,26 +39,25 @@ final class SubscriptionController
         }
     }
     
-    private function count()
+    public function count(Request $request)
     {
         try {
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+            $user = $request->auth_user;
             
-            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+            if (!Guard::roleIs($user, 'admin')) {
                 return JsonResponse::unauthorized("you can't view subscriptions");
             }
             
             $query = isset($_GET) ? sanitize_data($_GET): [];
 
+            $builder = Subscription::getBuilder();
             if (count($query)) {
                 foreach ($query as $k => $v) {
-                    $this->subscription->where($k, value: $v);
+                    $builder->where($k, value: $v);
                 }
-                $count = $this->subscription->count();
+                $count = $builder->count();
             } else {
-                $count = $this->subscription->count();
+                $count = $builder->count();
             }
 
             if (!$count)
@@ -108,17 +71,14 @@ final class SubscriptionController
         }
     }
 
-    private function list()
+    public function list(Request $request)
     {
         try {
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
-            
-            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+            $user = $request->auth_user;
+            if (!Guard::roleIs($user, 'admin')) {
                 return JsonResponse::unauthorized("you can't view subscriptions");
             }
-            $subscriptions = $this->subscription->all();
+            $subscriptions = Subscription::getBuilder()->all();
             if (!$subscriptions)
                 return JsonResponse::ok("no subscription found in list", []);
 
@@ -131,18 +91,15 @@ final class SubscriptionController
     }
 
     
-    private function list_user(string $id)
+    public function listUser(Request $request, string $id)
     {
         try {
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
-
-            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+            $user = $request->auth_user;
+            if (!Guard::roleIs($user, 'admin')) {
                 return JsonResponse::unauthorized("you can't view subscriptions");
             }
             $id = sanitize_data($id);
-            $subscriptions = $this->subscription->findBy("user_id", $id);
+            $subscriptions = Subscription::getBuilder()->findBy("user_id", $id);
             
             if (!$subscriptions)
                 return JsonResponse::ok("no subscription found in list", []);
@@ -155,24 +112,22 @@ final class SubscriptionController
         }
     }
 
-    private function cancel(string $id)
+    public function cancel(Request $request, string $id)
     {
         try {
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
-
-            if (!$this->authenticator->verifyRole($this->user, 'user')) {
+            $user = $request->auth_user;
+            
+            if (!Guard::roleIs($user, 'user')) {
                 return JsonResponse::unauthorized("you can't cancel this subscription");
             }
             $id = sanitize_data($id);
-            $subscription = $this->subscription->find($id);
+            $subscription = Subscription::getBuilder()->find($id);
             
             if (!$subscription)
                 return JsonResponse::ok("subscription not found in list", []);
 
             if ($subscription instanceof Subscription) {
-                if ($subscription->user_id === $this->user->id || Carbon::now()->greaterThanOrEqualTo($subscription->expires_at)) {
+                if ($subscription->user_id === $user->id || Carbon::now()->greaterThanOrEqualTo($subscription->expires_at)) {
                     return JsonResponse::badRequest('cannot cancel this subscription');
                 }
             }
@@ -190,19 +145,19 @@ final class SubscriptionController
         }
     }
 
-    // private function create()
+    // public function create()
     // {
     //     try {
-    //         if (!$this->authenticator->validate()) {
+    //         if (!JwtAuthenticator::validate()) {
     //             return JsonResponse::unauthorized();
     //         }
     //         // Check if the request has a body
-    //         if ( $_SERVER['CONTENT_LENGTH'] <= env('CONTENT_LENGTH_MIN')) {
+    //         if ( !$request->hasBody()) {
     //             //return "body is required" response;
     //             return JsonResponse::badRequest("bad request", "body is required");
     //         }
 
-    //         if (!$this->authenticator->verifyRole($this->user, 'user')) {
+    //         if (!Guard::roleIs($user, 'user')) {
     //             return JsonResponse::unauthorized("you can't subscribe to a plan");
     //         }
             
@@ -256,21 +211,21 @@ final class SubscriptionController
     //     }
     // }
 
-    // private function update(string $id)
+    // public function update(string $id)
     // {
     //     try {
-    //         if (!$user = $this->authenticator->validate()) {
+    //         if (!$user = JwtAuthenticator::validate()) {
     //             return JsonResponse::unauthorized();
     //         }
     //         // Check if the request has a body
-    //         if ( $_SERVER['CONTENT_LENGTH'] <= env('CONTENT_LENGTH_MIN')) {
+    //         if ( !$request->hasBody()) {
     //             //return "body is required" response;
     //             return JsonResponse::badRequest("bad request", "body is required");
     //         }
 
     //         $id = sanitize_data($id);
 
-    //         if (!$this->authenticator->verifyRole($user, 'admin')) {
+    //         if (!Guard::roleIs($user, 'admin')) {
     //             return JsonResponse::unauthorized("you can't update a plan");
     //         }
             
@@ -307,16 +262,16 @@ final class SubscriptionController
     //     }
     // }
 
-    // private function delete(int $id)
+    // public function delete(int $id)
     // {
     //     try {
     //         $id = sanitize_data($id);
 
-    //         if (!$this->authenticator->validate()) {
+    //         if (!JwtAuthenticator::validate()) {
     //             return JsonResponse::unauthorized();
     //         }
 
-    //         if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+    //         if (!Guard::roleIs($user, 'admin')) {
     //             return JsonResponse::unauthorized("you can't delete a plan");
     //         }
 

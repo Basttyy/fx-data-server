@@ -132,9 +132,20 @@ class Router
             if ($matched) {
                 self::$currentRoute = $route;
 
-                foreach ($data['middlewares'] as $middleware) {
+                foreach ($data['middlewares'] as $key => $middleware) {
+                    $params = null;
+                    if (Str::contains($middleware, ',')) {
+                        $params = explode(',', $middleware);
+                        $middleware = array_shift($params);
+                    }
                     $middlewareInstance = new $middleware;
-                    if ($middlewareInstance->handle($request)) {
+                    if ($params == null) {
+                        if ($middlewareInstance->handle($request)) {
+                            return;
+                        }
+                        continue;
+                    }
+                    if ($middlewareInstance->handle($request, ...$params)) {
                         return;
                     }
                 }

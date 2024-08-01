@@ -43,148 +43,178 @@ Router::middleware(VisitLoggerMiddleware::class, function () {
     });
     /// User Routes
     Router::group('/users', function () {
-        Router::get('/$id', [UserController::class, 'show']);
-        Router::get('', [UserController::class, 'list']);
-        Router::get('/query/$query', [UserController::class, 'list']);
         Router::post('', [UserController::class, 'create']);
-        Router::put('/$id', [UserController::class, 'update']);
-        Router::delete('/$id', [UserController::class, 'delete']);
         /// User Special Routes
         Router::post('/method/$method', [UserExplicitController::class, 'index']);
-        Router::post('/exchange-points', [UserController::class, 'exchangePoints']);
+        Router::middleware(AuthMiddleware::class, function () {
+            Router::get('/$id', [UserController::class, 'show']);
+            Router::name('users.list', function() {
+                Router::get('', [UserController::class, 'list']);
+            });
+            Router::get('/query/$query', [UserController::class, 'list']);
+            Router::put('/$id', [UserController::class, 'update']);
+            Router::delete('/$id', [UserController::class, 'delete']);
+            Router::post('/exchange-points', [UserController::class, 'exchangePoints']);
+        });
     });
     /// Plan Routes
     Router::group('/plans', function () {
-        Router::get('/$id', new PlanController());
-        Router::get('', new PlanController('list'));
-        Router::get('/standard/$standard', new PlanController('list'));
-        Router::get('/query/$query', new PlanController('list'));
-        Router::post('', new PlanController('create'));
-        Router::put('/$id', new PlanController('update'));
-        Router::delete('/$id', new PlanController('delete'));
+        Router::get('/$id', [PlanController::class, 'show']);
+        Router::get('', [PlanController::class, 'list']);
+        Router::get('/standard/$standard', [PlanController::class, 'list']);
+        Router::get('/query/$query', [PlanController::class, 'list']);
+        Router::middleware(AuthMiddleware::class, function () {
+            Router::post('', [PlanController::class, 'create']);
+            Router::put('/$id', [PlanController::class, 'update']);
+            Router::delete('/$id', [PlanController::class, 'delete']);
+        });
     });
     /// Subscription Routes
     Router::group('/subscriptions', function () {
-        Router::get('/$id', new SubscriptionController());
-        Router::put('/$id/cancel', new SubscriptionController('cancel'));
-        Router::get('', new SubscriptionController('list'));
-        Router::get('/all/count', new SubscriptionController('count'));
-        Router::get('/all/count/$query', new SubscriptionController('count'));
-        Router::get('/query/$query', new SubscriptionController('list'));
-        Router::get('/palns/$id', new SubscriptionController('list_plan'));
+        Router::get('/$id', [SubscriptionController::class, 'show']);
         // Router::post('/subscriptions', new SubscriptionController('create'));
+        Router::middleware(AuthMiddleware::class, function () {
+            Router::get('/all/count', [SubscriptionController::class, 'count']);
+            Router::get('/all/count/$query', [SubscriptionController::class, 'count']);
+            Router::get('', [SubscriptionController::class, 'list']);
+            Router::get('/query/$query', [SubscriptionController::class, 'list']);
+            Router::get('/user/$id', [SubscriptionController::class, 'listUser']);
+            Router::get('/plans/$id', [SubscriptionController::class, 'listPlan']);
+            Router::put('/$id/cancel', [SubscriptionController::class, 'cancel']);
+        });
     });
     /// Transaction Routes
     Router::group('/transactions', function () {
-        Router::get('/$id', new TransactionController(''));
-        Router::get('', new TransactionController('list'));
-        Router::get('/generate/ref', new TransactionController('trans_ref'));
-        Router::post('/verify', new TransactionController('create'));
-        Router::post('/webhook', new TransactionController('update'));
+        Router::get('/$id', [TransactionController::class, 'show']);
+        Router::post('/webhook', [TransactionController::class, 'update']);
+        Router::middleware(AuthMiddleware::class, function () {
+            Router::get('', [TransactionController::class, 'list']);
+            Router::post('/verify', [TransactionController::class, 'create']);
+            Router::get('/generate/ref', [TransactionController::class, 'trans_ref']);
+        });
     });
     /// Strategy Routes
     Router::group('/strategies', function () {
-        Router::get('/$id', new StrategyController());
-        Router::get('', new StrategyController('list'));
-        Router::get('/query/$query', new StrategyController('list'));
-        Router::get('/users/$id', new StrategyController('list_user'));
-        Router::post('', new StrategyController('create'));
-        Router::put('/$id', new StrategyController('update'));
-        Router::delete('/$id', new StrategyController('delete'));
+        Router::middleware(AuthMiddleware::class, function () {
+            Router::get('/$id', [StrategyController::class, 'show']);
+            Router::get('', [StrategyController::class, 'list']);
+            Router::get('/query/$query', [StrategyController::class, 'list']);
+            Router::get('/users/$id', [StrategyController::class, 'listUser']);
+            Router::post('', [StrategyController::class, 'create']);
+            Router::put('/$id', [StrategyController::class, 'update']);
+            Router::delete('/$id', [StrategyController::class, 'delete']);
+        });
     });
     /// TestSessions Routes
     Router::group('/test-sessions', function () {
-        Router::get('/$id', new TestSessionController());
-        Router::get('', new TestSessionController('list'));
-        Router::get('/query/$query', new TestSessionController('list'));
-        Router::post('', new TestSessionController('create'));
-        Router::put('/$id', new TestSessionController('update'));
-        Router::delete('/$id', new TestSessionController('delete'));
+        Router::middleware(AuthMiddleware::class, function () {
+            Router::get('/$id', [TestSessionController::class, 'show']);
+            Router::get('', [TestSessionController::class, 'list']);
+            Router::get('/query/$query', [TestSessionController::class, 'list']);
+            Router::post('', [TestSessionController::class, 'create']);
+            Router::put('/$id', [TestSessionController::class, 'update']);
+            Router::delete('/$id', [TestSessionController::class, 'delete']);
+        });
     });
     /// Pairs Routes
     Router::group('/pairs', function () {
-        Router::get('/$id', new PairController());
-        Router::get('', new PairController('list'));
-        Router::get('/list/onlypair', new PairController('listonlypair'));
-        Router::get('/list/pairorsym/$id/query/$query', new PairController('query'));
-        Router::post('', new PairController('create'));
-        Router::put('/$id', new PairController('update'));
-        Router::delete('/$id', new PairController('delete'));
+        Router::get('/$id', [PairController::class, 'show']);
+        Router::get('', [PairController::class, 'list']);
+        Router::get('/list/onlypair', [PairController::class, 'listonlypair']);
+        Router::get('/list/pairorsym/$id/query/$query', [PairController::class, 'query']);
+        Router::middleware(AuthMiddleware::class, function () {
+            Router::post('', [PairController::class, 'create']);
+            Router::put('/$id', [PairController::class, 'update']);
+            Router::delete('/$id', [PairController::class, 'delete']);
+        });
     });
     Router::group('/positions', function () {
         /// Positions Routes
-        Router::get('/$id', new PositionController());
-        Router::get('', new PositionController('list'));
-        Router::get('/query/$query', new PositionController('list'));
-        Router::get('/users/$id', new PositionController('list_user'));
-        Router::post('', new PositionController('create'));
-        Router::put('/$id', new PositionController('update'));
-        Router::put('/$id/unset/$tporsl', new PositionController('unsetslortp'));
-        Router::delete('/$id', new PositionController('delete'));
+        Router::middleware(AuthMiddleware::class, function () {
+            Router::get('/$id', [PositionController::class, 'show']);
+            Router::get('', [PositionController::class, 'list']);
+            Router::get('/query/$query', [PositionController::class, 'list']);
+            Router::get('/users/$id', [PositionController::class, 'list_user']);
+            Router::post('', [PositionController::class, 'create']);
+            Router::put('/$id', [PositionController::class, 'update']);
+            Router::put('/$id/unset/$tporsl', [PositionController::class, 'unsetslortp']);
+            Router::delete('/$id', [PositionController::class, 'delete']);
+        });
     });
     /// Feedbacks Routes
     Router::group('/feedbacks', function () {
-        Router::get('/$id', new FeedbackController());
-        Router::get('', new FeedbackController('list'));
-        Router::get('/query/$query', new FeedbackController('list'));
-        Router::get('/users/$id', new FeedbackController('list_user'));
-        Router::post('', new FeedbackController('create'));
-        Router::put('/$id', new FeedbackController('update'));
-        Router::delete('/$id', new FeedbackController('delete'));
+        Router::middleware(AuthMiddleware::class, function () {
+            Router::get('/$id', [FeedbackController::class, 'show']);
+            Router::get('', [FeedbackController::class, 'list']);
+            Router::get('/query/$query', [FeedbackController::class, 'list']);
+            Router::get('/users/$id', [FeedbackController::class, 'list_user']);
+            Router::post('', [FeedbackController::class, 'create']);
+            Router::put('/$id', [FeedbackController::class, 'update']);
+            Router::delete('/$id', [FeedbackController::class, 'delete']);
+        });
     });
     /// Admin Routes
     Router::group('/admin', function () {
-        Router::group('/logs', function () {
-            Router::get('/$id', new VisitController());
-            Router::get('/all/count', new VisitController('count'));
-            Router::get('/all/count/$query', new VisitController('count'));
-            Router::get('', new VisitController('list'));
-            Router::get('/query/$query', new VisitController('list'));
+        Router::middleware(AuthMiddleware::class, function () {
+            Router::group('/logs', function () {
+                Router::get('/$id', [VisitController::class, 'show']);
+                Router::get('/all/count', [VisitController::class, 'count']);
+                Router::get('/all/count/$query', [VisitController::class, 'count']);
+                Router::get('', [VisitController::class, 'list']);
+                Router::get('/query/$query', [VisitController::class, 'list']);
+            });
+            Router::group('/blog', function () {
+                Router::name('admin.blog.posts', function () {
+                    Router::post('/posts', [BlogController::class, 'create']);
+                });
+                Router::put('/posts/$id', [BlogController::class, 'update']);
+                Router::delete('/posts/$id', [BlogController::class, 'delete']);
+            });
+            Router::group('/cheapcountries', function () {
+                Router::get('/$id', [CheapCountryController::class, 'show']);
+                Router::get('', [CheapCountryController::class, 'list']);
+                Router::post('', [CheapCountryController::class, 'create']);
+                Router::put('/$id', [CheapCountryController::class, 'update']);
+                Router::delete('/$id', [CheapCountryController::class, 'delete']);
+            });
+            Router::post('/landing/data', [MiscellaneousController::class, 'updateLanding']);
         });
-        Router::group('/blog', function () {
-            Router::post('/posts', new BlogController('create'));
-            Router::put('/posts/$id', new BlogController('update'));
-            Router::delete('/posts/$id', new BlogController('delete'));
-        });
-        Router::group('/cheapcountries', function () {
-            Router::get('/$id', new CheapCountryController());
-            Router::get('', new CheapCountryController('list'));
-            Router::post('', new CheapCountryController('create'));
-            Router::put('/$id', new CheapCountryController('update'));
-            Router::delete('/$id', new CheapCountryController('delete'));
-        });
-        Router::post('/landing/data', new MiscellaneousController('update_landing'));
     });
     Router::group('/devops', function () {
-        Router::get('/migrate', new MigrateController);
+        Router::get('/migrate/status', [MigrateController::class, 'status']);
+        Router::get('/migrate/migrate', [MigrateController::class, 'migrate']);
+        Router::get('/migrate/rollback', [MigrateController::class, 'rollback']);
+        Router::get('/migrate/seed', [MigrateController::class, 'seed']);
     });
     Router::group('/blog', function () {
         Router::group('/posts', function () {
-            Router::get('', new BlogController('list'));
-            Router::get('/$id', new BlogController());
-            Router::get('/$id/comments', new PostCommentController('list'));
-            Router::get('/$id/comments/$id', new PostCommentController());
-            Router::get('/$id/comments/query/$query', new PostCommentController('list'));
-            Router::post('/$id/comments', new PostCommentController('create'));
-            Router::put('/$id/comments/$id', new PostCommentController('update'));
-            Router::delete('/$id/comments/$id', new PostCommentController('delete'));
+            Router::get('', [BlogController::class, 'list']);
+            Router::get('/$id', [BlogController::class, 'show']);
+            Router::get('/$id/comments/$id', [PostCommentController::class, 'show']);
+            Router::get('/$id/comments', [PostCommentController::class, 'list']);
+            Router::get('/$id/comments/query/$query', [PostCommentController::class, 'list']);
+            Router::middleware(AuthMiddleware::class, function () {
+                Router::post('/$id/comments', [PostCommentController::class, 'create']);
+                Router::put('/$id/comments/$id', [PostCommentController::class, 'update']);
+                Router::delete('/$id/comments/$id', [PostCommentController::class, 'delete']);
+            });
         });
-        Router::get('/comments', new PostCommentController('listall'));
+        Router::get('/comments', [PostCommentController::class, 'listall']);
     });
     /// Historical Data Routes
     Router::group('/fx', function () {
-        Router::get('/download/min/ticker/$ticker/offerside/$offerside/period/$period/yr/$year/mn/$month/wk/$week', new FxDataController());
-        Router::get('/currency/conversiondata/ticker/$ticker/year/$year', new FxDataController('currency_conversion_data'));
-        Router::get('/tickers/query/$query', new MiscellaneousController('search_ticker'));
-        Router::get('/tickers/query', new MiscellaneousController('search_ticker'));
+        Router::get('/download/min/ticker/$ticker/offerside/$offerside/period/$period/yr/$year/mn/$month/wk/$week', [FxDataController::class, 'downloadMinutesData']);
+        Router::get('/currency/conversiondata/ticker/$ticker/year/$year', [FxDataController::class, 'currencyConversionData']);
+        Router::get('/tickers/query/$query', [MiscellaneousController::class, 'searchTicker']);
+        Router::get('/tickers/query', [MiscellaneousController::class, 'searchTicker']);
     });
     /// Others
-    Router::post('/misc/contact-us', new MiscellaneousController());
-    Router::get('/landing/data', new MiscellaneousController('fetch_landing'));
-    Router::get('/referrals', new ReferralController('list'));
-    Router::get('/referrals', new ReferralController('list'));
+    Router::post('/misc/contact-us', [MiscellaneousController::class, 'contact_us']);
+    Router::get('/landing/data', [MiscellaneousController::class, 'fetchLanding']);
+    Router::get('/referrals/$id', [ReferralController::class, 'show']);
+    Router::get('/referrals', [ReferralController::class, 'list']);
 
-    Router::any('/404', new NotFoundController);
+    Router::any('/404', [NotFoundController::class, 'index']);
 });
 
 $request = Request::capture();

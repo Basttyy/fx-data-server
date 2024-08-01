@@ -5,11 +5,7 @@ use Basttyy\FxDataServer\libs\JsonResponse;
 
 final class NotFoundController
 {
-    public function __construct() {
-        
-    }
-
-    public function __invoke()
+    public function index()
     {
         $request_uri = filter_var($_SERVER['REQUEST_URI'], FILTER_SANITIZE_URL);
         if (strtolower($_SERVER['REQUEST_METHOD']) !== "options")

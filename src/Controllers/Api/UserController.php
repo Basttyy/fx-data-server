@@ -1,6 +1,7 @@
 <?php
 namespace Basttyy\FxDataServer\Controllers\Api;
 
+use Basttyy\FxDataServer\Auth\Guard;
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\Console\Jobs\SendVerifyEmail;
@@ -20,45 +21,33 @@ use PDOException;
 
 final class UserController
 {
-    private $user;
-    private $subscription;
-    private $authenticator;
-
-    public function __construct()
-    {
-        $this->user = new User;
-        $this->subscription = new Subscription;
-        $encoder = new JwtEncoder(env('APP_KEY'));
-        $role = new Role;
-        $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
-    }
-
     public function show(Request $request, string $id)
     {
         $id = sanitize_data($id);
         try {
-            if (!$this->authenticator->validate()) {
+            $__user = $request->auth_user;
+            $is_admin = Guard::roleIs($__user, 'admin');
+
+            if ($is_admin) {
+                $user = User::getBuilder()->find((int)$id, false);
+            } elseif ($__user->id != $id) {
                 return JsonResponse::unauthorized();
             }
-            $is_admin = $this->authenticator->verifyRole($this->user, 'admin');
 
-            if ($is_admin === false && $this->user->id != $id) {
-                return JsonResponse::unauthorized("you can't view this user");
-            }
-
-            if (!$this->user->find((int)$id))
+            if (!$user)
                 return JsonResponse::notFound("unable to retrieve user");
-            $subscription = $this->subscription->findBy('user_id', $this->user->id, false); //TODO: we need to add a filter that will ensure the subscription is active
 
-            $user = Arr::except($this->user->toArray(), $this->user->twofainfos);
-            $user['extra']['is_admin'] = $is_admin;
-            $user['extra']['subscription'] = $subscription ? $subscription : null;
-            $user['extra']['twofa']['enabled'] = strlen($this->user->twofa_types) > 0;
-            $user['extra']['twofa']['twofa_types'] = $this->user->twofa_types;
-            $user['extra']['twofa']['twofa_default_type'] = $this->user->twofa_default_type;
+            $subscription = Subscription::getBuilder()->findBy('user_id', $user->id, false); //TODO: we need to add a filter that will ensure the subscription is active
+
+            $_user = Arr::except($user->toArray(), $user->twofainfos);
+            $_user['extra']['is_admin'] = Guard::roleIs($user, 'admin');
+            $_user['extra']['subscription'] = $subscription ? $subscription : null;
+            $_user['extra']['twofa']['enabled'] = strlen($user->twofa_types) > 0;
+            $_user['extra']['twofa']['twofa_types'] = $user->twofa_types;
+            $_user['extra']['twofa']['twofa_default_type'] = $user->twofa_default_type;
 
             return JsonResponse::ok("user retrieved success", [
-                'data' => $user
+                'data' => $_user
             ]);
         } catch (PDOException $e) {
             return JsonResponse::serverError("we encountered a problem");
@@ -69,44 +58,42 @@ final class UserController
         }
     }
 
-    public function list()
+    public function list(Request $request)
     {
         try {
-            if (!$user = $this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
-            
+            $user = $request->auth_user;
+            $page = $request->query('page');
+            $per_page = $request->query('perpage');
 
-            if ($this->authenticator->verifyRole($user, 'admin')) {
-                $users = $this->user->all();
+            if (Guard::roleIs($user, 'admin')) {
+                $users = $user->paginate($page, $per_page);
             } else {
-                $users = $this->user->findBy("role_id", 1);
+                $users = $user->where("role_id", 1)->paginate($page, $per_page);
             }
             if (!$users)
                 return JsonResponse::ok("no user found in list", []);
 
             return JsonResponse::ok("users retrieved success", [
-                'data' => $users
+                'data' => $users->toArray('users.list')
             ]);
         } catch (PDOException $e) {
+            logger()->info($e->getMessage(), $e->getTrace());
             return JsonResponse::serverError("we encountered a problem");
         } catch (Exception $e) {
+            logger()->info($e->getMessage(), $e->getTrace());
             return JsonResponse::serverError("we encountered a problem");
         }
     }
 
-    public function create()
+    public function create(Request $request)
     {
         try {
-            // Check if the request has a body
-            if ( $_SERVER['CONTENT_LENGTH'] <= env('CONTENT_LENGTH_MIN')) {
+            if ( !$request->hasBody() ) {
                 //return "body is required" response;
                 return JsonResponse::badRequest("bad request", "body is required");
             }
-            
-            $inputJSON = file_get_contents('php://input');
 
-            $body = sanitize_data(json_decode($inputJSON, true));
+            $body = sanitize_data($request->input());
 
             if ($validated = Validator::validate($body, [
                 'email' => 'required|string|not_exist:users,email',
@@ -127,7 +114,7 @@ final class UserController
             $body['email2fa_expire'] = time() + env('EMAIL2FA_MAX_AGE');
 
             DB::beginTransaction();
-            if (!$user = $this->user->create($body)) {
+            if (!$user = User::getBuilder()->create($body)) {
                 DB::rollback();
                 return JsonResponse::serverError("unable to create user");
             }
@@ -171,29 +158,24 @@ final class UserController
         }
     }
 
-    public function update(string $id)
+    public function update(Request $request, string $id)
     {
         try {
             // Check if the request has a body
-            if ( $_SERVER['CONTENT_LENGTH'] <= env('CONTENT_LENGTH_MIN')) {
+            if ( !$request->hasBody()) {
                 //return "body is required" response;
                 return JsonResponse::badRequest("bad request", "body is required");
             }
 
-            if (!$user = $this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
-
             $id = sanitize_data($id);
-            $is_admin = $this->authenticator->verifyRole($user, 'admin');
+            $user = $request->auth_user;
+            $is_admin = Guard::roleIs($user, 'admin');
 
             if (!$is_admin && $user->id !== $id) {
                 return JsonResponse::unauthorized("you can't update this user");
             }
             
-            $inputJSON = file_get_contents('php://input');
-
-            $body = sanitize_data(json_decode($inputJSON, true));
+            $body = sanitize_data($request->input());
 
             if ($validated = Validator::validate($body, [
                 'email' => 'sometimes|string',
@@ -214,7 +196,7 @@ final class UserController
             }
 
             // echo "got to pass login";
-            if (!$user = $this->user->update($body, (int)$id)) {
+            if (!$user->update($body, (int)$id)) {
                 return JsonResponse::serverError("unable to update user");
             }
 
@@ -235,22 +217,18 @@ final class UserController
         }
     }
 
-    public function delete(int $id)
+    public function delete(Request $request, int $id)
     {
         try {
             $id = sanitize_data($id);
+            // $is_admin = Guard::roleIs($user, 'admin');
 
-            if (!$user = $this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
-            // $is_admin = $this->authenticator->verifyRole($user, 'admin');
-
+            $user = $request->auth_user;
             if ($user->id !== $id) {
                 return JsonResponse::unauthorized("you can't delete this user");
             }
 
-            // echo "got to pass login";
-            if (!$this->user->delete((int)$id)) {
+            if (!$user->delete((int)$id)) {
                 return JsonResponse::notFound("unable to delete user or user not found");
             }
 
@@ -269,19 +247,18 @@ final class UserController
         }
     }
     
-    public function exchangePoints()
+    public function exchangePoints(Request $request)
     {
-        if (!$this->authenticator->validate()) {
-            return JsonResponse::unauthorized();
-        }
-
-        if (!$this->authenticator->verifyRole($this->user, 'user')) {
+        $user = $request->auth_user;
+        if (!Guard::roleIs($user, 'user')) {
             return JsonResponse::unauthorized("you are not allowed to exchange points");
         }
+        if ( !$request->hasBody()) {
+            //return "body is required" response;
+            return JsonResponse::badRequest("bad request", "body is required");
+        }
 
-        $inputJSON = file_get_contents('php://input');
-
-        $body = sanitize_data(json_decode($inputJSON, true));
+        $body = sanitize_data($request->input());
 
         if ($validated = Validator::validate($body, [
             'points' => 'required|integer|min:1',
@@ -290,7 +267,7 @@ final class UserController
         }
 
         try {
-            $cash = $this->user->exchangePointsForCash($body['points']);
+            $cash = $user->exchangePointsForCash($body['points']);
             return JsonResponse::ok("Exchanged points for \${$cash}");
         } catch (\Exception $e) {
             return JsonResponse::badRequest('unable to exchange point', ['error' => $e->getMessage()]);

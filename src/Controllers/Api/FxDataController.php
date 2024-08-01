@@ -4,42 +4,14 @@ namespace Basttyy\FxDataServer\Controllers\Api;
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\libs\JsonResponse;
+use Basttyy\FxDataServer\libs\Request;
 use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\User;
 use Carbon\Carbon;
 
 class FxDataController
 {
-    private $method;
-    private $user;
-    private $authenticator;
-
-    public function __construct($method = "download_minute_data")
-    {
-        $this->method = $method;
-        $this->user = new User();
-        $encoder = new JwtEncoder(env('APP_KEY'));
-        $role = new Role();
-        $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
-    }
-
-    public function __invoke(string $ticker = "", string $offerside = "", int $period = null, int $year = 0, int $month = 0, int $week = 0, string $query = "", bool $faster = null)
-    {
-        switch ($this->method) {
-            case 'download_minute_data':
-                $resp = $this->downloadMinutesData($ticker, $offerside, $period, $year, $month, $week);
-                break;
-            case 'currency_conversion_data';
-                $resp = $this->currencyConversionData($ticker, $offerside);
-                break;
-            default:
-                $resp = JsonResponse::serverError('bad method call');
-        }
-
-        return $resp;
-    }
-
-    private function downloadMinutesData (string $ticker, string $offerside, int $period, int $year, int $month, int $week)
+    public function downloadMinutesData (Request $request, string $ticker, string $offerside, int $period, int $year, int $month, int $week)
     {
         if (!count(searchTicker($ticker))) {
             return JsonResponse::notFound("ticker does not exist");
@@ -79,7 +51,7 @@ class FxDataController
         return JsonResponse::notFound("files not found or date  $year/month_$month/week_$week out of range");
     }
 
-    private function currencyConversionData (string $ticker, int $year)
+    public function currencyConversionData (Request $request, string $ticker, int $year)
     {
         // $date = new Carbon($date);
 

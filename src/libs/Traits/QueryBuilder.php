@@ -4,6 +4,7 @@ namespace Basttyy\FxDataServer\libs\Traits;
 
 use Basttyy\FxDataServer\libs\Arr;
 use Basttyy\FxDataServer\libs\mysqly;
+use Basttyy\FxDataServer\libs\PaginatedData;
 use Exception;
 use Hybridauth\Exception\NotImplementedException;
 
@@ -263,8 +264,10 @@ trait QueryBuilder
 
         if ($this->child->softdeletes) {
             $query_arr['deleted_at'] = "IS NULL";
-            is_array($this->or_ands) ? $this->or_ands[] = "AND" : $this->or_ands = "AND";
+            is_array($this->or_ands) ? $this->or_ands[] = "AND" : $this->or_ands = ["AND"];
         }
+        if ($this->order !== "")
+            $query_arr['order_by'] = $this->order;
 
         if (count($select)) {
             $fields = $select;
@@ -303,7 +306,12 @@ trait QueryBuilder
         $this->limit($recordsPerPage);
         $this->offset($offset);
 
-        return $this->all();
+        $data = $this->all();
+
+        if (!$data) {
+            return false;
+        }
+        return PaginatedData::init($data, $totalRecords, $recordsPerPage, $totalPages, $currentPage);
     }
 
     public function random()

@@ -1,9 +1,11 @@
 <?php
 namespace Basttyy\FxDataServer\Controllers\Api;
 
+use Basttyy\FxDataServer\Auth\Guard;
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\libs\JsonResponse;
+use Basttyy\FxDataServer\libs\Request;
 use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\User;
 use Basttyy\FxDataServer\Models\Visit;
@@ -13,56 +15,20 @@ use PDOException;
 
 final class VisitController
 {
-    private $method;
-    private $user;
-    private $authenticator;
-    private $visit;
-
-    public function __construct($method = "show")
-    {
-        $this->method = $method;
-        $this->user = new User();
-        $this->visit = new Visit();
-        $encoder = new JwtEncoder(env('APP_KEY'));
-        $role = new Role();
-        $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
-    }
-
-    public function __invoke(string $id = null)
-    {
-        switch ($this->method) {
-            case 'show':
-                $resp = $this->show($id);
-                break;
-            case 'count':
-                $resp = $this->count();
-                break;
-            case 'list':
-                $resp = $this->list();
-                break;
-            default:
-                $resp = JsonResponse::serverError('bad method call');
-        }
-
-        $resp;
-    }
-
-    private function show(string $id)
+    public function show(Request $request, string $id)
     {
         $id = sanitize_data($id);
         try {
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+            $user = $request->auth_user;
 
-            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+            if (!Guard::roleIs($user, 'admin')) {
                 return JsonResponse::unauthorized("you don't have this permission");
             }
 
-            if (!$this->visit->find((int)$id))
+            if (!$visit = Visit::getBuilder()->find((int)$id))
                 return JsonResponse::notFound("unable to retrieve visit");
 
-            return JsonResponse::ok("visit retrieved success", $this->visit->toArray());
+            return JsonResponse::ok("visit retrieved success", $visit->toArray());
         } catch (PDOException $e) {
             consoleLog(0, $e->getMessage(). '   '.$e->getTraceAsString());
             return JsonResponse::serverError("we encountered a db problem");
@@ -73,26 +39,25 @@ final class VisitController
         }
     }
 
-    private function count()
+    public function count(Request $request)
     {
         try {
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+            $user = $request->auth_user;
 
-            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+            if (!Guard::roleIs($user, 'admin')) {
                 return JsonResponse::unauthorized("you don't have this permission");
             }
 
             $query = isset($_GET) ? sanitize_data($_GET): [];
 
+            $builder = Visit::getBuilder();
             if (count($query)) {
                 foreach ($query as $k => $v) {
-                    $this->visit->where($k, value: $v);
+                    $builder->where($k, value: $v);
                 }
             }
-            $uniqueVisits = $this->visit->distinct('unique_visitor_id')->count();
-            $totalVisits = $this->visit->count();
+            $uniqueVisits = $builder->distinct('unique_visitor_id')->count();
+            $totalVisits = $builder->count();
             if (!$totalVisits)
                 return JsonResponse::ok("no visit found in list", 0);
 
@@ -107,18 +72,16 @@ final class VisitController
         }
     }
 
-    private function list()
+    public function list(Request $request)
     {
         try {
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+            $user = $request->auth_user;
 
-            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+            if (!Guard::roleIs($user, 'admin')) {
                 return JsonResponse::unauthorized("you don't have this permission");
             }
 
-            if (!$visits = $this->visit->all(select: $this->visit->analytic))
+            if (!$visits = Visit::getBuilder()->all(select: Visit::analytic))
                 return JsonResponse::ok("no visit found in list", []);
 
             return JsonResponse::ok("visits retrieved success", $visits);

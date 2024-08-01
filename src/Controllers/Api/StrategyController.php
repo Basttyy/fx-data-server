@@ -1,9 +1,11 @@
 <?php
 namespace Basttyy\FxDataServer\Controllers\Api;
 
+use Basttyy\FxDataServer\Auth\Guard;
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\libs\JsonResponse;
+use Basttyy\FxDataServer\libs\Request;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\Strategy;
@@ -14,66 +16,21 @@ use PDOException;
 
 final class StrategyController
 {
-    private $method;
-    private $user;
-    private $authenticator;
-    private $strategy;
-
-    public function __construct($method = "show")
-    {
-        $this->method = $method;
-        $this->user = new User();
-        $this->strategy = new Strategy();
-        $encoder = new JwtEncoder(env('APP_KEY'));
-        $role = new Role();
-        $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
-    }
-
-    public function __invoke(string $id = null)
-    {
-        switch ($this->method) {
-            case 'show':
-                $resp = $this->show($id);
-                break;
-            case 'list':
-                $resp = $this->list();
-                break;
-            case 'list_user':
-                $resp = $this->list_user($id);
-                break;
-            case 'create':
-                $resp = $this->create();
-                break;
-            case 'update':
-                $resp = $this->update($id);
-                break;
-            case 'delete':
-                $resp = $this->delete($id);
-                break;
-            default:
-                $resp = JsonResponse::serverError('bad method call');
-        }
-
-        $resp;
-    }
-
-    private function show(string $id)
+    public function show(Request $request, string $id)
     {
         $id = sanitize_data($id);
         try {
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
-            $is_admin = $this->authenticator->verifyRole($this->user, 'admin');
+            $user = $request->auth_user;
+            $is_admin = Guard::roleIs($user, 'admin');
 
-            if (!$this->strategy->find((int)$id))
+            if (!$strategy = Strategy::getBuilder()->find((int)$id))
                 return JsonResponse::notFound("unable to retrieve strategy");
                 
-            if ($is_admin === false && $this->strategy->user_id != $this->user->id) {
+            if ($is_admin === false && $strategy->user_id != $user->id) {
                 return JsonResponse::unauthorized("you can't view this strategy");
             }
 
-            return JsonResponse::ok("strategy retrieved success", $this->strategy->toArray());
+            return JsonResponse::ok("strategy retrieved success", $strategy->toArray());
         } catch (PDOException $e) {
             return JsonResponse::serverError("we encountered a problem");
         } catch (LogicException $e) {
@@ -83,18 +40,15 @@ final class StrategyController
         }
     }
     
-    private function list()
+    public function list(Request $request)
     {
         try {
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
-            $is_admin = $this->authenticator->verifyRole($this->user, 'admin');
+            $user = $request->auth_user;
 
-            if ($is_admin) {
-                $strategies = $this->strategy->all();
+            if (Guard::roleIs($user, 'admin')) {
+                $strategies = Strategy::getBuilder()->all();
             } else {
-                $strategies = $this->strategy->findBy("user_id", $this->user->id);
+                $strategies = Strategy::getBuilder()->findBy("user_id", $user->id);
             }
             if (!$strategies)
                 return JsonResponse::ok("no strategy found in list", []);
@@ -107,18 +61,16 @@ final class StrategyController
         }
     }
 
-    private function list_user(string $id)
+    public function listUser(Request $request, string $id)
     {
         try {
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+            $user = $request->auth_user;
 
-            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+            if (!Guard::roleIs($user, 'admin')) {
                 return JsonResponse::unauthorized("you can't view this user's strategies");
             }
             $id = sanitize_data($id);
-            $strategies = $this->strategy->findBy("user_id", $id);
+            $strategies = Strategy::getBuilder()->findBy("user_id", $id);
             
             if (!$strategies)
                 return JsonResponse::ok("no strategy found in list", []);
@@ -131,25 +83,20 @@ final class StrategyController
         }
     }
 
-    private function create()
+    public function create(Request $request)
     {
         try {
             // Check if the request has a body
-            if ( $_SERVER['CONTENT_LENGTH'] <= env('CONTENT_LENGTH_MIN')) {
-                //return "body is required" response;
+            if ( !$request->hasBody()) {
                 return JsonResponse::badRequest("bad request", "body is required");
             }
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+            $user = $request->auth_user;
 
-            if (!$this->authenticator->verifyRole($this->user, 'user')) {
+            if (!Guard::roleIs($user, 'user')) {
                 return JsonResponse::unauthorized("only users can create strategy");
             }
             
-            $inputJSON = file_get_contents('php://input');
-
-            $body = sanitize_data(json_decode($inputJSON, true));
+            $body = sanitize_data($request->input());
 
             if ($validated = Validator::validate($body, [
                 'name' => 'required|string',
@@ -160,9 +107,9 @@ final class StrategyController
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
-            $body['user_id'] = $this->user->id;
+            $body['user_id'] = $user->id;
 
-            if (!$strategy = $this->strategy->create($body)) {
+            if (!$strategy = Strategy::getBuilder()->create($body)) {
                 return JsonResponse::serverError("unable to create strategy");
             }
 
@@ -181,25 +128,20 @@ final class StrategyController
         }
     }
 
-    private function update(string $id)
+    public function update(Request $request, string $id)
     {
         try {
             // Check if the request has a body
-            if ( $_SERVER['CONTENT_LENGTH'] <= env('CONTENT_LENGTH_MIN')) {
-                //return "body is required" response;
+            if ( !$request->hasBody()) {
                 return JsonResponse::badRequest("bad request", "body is required");
             }
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+            $user = $request->auth_user;
 
-            if (!$this->authenticator->verifyRole($this->user, 'user')) {
+            if (!Guard::roleIs($user, 'user')) {
                 return JsonResponse::unauthorized("only users can create strategy");
             }
             
-            $inputJSON = file_get_contents('php://input');
-
-            $body = sanitize_data(json_decode($inputJSON, true));
+            $body = sanitize_data($request->input());
             $id = sanitize_data($id);
 
             if ($validated = Validator::validate($body, [
@@ -211,11 +153,11 @@ final class StrategyController
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
-            if (!$this->strategy->update($body, (int)$id)) {
+            if (!$strategy = Strategy::getBuilder()->update($body, (int)$id)) {
                 return JsonResponse::notFound("unable to update strategy");
             }
 
-            return JsonResponse::ok("strategy updated successfull", $this->strategy->toArray());
+            return JsonResponse::ok("strategy updated successfull", $strategy->toArray());
         } catch (PDOException $e) {
             if (env("APP_ENV") === "local")
                 $message = $e->getMessage();
@@ -230,20 +172,17 @@ final class StrategyController
         }
     }
 
-    private function delete(int $id)
+    public function delete(Request $request, int $id)
     {
         try {
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+            $user = $request->auth_user;
 
-            if (!$this->authenticator->verifyRole($this->user, 'user')) {
+            if (!Guard::roleIs($user, 'user')) {
                 return JsonResponse::unauthorized("only users can create strategy");
             }
             $id = sanitize_data($id);
 
-            // echo "got to pass login";
-            if (!$this->strategy->delete((int)$id)) {
+            if (!Strategy::getBuilder()->delete((int)$id)) {
                 return JsonResponse::notFound("unable to delete strategy or strategy not found");
             }
 

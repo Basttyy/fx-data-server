@@ -60,7 +60,7 @@ final class {$name} extends Model
      * 
      * @var array
      */
-    protected \$fillable = [
+    protected const fillable = [
         'id', 'created_at', 'updated_at', 'deleted_at',
         //add more fillable columns here
     ];
@@ -70,7 +70,7 @@ final class {$name} extends Model
      * 
      * @var array
      */
-    protected \$guarded = [
+    protected const guarded = [
         'deleted_at', 'created_at', 'updated_at'
         //add more guarded columns here
     ];
@@ -80,9 +80,9 @@ final class {$name} extends Model
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(\$values = [])
     {
-        parent::__construct(\$this);
+        parent::__construct(\$values, \$this);
     }
 }
 ";
@@ -116,6 +116,7 @@ use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\libs\JsonResponse;
 use Basttyy\FxDataServer\libs\Validator;
+use Basttyy\FxDataServer\libs\Request;
 use Basttyy\FxDataServer\Models\\$name;
 use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\User;
@@ -125,47 +126,7 @@ use PDOException;
 
 final class {$name}Controller
 {
-    private \$method;
-    private \$user;
-    private \$authenticator;
-    private \$$controller_str;
-
-    public function __construct(\$method = 'show')
-    {
-        \$this->method = \$method;
-        \$this->user = new User();
-        \$this->$controller_str = new $name();
-        \$encoder = new JwtEncoder(env('APP_KEY'));
-        \$role = new Role();
-        \$this->authenticator = new JwtAuthenticator(\$encoder, \$this->user, \$role);
-    }
-
-    public function __invoke(string \$id = null)
-    {
-        switch (\$this->method) {
-            case 'show':
-                \$resp = \$this->show(\$id);
-                break;
-            case 'list':
-                \$resp = \$this->list();
-                break;
-            case 'create':
-                \$resp = \$this->create();
-                break;
-            case 'update':
-                \$resp = \$this->update(\$id);
-                break;
-            case 'delete':
-                \$resp = \$this->delete(\$id);
-                break;
-            default:
-                \$resp = JsonResponse::serverError('bad method call');
-        }
-
-        \$resp;
-    }
-
-    private function show(string \$id)
+    private function show(Request \$request, string \$id)
     {
         \$id = sanitize_data(\$id);
         try {
@@ -182,7 +143,7 @@ final class {$name}Controller
         }
     }
 
-    private function list()
+    private function list(Request \$request)
     {
         try {
             \$$controller_str_plural = \$this->{$controller_str}->all();
@@ -197,20 +158,14 @@ final class {$name}Controller
         }
     }
 
-    private function create()
+    private function create(Request \$request)
     {
         try {
-            if (!\$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
-            
-            if ( \$_SERVER['CONTENT_LENGTH'] <= env('CONTENT_LENGTH_MIN')) {
+            if ( !\$request->hasBody()) {
                 return JsonResponse::badRequest('bad request', 'body is required');
             }
-            
-            \$inputJSON = file_get_contents('php://input');
 
-            \$body = sanitize_data(json_decode(\$inputJSON, true));
+            \$body = sanitize_data(\$request->input());
             \$status = 'some, values';
 
             if (\$validated = Validator::validate(\$body, [
@@ -238,22 +193,16 @@ final class {$name}Controller
         }
     }
 
-    private function update(string \$id)
+    private function update(Request \$request, string \$id)
     {
         try {
-            if (!\$user = \$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
-            
-            if ( \$_SERVER['CONTENT_LENGTH'] <= env('CONTENT_LENGTH_MIN')) {
+            if ( !\$request->hasBody()) {
                 return JsonResponse::badRequest('bad request', 'body is required');
             }
 
             \$id = sanitize_data(\$id);
-            
-            \$inputJSON = file_get_contents('php://input');
 
-            \$body = sanitize_data(json_decode(\$inputJSON, true));
+            \$body = sanitize_data(\$request->input());
 
             \$status = 'some, values';
 
@@ -282,17 +231,15 @@ final class {$name}Controller
         }
     }
 
-    private function delete(int \$id)
+    private function delete(Request \$request, int \$id)
     {
         try {
             \$id = sanitize_data(\$id);
 
-            if (!\$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+            \$user = \$request->auth_user;
 
             // Uncomment this for role authorization
-            // if (!\$this->authenticator->verifyRole(\$this->user, 'admin')) {
+            // if (!Guard::roleIs(\$user, 'admin')) {
             //     return JsonResponse::unauthorized(\"you can't delete a $controller_str_spc\");
             // }
 

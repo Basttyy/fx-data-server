@@ -9,7 +9,6 @@ trait InitsModelEvents
 {
     public static function boot(ModelInterface | UserModelInterface | null $model, string $event)
     {
-        logger()->info('doing this in init model events instead');
     }
 
     public static function booting(ModelInterface | UserModelInterface | null $model, string $event)

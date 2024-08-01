@@ -1,10 +1,12 @@
 <?php
 namespace Basttyy\FxDataServer\Controllers\Api;
 
+use Basttyy\FxDataServer\Auth\Guard;
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\libs\Arr;
 use Basttyy\FxDataServer\libs\JsonResponse;
+use Basttyy\FxDataServer\libs\Request;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\Models\Referral;
 use Basttyy\FxDataServer\Models\Role;
@@ -16,64 +18,25 @@ use PDOException;
 
 final class ReferralController
 {
-    private $method;
-    private $user;
-    private $authenticator;
-    private $referral;
-
-    public function __construct($method = 'show')
-    {
-        $this->method = $method;
-        $this->user = new User();
-        $this->referral = new Referral();
-        $encoder = new JwtEncoder(env('APP_KEY'));
-        $role = new Role();
-        $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
-    }
-
-    public function __invoke(string $id = null)
-    {
-        switch ($this->method) {
-            case 'show':
-                $resp = $this->show($id);
-                break;
-            case 'list':
-                $resp = $this->list();
-                break;
-            case 'create':
-                $resp = $this->create();
-                break;
-            case 'update':
-                $resp = $this->update($id);
-                break;
-            case 'delete':
-                $resp = $this->delete($id);
-                break;
-            default:
-                $resp = JsonResponse::serverError('bad method call');
-        }
-
-        $resp;
-    }
-
-    private function show(string $id)
+    public function show(Request $request, string $id)
     {
         $id = sanitize_data($id);
-        if (!$this->authenticator->validate()) {
+        if (!JwtAuthenticator::validate()) {
             return JsonResponse::unauthorized();
         }
+        $user = $request->auth_user;
 
-        $is_user = $this->authenticator->verifyRole($this->user, 'user');
+        $is_user = Guard::roleIs($user, 'user');
 
         try {
-            if (!$this->referral->find((int)$id))
+            if (!$referral = Referral::getBuilder()->find((int)$id))
                 return JsonResponse::notFound('unable to retrieve referral');
 
-            if ($is_user && ($this->referral->user_id != $this->user->id || $this->referral->referred_user_id != $this->user->id)) {
+            if ($is_user && ($referral->user_id != $user->id || $referral->referred_user_id != $user->id)) {
                 return JsonResponse::unauthorized();
             }
 
-            return JsonResponse::ok('referral retrieved success', $this->referral->toArray());
+            return JsonResponse::ok('referral retrieved success', $referral->toArray());
         } catch (PDOException $e) {
             return JsonResponse::serverError('we encountered a db problem');
         } catch (LogicException $e) {
@@ -83,17 +46,15 @@ final class ReferralController
         }
     }
 
-    private function list()
+    public function list(Request $request)
     {
         try {
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+            $user = $request->auth_user;
 
-            if ($is_admin = $this->authenticator->verifyRole($this->user, 'admin')) {
-                $referrals = $referrals = $this->referral->all();
+            if ($is_admin = Guard::roleIs($user, 'admin')) {
+                $referrals = Referral::getBuilder()->all();
             } else {
-                $referrals = $this->user->referrals();
+                $referrals = $user->referrals();
             }
             
             if (!$referrals)
@@ -113,11 +74,10 @@ final class ReferralController
                 $referrals[$key] = $referral->toArray(false);
                 $referrals[$key]['refferedUser'] = array_shift($users);
             }
-            $this->user->find($this->user->id);
 
             return JsonResponse::ok("referrals retrieved success", [
                 'referrals' => $referrals,
-                'points' => $is_admin ? null : $this->user->points
+                'points' => $is_admin ? null : $user->points
             ]);
         } catch (PDOException $e) {
             logger()->info('pdo exception '.$e->getMessage(), $e->getTrace());
@@ -128,129 +88,119 @@ final class ReferralController
         }
     }
 
-    private function create()
-    {
-        try {
-            throw new NotImplementedException('this feature is not implemented');
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+    // public function create(Request $request)
+    // {
+    //     try {
+    //         throw new NotImplementedException('this feature is not implemented');
+    //         $user = $request->auth_user;
             
-            if ( $_SERVER['CONTENT_LENGTH'] <= env('CONTENT_LENGTH_MIN')) {
-                return JsonResponse::badRequest('bad request', 'body is required');
-            }
+    //         if ( !$request->hasBody()) {
+    //             return JsonResponse::badRequest('bad request', 'body is required');
+    //         }
             
-            $inputJSON = file_get_contents('php://input');
+    //         $body = sanitize_data($request->input());
+    //         $status = 'some, values';
 
-            $body = sanitize_data(json_decode($inputJSON, true));
-            $status = 'some, values';
+    //         if ($validated = Validator::validate($body, [
+    //             'foo' => 'required|string',
+    //             'bar' => 'sometimes|numeric',
+    //             'baz' => "sometimes|string|in:$status",
+    //             //add more validation rules here
+    //         ])) {
+    //             return JsonResponse::badRequest('errors in request', $validated);
+    //         }
 
-            if ($validated = Validator::validate($body, [
-                'foo' => 'required|string',
-                'bar' => 'sometimes|numeric',
-                'baz' => "sometimes|string|in:$status",
-                //add more validation rules here
-            ])) {
-                return JsonResponse::badRequest('errors in request', $validated);
-            }
+    //         if (!$referral = Referral::getBuilder()->create($body)) {
+    //             return JsonResponse::serverError('unable to create referral');
+    //         }
 
-            if (!$referral = $this->referral->create($body)) {
-                return JsonResponse::serverError('unable to create referral');
-            }
-
-            return JsonResponse::created('referral creation successful', $referral);
-        } catch (PDOException $e) {
-            if (str_contains($e->getMessage(), 'Duplicate entry'))
-                return JsonResponse::badRequest('referral already exist');
-            else $message = 'we encountered a problem';
+    //         return JsonResponse::created('referral creation successful', $referral);
+    //     } catch (PDOException $e) {
+    //         if (str_contains($e->getMessage(), 'Duplicate entry'))
+    //             return JsonResponse::badRequest('referral already exist');
+    //         else $message = 'we encountered a problem';
             
-            return JsonResponse::serverError($message);
-        } catch (NotImplementedException $e) {
-            return JsonResponse::badRequest($e->getMessage());
-        } catch (Exception $e) {
-            return JsonResponse::serverError('we encountered a problem');
-        }
-    }
+    //         return JsonResponse::serverError($message);
+    //     } catch (NotImplementedException $e) {
+    //         return JsonResponse::badRequest($e->getMessage());
+    //     } catch (Exception $e) {
+    //         return JsonResponse::serverError('we encountered a problem');
+    //     }
+    // }
 
-    private function update(string $id)
-    {
-        try {
-            throw new NotImplementedException('this feature is not implemented');
+    // public function update(Request $request, string $id)
+    // {
+    //     try {
+    //         throw new NotImplementedException('this feature is not implemented');
 
-            if (!$user = $this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+    //         $user = $request->auth_user;
             
-            if ( $_SERVER['CONTENT_LENGTH'] <= env('CONTENT_LENGTH_MIN')) {
-                return JsonResponse::badRequest('bad request', 'body is required');
-            }
+    //         if ( !$request->hasBody()) {
+    //             return JsonResponse::badRequest('bad request', 'body is required');
+    //         }
 
-            $id = sanitize_data($id);
+    //         $id = sanitize_data($id);
             
-            $inputJSON = file_get_contents('php://input');
+    //         $body = sanitize_data($request->input());
 
-            $body = sanitize_data(json_decode($inputJSON, true));
+    //         $status = 'some, values';
 
-            $status = 'some, values';
+    //         if ($validated = Validator::validate($body, [
+    //             'foo' => 'sometimes|boolean',
+    //             'bar' => 'sometimes|numeric',
+    //             'baz' => "sometimes|string|in:$status",
+    //             //add more validation rules here
+    //         ])) {
+    //             return JsonResponse::badRequest('errors in request', $validated);
+    //         }
 
-            if ($validated = Validator::validate($body, [
-                'foo' => 'sometimes|boolean',
-                'bar' => 'sometimes|numeric',
-                'baz' => "sometimes|string|in:$status",
-                //add more validation rules here
-            ])) {
-                return JsonResponse::badRequest('errors in request', $validated);
-            }
+    //         if (!$referral = Referral::getBuilder()->update($body, (int)$id)) {
+    //             return JsonResponse::notFound('unable to update referral not found');
+    //         }
 
-            if (!$this->referral->update($body, (int)$id)) {
-                return JsonResponse::notFound('unable to update referral not found');
-            }
-
-            return JsonResponse::ok('referral updated successfull', $this->referral->toArray());
-        } catch (PDOException $e) {
-            if (str_contains($e->getMessage(), 'Unknown column'))
-                return JsonResponse::badRequest('column does not exist');
-            else $message = 'we encountered a problem';
+    //         return JsonResponse::ok('referral updated successfull', $referral->toArray());
+    //     } catch (PDOException $e) {
+    //         if (str_contains($e->getMessage(), 'Unknown column'))
+    //             return JsonResponse::badRequest('column does not exist');
+    //         else $message = 'we encountered a problem';
             
-            return JsonResponse::serverError($message);
-        } catch (NotImplementedException $e) {
-            return JsonResponse::badRequest($e->getMessage());
-        } catch (Exception $e) {
-            return JsonResponse::serverError('we encountered a problem');
-        }
-    }
+    //         return JsonResponse::serverError($message);
+    //     } catch (NotImplementedException $e) {
+    //         return JsonResponse::badRequest($e->getMessage());
+    //     } catch (Exception $e) {
+    //         return JsonResponse::serverError('we encountered a problem');
+    //     }
+    // }
 
-    private function delete(int $id)
-    {
-        try {
-            throw new NotImplementedException('this feature is not implemented');
+    // public function delete(Request $request, int $id)
+    // {
+    //     try {
+    //         throw new NotImplementedException('this feature is not implemented');
 
-            $id = sanitize_data($id);
+    //         $id = sanitize_data($id);
 
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+    //         $user = $request->auth_user;
 
-            // Uncomment this for role authorization
-            // if (!$this->authenticator->verifyRole($this->user, 'admin')) {
-            //     return JsonResponse::unauthorized("you can't delete a referral");
-            // }
+    //         // Uncomment this for role authorization
+    //         // if (!Guard::roleIs($user, 'admin')) {
+    //         //     return JsonResponse::unauthorized("you can't delete a referral");
+    //         // }
 
-            if (!$this->referral->delete((int)$id)) {
-                return JsonResponse::notFound('unable to delete referral or referral not found');
-            }
+    //         if (!Referral::getBuilder()->delete((int)$id)) {
+    //             return JsonResponse::notFound('unable to delete referral or referral not found');
+    //         }
 
-            return JsonResponse::ok('referral deleted successfull');
-        } catch (PDOException $e) {
-            if (str_contains($e->getMessage(), 'Unknown column'))
-                return JsonResponse::badRequest('column does not exist');
-            else $message = 'we encountered a problem';
+    //         return JsonResponse::ok('referral deleted successfull');
+    //     } catch (PDOException $e) {
+    //         if (str_contains($e->getMessage(), 'Unknown column'))
+    //             return JsonResponse::badRequest('column does not exist');
+    //         else $message = 'we encountered a problem';
             
-            return JsonResponse::serverError($message);
-        } catch (NotImplementedException $e) {
-            return JsonResponse::badRequest($e->getMessage());
-        } catch (Exception $e) {
-            return JsonResponse::serverError('we encountered a problem');
-        }
-    }
+    //         return JsonResponse::serverError($message);
+    //     } catch (NotImplementedException $e) {
+    //         return JsonResponse::badRequest($e->getMessage());
+    //     } catch (Exception $e) {
+    //         return JsonResponse::serverError('we encountered a problem');
+    //     }
+    // }
 }

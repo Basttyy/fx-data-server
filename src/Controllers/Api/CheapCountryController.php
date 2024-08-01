@@ -1,74 +1,30 @@
 <?php
 namespace Basttyy\FxDataServer\Controllers\Api;
 
-use Basttyy\FxDataServer\Auth\JwtAuthenticator;
-use Basttyy\FxDataServer\Auth\JwtEncoder;
+use Basttyy\FxDataServer\Auth\Guard;
 use Basttyy\FxDataServer\libs\JsonResponse;
+use Basttyy\FxDataServer\libs\Request;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\Models\CheapCountry;
-use Basttyy\FxDataServer\Models\Role;
-use Basttyy\FxDataServer\Models\User;
 use Exception;
 use LogicException;
 use PDOException;
 
 final class CheapCountryController
 {
-    private $method;
-    private $user;
-    private $authenticator;
-    private $cheap_country;
-
-    public function __construct($method = 'show')
-    {
-        $this->method = $method;
-        $this->user = new User();
-        $this->cheap_country = new CheapCountry();
-        $encoder = new JwtEncoder(env('APP_KEY'));
-        $role = new Role();
-        $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
-    }
-
-    public function __invoke(string $id = null)
-    {
-        switch ($this->method) {
-            case 'show':
-                $resp = $this->show($id);
-                break;
-            case 'list':
-                $resp = $this->list();
-                break;
-            case 'create':
-                $resp = $this->create();
-                break;
-            case 'update':
-                $resp = $this->update($id);
-                break;
-            case 'delete':
-                $resp = $this->delete($id);
-                break;
-            default:
-                $resp = JsonResponse::serverError('bad method call');
-        }
-
-        $resp;
-    }
-
-    private function show(string $id)
+    public function show(Request $request, string $id)
     {
         try {
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+            $user = $request->auth_user;
     
-            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+            if (!Guard::roleIs($user, 'admin')) {
                 return JsonResponse::unauthorized("you can't view this data");
             }
             $id = sanitize_data($id);
-            if (!$this->cheap_country->find((int)$id))
+            if (!$cheap_country = CheapCountry::getBuilder()->find((int)$id))
                 return JsonResponse::notFound('unable to retrieve cheap country');
 
-            return JsonResponse::ok('cheap country retrieved success', $this->cheap_country->toArray());
+            return JsonResponse::ok('cheap country retrieved success', $cheap_country->toArray());
         } catch (PDOException $e) {
             return JsonResponse::serverError('we encountered a db problem');
         } catch (LogicException $e) {
@@ -78,21 +34,19 @@ final class CheapCountryController
         }
     }
 
-    private function list()
+    public function list(Request $request)
     {
         try {
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+            $user = $request->auth_user;
     
-            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+            if (!Guard::roleIs($user, 'admin')) {
                 return JsonResponse::unauthorized("you can't view this data");
             }
-            $cheap_countrys = $this->cheap_country->all();
-            if (!$cheap_countrys)
+            $cheap_countries = CheapCountry::getBuilder()->all();
+            if (!$cheap_countries)
                 return JsonResponse::ok('no cheap country found in list', []);
 
-            return JsonResponse::ok("cheap country's retrieved success", $cheap_countrys);
+            return JsonResponse::ok("cheap country's retrieved success", $cheap_countries);
         } catch (PDOException $e) {
             return JsonResponse::serverError('we encountered a problem');
         } catch (Exception $e) {
@@ -100,23 +54,20 @@ final class CheapCountryController
         }
     }
 
-    private function create()
+    public function create(Request $request, )
     {
         try {
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+            $user = $request->auth_user;
                 
-            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+            if (!Guard::roleIs($user, 'admin')) {
                 return JsonResponse::unauthorized("you can't perform this operation");
             }
             
-            if ( $_SERVER['CONTENT_LENGTH'] <= env('CONTENT_LENGTH_MIN')) {
+            if ( !$request->hasBody()) {
                 return JsonResponse::badRequest('bad request', 'body is required');
             }
-            $inputJSON = file_get_contents('php://input');
+            $body = sanitize_data($request->input());
 
-            $body = sanitize_data(json_decode($inputJSON, true));
             $continents = CheapCountry::AFRICA.', '.CheapCountry::ANTARTICA.', '.CheapCountry::ASIA.', '.CheapCountry::EUROPE
                         .', '.CheapCountry::NORTH_AMERICA.', '.CheapCountry::OCEANIA.', '.CheapCountry::SOUTH_AMERICA;
 
@@ -128,7 +79,7 @@ final class CheapCountryController
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
-            if (!$cheap_country = $this->cheap_country->create($body)) {
+            if (!$cheap_country = CheapCountry::getBuilder()->create($body)) {
                 return JsonResponse::serverError('unable to create cheap country');
             }
 
@@ -144,26 +95,22 @@ final class CheapCountryController
         }
     }
 
-    private function update(string $id)
+    public function update(Request $request, string $id)
     {
         try {
-            if (!$user = $this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+            $user = $request->auth_user;
                 
-            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+            if (!Guard::roleIs($user, 'admin')) {
                 return JsonResponse::unauthorized("you can't perform this operation");
             }
             
-            if ( $_SERVER['CONTENT_LENGTH'] <= env('CONTENT_LENGTH_MIN')) {
+            if ( !$request->hasBody()) {
                 return JsonResponse::badRequest('bad request', 'body is required');
             }
 
             $id = sanitize_data($id);
             
-            $inputJSON = file_get_contents('php://input');
-
-            $body = sanitize_data(json_decode($inputJSON, true));
+            $body = sanitize_data($request->input());
             $continents = CheapCountry::AFRICA.', '.CheapCountry::ANTARTICA.', '.CheapCountry::ASIA.', '.CheapCountry::EUROPE
                         .', '.CheapCountry::NORTH_AMERICA.', '.CheapCountry::OCEANIA.', '.CheapCountry::SOUTH_AMERICA;
 
@@ -175,11 +122,11 @@ final class CheapCountryController
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
-            if (!$this->cheap_country->update($body, (int)$id)) {
+            if (!$cheap_country = CheapCountry::getBuilder()->update($body, (int)$id)) {
                 return JsonResponse::notFound('unable to update cheap country not found');
             }
 
-            return JsonResponse::ok('cheap country updated successfull', $this->cheap_country->toArray());
+            return JsonResponse::ok('cheap country updated successfull', $cheap_country->toArray());
         } catch (PDOException $e) {
             if (str_contains($e->getMessage(), 'Unknown column'))
                 return JsonResponse::badRequest('column does not exist');
@@ -191,21 +138,18 @@ final class CheapCountryController
         }
     }
 
-    private function delete(int $id)
+    public function delete(Request $request, int $id)
     {
         try {
             $id = sanitize_data($id);
 
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+            $user = $request->auth_user;
 
-            //Uncomment this for role authorization
-            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+            if (!Guard::roleIs($user, 'admin')) {
                 return JsonResponse::unauthorized("you can't delete a cheap country");
             }
 
-            if (!$this->cheap_country->delete((int)$id)) {
+            if (!CheapCountry::getBuilder()->delete((int)$id)) {
                 return JsonResponse::notFound('unable to delete cheap country or cheap country not found');
             }
 

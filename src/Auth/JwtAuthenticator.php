@@ -12,21 +12,21 @@ final class JwtAuthenticator
 {
     private const HEADER_VALUE_PATTERN = "/Bearer\s+(.*)$/i";
 
-    private $encoder;
-    private $user;
+    private static $encoder;
+    private static $user;
 
     // variables used for jwt
-    private $key;
-    private $iss;
-    private $aud;
+    private static $key;
+    private static $iss;
+    private static $aud;
 
     public function __construct(JwtEncoder $encoder, User $user)
     {
-        $this->key = env('JWT_KEY');
-        $this->iss = env('JWT_ISS');
-        $this->aud = env('JWT_AUD');
-        $this->encoder = $encoder;
-        $this->user = $user;
+        static::$key = env('JWT_KEY');
+        static::$iss = env('JWT_ISS');
+        static::$aud = env('JWT_AUD');
+        static::$encoder = $encoder;
+        static::$user = $user;
     }
 
     /**
@@ -38,8 +38,10 @@ final class JwtAuthenticator
      * 
      * @return bool|User
      */
-    public function verifyRole($user, $_role, $return_bool = true)
+    public static function verifyRole($user, $_role, $return_bool = true)
     {
+        new static(new JwtEncoder(env('APP_KEY')), $user);
+
         if (!is_array($_role)) {
             $_role = [$_role];
         }
@@ -57,9 +59,10 @@ final class JwtAuthenticator
      *
      * @return bool|User
      */
-    public function validate()
+    public static function validate()
     {
-        $jwt = $this->extractToken();
+        new static(new JwtEncoder(env('APP_KEY')), new User);
+        $jwt = self::extractToken();
         if (empty($jwt)) {
             return false;
         }
@@ -76,27 +79,27 @@ final class JwtAuthenticator
                 $adapter = null;
             }
             if ($adapter instanceof AdapterInterface) {
-                if (!$this->user->find((int)base64_decode(str_replace('social_login:', '', $jwt), false))) {
+                if (!self::$user->find((int)base64_decode(str_replace('social_login:', '', $jwt), false))) {
                     return false;
                 }
                 $user_profile = $adapter->getUserProfile();
-                if ($this->user->uuid !== $user_profile->identifier && $this->user->email !== $user_profile->email) {
+                if (self::$user->uuid !== $user_profile->identifier && self::$user->email !== $user_profile->email) {
                     return false;
                 }
-                return $this->user;
+                return self::$user;
             }
             return false;
         }
 
-        if (is_null($payload = $this->encoder->decode($jwt))) {
+        if (is_null($payload = self::$encoder->decode($jwt))) {
             return false;
         }
         
-        if (!$this->user->find($payload->data->id, false)) {
+        if (!self::$user->find($payload->data->id, false)) {
             return false;
         }
 
-        return $this->user;
+        return self::$user;
     }
 
     /**
@@ -105,21 +108,21 @@ final class JwtAuthenticator
      * @param string $social_token
      * @return bool|string
      */
-    public function validateSocial($social_token)
+    public static function validateSocial($social_token)
     {
-        $jwt = $this->extractToken();
+        $jwt = self::extractToken();
         if (empty($jwt)) {
             return false;
         }
-        if (is_null($payload = $this->encoder->decode($jwt))) {
+        if (is_null($payload = self::$encoder->decode($jwt))) {
             return false;
         }
 
-        $user = $this->user->fill((array)$payload->data);
-        return $this->authenticate($user, $social_token);
+        $user = self::$user->fill((array)$payload->data);
+        return self::authenticate($user, $social_token);
     }
 
-    private function extractToken(): ?string
+    private static function extractToken(): ?string
     {
         if (!isset($_SERVER['HTTP_AUTHORIZATION']))
             return null;
@@ -147,10 +150,11 @@ final class JwtAuthenticator
      * @param string $password_or_token
      * @return string|bool
      */
-    public function authenticate(User $user, string $password_or_token = "")
+    public static function authenticate(User $user, string $password_or_token = "")
     {
+        new static(new JwtEncoder(env('APP_KEY')), $user);
         if ($password_or_token === "") {
-            if (!$this->validate()) {
+            if (!self::validate()) {
                 return false;
             }
         } else {
@@ -163,9 +167,9 @@ final class JwtAuthenticator
         $expiration_time = $issued_at + (60 * 60);      //valid for one hour
         $not_before = $issued_at - 5;
 
-        $token = $this->encoder->encode([
-            "iss" => $this->iss,
-            "aud" => $this->aud,
+        $token = self::$encoder->encode([
+            "iss" => self::$iss,
+            "aud" => self::$aud,
             "iat" => $issued_at,
             "nbf" => $not_before,
             "exp" => $expiration_time,
@@ -174,7 +178,7 @@ final class JwtAuthenticator
                 "firstname" => $user->firstname,
                 "lastname" => $user->lastname,
             ]
-        ], $this->key);
+        ], self::$key);
         return $token;
     }
 }

@@ -51,6 +51,9 @@ class Request
 
     public function query($key = null, $default = null)
     {
+        if ($key == null)
+            return $this->query;
+
         return $this->retrieveItem($this->query, $key, $default);
     }
 
@@ -73,7 +76,7 @@ class Request
 
     public function hasBody()
     {
-        return $this->server('CONTENT_LENGTH') ?? 0 > 0;
+        return $this->server('CONTENT_LENGTH') ?? 0 > env('CONTENT_LENGTH_MIN');
     }
 
     public function file($key = null)

@@ -1,79 +1,32 @@
 <?php
 namespace Basttyy\FxDataServer\Controllers\Api;
 
-use Basttyy\FxDataServer\Auth\JwtAuthenticator;
-use Basttyy\FxDataServer\Auth\JwtEncoder;
+use Basttyy\FxDataServer\Auth\Guard;
 use Basttyy\FxDataServer\libs\JsonResponse;
+use Basttyy\FxDataServer\libs\Request;
 use Basttyy\FxDataServer\libs\Validator;
-use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\Feedback;
-use Basttyy\FxDataServer\Models\User;
 use Exception;
 use LogicException;
 use PDOException;
 
 final class FeedbackController
 {
-    private $method;
-    private $user;
-    private $authenticator;
-    private $feedback;
-
-    public function __construct($method = "show")
-    {
-        $this->method = $method;
-        $this->user = new User();
-        $this->feedback = new Feedback();
-        $encoder = new JwtEncoder(env('APP_KEY'));
-        $role = new Role();
-        $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
-    }
-
-    public function __invoke(string $id = null)
-    {
-        switch ($this->method) {
-            case 'show':
-                $resp = $this->show($id);
-                break;
-            case 'list':
-                $resp = $this->list();
-                break;
-            case 'list_user':
-                $resp = $this->list_user($id);
-                break;
-            case 'create':
-                $resp = $this->create();
-                break;
-            case 'update':
-                $resp = $this->update($id);
-                break;
-            case 'delete':
-                $resp = $this->delete($id);
-                break;
-            default:
-                $resp = JsonResponse::serverError('bad method call');
-        }
-
-        $resp;
-    }
-
-    private function show(string $id)
+    public function show(Request $request, string $id)
     {
         $id = sanitize_data($id);
         try {
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
-            $is_admin = $this->authenticator->verifyRole($this->user, 'admin');
+            $user = $request->auth_user;
+            $is_admin = Guard::roleIs($user, 'admin');
 
-            if (!$this->feedback->find((int)$id))
+            if (!$feedback = Feedback::getBuilder()->find((int)$id))
                 return JsonResponse::notFound("unable to retrieve feedback");
                 
-            if ($is_admin === false && $this->feedback->user_id != $this->user->id) {
+            if ($is_admin === false && $feedback->user_id != $user->id) {
                 return JsonResponse::unauthorized("you can't view this feedback");
             }
 
-            return JsonResponse::ok("feedback retrieved success", $this->feedback->toArray());
+            return JsonResponse::ok("feedback retrieved success", $feedback->toArray());
         } catch (PDOException $e) {
             return JsonResponse::serverError("we encountered a problem");
         } catch (LogicException $e) {
@@ -83,18 +36,15 @@ final class FeedbackController
         }
     }
     
-    private function list()
+    public function list(Request $request)
     {
         try {
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
-            $is_admin = $this->authenticator->verifyRole($this->user, 'admin');
+            $user = $request->auth_user;
 
-            if ($is_admin) {
-                $feedbacks = $this->feedback->all();
+            if (Guard::roleIs($user, 'admin')) {
+                $feedbacks = Feedback::getBuilder()->all();
             } else {
-                $feedbacks = $this->feedback->findBy("user_id", $this->user->id);
+                $feedbacks = Feedback::getBuilder()->findBy("user_id", $user->id);
             }
             if (!$feedbacks)
                 return JsonResponse::ok("no feedback found in list", []);
@@ -107,18 +57,16 @@ final class FeedbackController
         }
     }
 
-    private function list_user(string $id)
+    public function list_user(Request $request, string $id)
     {
         try {
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+            $user = $request->auth_user;
 
-            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+            if (!Guard::roleIs($user, 'admin')) {
                 return JsonResponse::unauthorized("you can't view this user's feedbacks");
             }
             $id = sanitize_data($id);
-            $feedbacks = $this->feedback->findBy("user_id", $id);
+            $feedbacks = Feedback::getBuilder()->findBy("user_id", $id);
             
             if (!$feedbacks)
                 return JsonResponse::ok("no feedback found in list", []);
@@ -131,25 +79,21 @@ final class FeedbackController
         }
     }
 
-    private function create()
+    public function create(Request $request)
     {
         try {
             // Check if the request has a body
-            if ( $_SERVER['CONTENT_LENGTH'] <= env('CONTENT_LENGTH_MIN')) {
+            if ( !$request->hasBody()) {
                 //return "body is required" response;
                 return JsonResponse::badRequest("bad request", "body is required");
             }
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+            $user = $request->auth_user;
 
-            if (!$this->authenticator->verifyRole($this->user, 'user')) {
+            if (!Guard::roleIs($user, 'user')) {
                 return JsonResponse::unauthorized("only users can create feedback");
             }
             
-            $inputJSON = file_get_contents('php://input');
-
-            $body = sanitize_data(json_decode($inputJSON, true));
+            $body = sanitize_data($request->input());
 
             if ($validated = Validator::validate($body, [
                 'title' => 'required|string',
@@ -161,7 +105,7 @@ final class FeedbackController
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
-            $body['user_id'] = $this->user->id;
+            $body['user_id'] = $user->id;
             $image = base64_decode($body['image']);
             $path = storage_path(). 'files/uploads/feedbacks/';
             
@@ -173,7 +117,7 @@ final class FeedbackController
 
             file_put_contents($path . $target_file, $image);
 
-            if (!$feedback = $this->feedback->create($body)) {
+            if (!$feedback = Feedback::getBuilder()->create($body)) {
                 return JsonResponse::serverError("unable to create feedback");
             }
 
@@ -192,21 +136,16 @@ final class FeedbackController
         }
     }
 
-    private function update(string $id)
+    public function update(Request $request, string $id)
     {
         try {
             // Check if the request has a body
-            if ( $_SERVER['CONTENT_LENGTH'] <= env('CONTENT_LENGTH_MIN')) {
+            if ( !$request->hasBody()) {
                 //return "body is required" response;
                 return JsonResponse::badRequest("bad request", "body is required");
             }
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
             
-            $inputJSON = file_get_contents('php://input');
-
-            $body = sanitize_data(json_decode($inputJSON, true));
+            $body = sanitize_data($request->input());
             $id = sanitize_data($id);
             $status = Feedback::PENDING.', '.Feedback::REOPENED.', '.Feedback::RESOLVED.', '.Feedback::RESOLVING.', '.Feedback::STALED;
 
@@ -220,11 +159,11 @@ final class FeedbackController
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
-            if (!$this->feedback->find($id)) {
+            if (!$feedback = Feedback::getBuilder()->find($id)) {
                 return JsonResponse::notFound('feedback not found');
             }
             if (isset($body['image'])) {
-                $prev_image = $this->feedback->image;
+                $prev_image = $feedback->image;
                 $image = base64_decode($body['image']);
                 $path = storage_path(). 'files/uploads/feedbacks/';
                 
@@ -239,11 +178,11 @@ final class FeedbackController
                 }
             }
 
-            if (!$this->feedback->update($body, (int)$id)) {
+            if (!$feedback->update($body, (int)$id)) {
                 return JsonResponse::notFound("unable to update feedback");
             }
 
-            return JsonResponse::ok("feedback updated successfull", $this->feedback->toArray());
+            return JsonResponse::ok("feedback updated successfull", $feedback->toArray());
         } catch (PDOException $e) {
             if (env("APP_ENV") === "local")
                 $message = $e->getMessage();
@@ -258,21 +197,18 @@ final class FeedbackController
         }
     }
 
-    private function delete(int $id)
+    public function delete(Request $request, int $id)
     {
         return JsonResponse::ok('route not yet implemented');
         try {
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+            $user = $request->auth_user;
 
-            if (!$this->authenticator->verifyRole($this->user, 'user')) {
+            if (!Guard::roleIs($user, 'user')) {
                 return JsonResponse::unauthorized("only users can create feedback");
             }
             $id = sanitize_data($id);
 
-            // echo "got to pass login";
-            if (!$this->feedback->delete((int)$id)) {
+            if (!Feedback::getBuilder()->delete((int)$id)) {
                 return JsonResponse::notFound("unable to delete feedback or feedback not found");
             }
 

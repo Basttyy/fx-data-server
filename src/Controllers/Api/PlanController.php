@@ -1,11 +1,13 @@
 <?php
 namespace Basttyy\FxDataServer\Controllers\Api;
 
+use Basttyy\FxDataServer\Auth\Guard;
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\libs\Arr;
 use Basttyy\FxDataServer\libs\Geolocation\IP2Location\WebService;
 use Basttyy\FxDataServer\libs\JsonResponse;
+use Basttyy\FxDataServer\libs\Request;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\Models\Plan;
 use Basttyy\FxDataServer\Models\Role;
@@ -20,54 +22,15 @@ use PDOException;
 final class PlanController
 {
     use Flutterwave;
-    private $method;
-    private $user;
-    private $authenticator;
-    private $plan;
 
-    public function __construct($method = "show")
-    {
-        $this->method = $method;
-        $this->user = new User();
-        $this->plan = new Plan();
-        $encoder = new JwtEncoder(env('APP_KEY'));
-        $role = new Role();
-        $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
-    }
-
-    public function __invoke(string $id = null)
-    {
-        switch ($this->method) {
-            case 'show':
-                $resp = $this->show($id);
-                break;
-            case 'list':
-                $resp = $this->list($id);
-                break;
-            case 'create':
-                $resp = $this->create();
-                break;
-            case 'update':
-                $resp = $this->update($id);
-                break;
-            case 'delete':
-                $resp = $this->delete($id);
-                break;
-            default:
-                $resp = JsonResponse::serverError('bad method call');
-        }
-
-        $resp;
-    }
-
-    private function show(string $id)
+    public function show(Request $request, string $id)
     {
         $id = sanitize_data($id);
         try {
-            if (!$this->plan->find((int)$id))
+            if (!$plan = Plan::getBuilder()->find((int)$id))
                 return JsonResponse::notFound("unable to retrieve plan");
 
-            return JsonResponse::ok("plan retrieved success", $this->plan->toArray());
+            return JsonResponse::ok("plan retrieved success", $plan->toArray());
         } catch (PDOException $e) {
             return JsonResponse::serverError("we encountered a db problem");
         } catch (LogicException $e) {
@@ -77,25 +40,29 @@ final class PlanController
         }
     }
 
-    private function list(string $standard = null)
+    public function list(Request $request, string $standard = null)
     {
         try {
+            $builder = Plan::getBuilder();
+            if (count($request->query())) {
+
+            }
             if (is_null($standard)) {
-                $plans = $this->plan->all();
+                $plans = $builder->all();
                 return JsonResponse::ok("plans retrieved success", $plans);
             }
 
             if ($standard == 'low') {
-                $plans = $this->plan->where('for_cheap_regions', 1)->get();
+                $plans = $builder->where('for_cheap_regions', 1)->get();
             } else if ($standard == 'high') {
-                $plans = $this->plan->where('for_cheap_regions', 0)->get();
-            } else if ($this->authenticator->validate()) {
-                if ($this->authenticator->verifyRole($this->user, 'admin')) {
-                    $plans = $this->plan->all();
+                $plans = $builder->where('for_cheap_regions', 0)->get();
+            } else if ($user = JwtAuthenticator::validate()) {
+                if (Guard::roleIs($user, 'admin')) {
+                    $plans = $builder->all();
                 } else {
-                    $ischeapcountry = CheapCountry::getBuilder()->where('name', $this->user->country)->count();
+                    $ischeapcountry = CheapCountry::getBuilder()->where('name', $user->country)->count();
 
-                    $plans = $ischeapcountry ? $this->plan->where('for_cheap_regions', 1)->get() : $this->plan->where('for_cheap_regions', 0)->get();
+                    $plans = $ischeapcountry ? $builder->where('for_cheap_regions', 1)->get() : $builder->where('for_cheap_regions', 0)->get();
                 }
             } else {
                 $ipaddress = getenv('HTTP_X_FORWARDED_FOR') ? getenv('HTTP_X_FORWARDED_FOR') : getenv('REMOTE_ADDR');
@@ -105,7 +72,7 @@ final class PlanController
                 $records = $ws->lookup($ipaddress, language: 'en');
 
                 $ischeapcountry = $records != false ? CheapCountry::getBuilder()->where('name', $records['country_name'])->count() : false;
-                $plans = $ischeapcountry ? $this->plan->where('for_cheap_regions', 1)->get() : $this->plan->where('for_cheap_regions', 0)->get();
+                $plans = $ischeapcountry ? $builder->where('for_cheap_regions', 1)->get() : $builder->where('for_cheap_regions', 0)->get();
             }
             if (!$plans)
                 return JsonResponse::ok('no plan found in list', []);
@@ -122,25 +89,21 @@ final class PlanController
         }
     }
 
-    private function create()
+    public function create(Request $request)
     {
         try {
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
             // Check if the request has a body
-            if ( $_SERVER['CONTENT_LENGTH'] <= env('CONTENT_LENGTH_MIN')) {
+            if ( !$request->hasBody()) {
                 //return "body is required" response;
                 return JsonResponse::badRequest("bad request", "body is required");
             }
+            $user = $request->auth_user;
 
-            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+            if (!Guard::roleIs($user, 'admin')) {
                 return JsonResponse::unauthorized("you can't create a plan");
             }
             
-            $inputJSON = file_get_contents('php://input');
-
-            $body = sanitize_data(json_decode($inputJSON, true));
+            $body = sanitize_data($request->input());
             $status = Plan::DISABLED.', '.Plan::ENABLED;
             $intervals = implode(', ', Plan::INTERVALS);
 
@@ -157,15 +120,15 @@ final class PlanController
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
-            $this->plan->beginTransaction();
+            $plan = new Plan;
+            $plan->beginTransaction();
 
             $body['price'] = (float)$body['price'];
             $body['for_cheap_regions'] = (int)$body['for_cheap_regions'];
 
-            if (!$plan = $this->plan->create(Arr::except($body, 'currency'))) {
+            if (!$plan->create(Arr::except($body, 'currency'))) {
                 return JsonResponse::serverError("unable to create plan");
             }
-            $this->plan->fill($plan);
 
             // \Flutterwave\Flutterwave::bootstrap();
 
@@ -189,19 +152,19 @@ final class PlanController
             // $response = $paymentPlansService->create($payload);
 
             if ($response->status !== 'success') {
-                $this->plan->rollback();
+                $plan->rollback();
                 return JsonResponse::serverError("unable to create plan");
             }
 
-            if (!$this->plan->update([
+            if (!$plan->update([
                 'plan_token' => $response->data->plan_token,
                 'third_party_id' => $response->data->id
             ])) {
-                $this->plan->rollback();
+                $plan->rollback();
                 return JsonResponse::serverError("unable to create plan");
             }
 
-            $this->plan->commit();
+            $plan->commit();
 
             ///TODO:: send campaign notification to users/subscribers about the new plan
 
@@ -220,27 +183,23 @@ final class PlanController
         }
     }
 
-    private function update(string $id)
+    public function update(Request $request, string $id)
     {
         try {
-            if (!$user = $this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
             // Check if the request has a body
-            if ( $_SERVER['CONTENT_LENGTH'] <= env('CONTENT_LENGTH_MIN')) {
+            if ( !$request->hasBody()) {
                 //return "body is required" response;
                 return JsonResponse::badRequest("bad request", "body is required");
             }
 
             $id = sanitize_data($id);
+            $user = $request->auth_user;
 
-            if (!$this->authenticator->verifyRole($user, 'admin')) {
+            if (!Guard::roleIs($user, 'admin')) {
                 return JsonResponse::unauthorized("you can't update a plan");
             }
             
-            $inputJSON = file_get_contents('php://input');
-
-            $body = sanitize_data(json_decode($inputJSON, true));
+            $body = sanitize_data($request->input());
 
             $status = Plan::DISABLED.', '.Plan::ENABLED;
             $intervals = implode(', ', Plan::INTERVALS);
@@ -260,11 +219,11 @@ final class PlanController
             $body['price'] = (float)$body['price'];
             $body['for_cheap_regions'] = (int)$body['for_cheap_regions'];
 
-            if (!$this->plan->update($body, (int)$id)) {
+            if (!$plan = Plan::getBuilder()->update($body, (int)$id)) {
                 return JsonResponse::notFound("unable to update plan not found");
             }
 
-            return JsonResponse::ok("plan updated successfull", $this->plan->toArray());
+            return JsonResponse::ok("plan updated successfull", $plan->toArray());
         } catch (PDOException $e) {
             if (env("APP_ENV") === "local")
                 $message = $e->getMessage();
@@ -279,21 +238,18 @@ final class PlanController
         }
     }
 
-    private function delete(int $id)
+    public function delete(Request $request, int $id)
     {
         try {
             $id = sanitize_data($id);
+            $user = $request->auth_user;
 
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
-
-            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+            if (!Guard::roleIs($user, 'admin')) {
                 return JsonResponse::unauthorized("you can't delete a plan");
             }
 
             // echo "got to pass login";
-            if (!$this->plan->delete((int)$id)) {
+            if (!Plan::getBuilder()->delete((int)$id)) {
                 return JsonResponse::notFound("unable to delete plan or plan not found");
             }
 

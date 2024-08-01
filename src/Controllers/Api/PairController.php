@@ -1,9 +1,11 @@
 <?php
 namespace Basttyy\FxDataServer\Controllers\Api;
 
+use Basttyy\FxDataServer\Auth\Guard;
 use Basttyy\FxDataServer\Auth\JwtAuthenticator;
 use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\libs\JsonResponse;
+use Basttyy\FxDataServer\libs\Request;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\Pair;
@@ -14,64 +16,14 @@ use PDOException;
 
 final class PairController
 {
-    private $method;
-    private $user;
-    private $authenticator;
-    private $pair;
-
-    public function __construct($method = "show")
-    {
-        $this->method = $method;
-        $this->user = new User();
-        $this->pair = new Pair();
-        $encoder = new JwtEncoder(env('APP_KEY'));
-        $role = new Role();
-        $this->authenticator = new JwtAuthenticator($encoder, $this->user, $role);
-    }
-
-    public function __invoke(string $id = null, string $query = null)
-    {
-        switch ($this->method) {
-            case 'show':
-                $resp = $this->show($id);
-                break;
-            case 'list':
-                $resp = $this->list();
-                break;
-            case 'listonlypair':
-                $resp = $this->listonlypair();
-                break;
-            case 'query':
-                $resp = $this->query($id);
-                break;
-            case 'create':
-                $resp = $this->create();
-                break;
-            case 'update':
-                $resp = $this->update($id);
-                break;
-            case 'delete':
-                $resp = $this->delete($id);
-                break;
-            default:
-                $resp = JsonResponse::serverError('bad method call');
-        }
-
-        $resp;
-    }
-
-    private function show(string $id)
+    public function show(Request $request, string $id)
     {
         $id = sanitize_data($id);
         try {
-            if (!$user = $this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
-
-            if (!$this->pair->find((int)$id))
+            if (!$pair = Pair::getBuilder()->find((int)$id))
                 return JsonResponse::notFound("unable to retrieve pair");
 
-            return JsonResponse::ok("pair retrieved success", $this->pair->toArray(select: $this->pair->pairinfos));
+            return JsonResponse::ok("pair retrieved success", $pair->toArray(select: $pair->pairinfos));
         } catch (PDOException $e) {
             return JsonResponse::serverError("we encountered a problem");
         } catch (LogicException $e) {
@@ -81,10 +33,10 @@ final class PairController
         }
     }
     
-    private function list()
+    public function list(Request $request)
     {
         try {
-            if (!$pairs = $this->pair->all())
+            if (!$pairs = Pair::getBuilder()->all())
                 return JsonResponse::ok("no pair found in list", []);
 
             return JsonResponse::ok("pairs retrieved success", $pairs);
@@ -95,10 +47,10 @@ final class PairController
         }
     }
   
-    private function listonlypair()
+    public function listonlypair(Request $request)
     {
         try {
-            if (!$pairs = $this->pair->all(select: $this->pair->pairinfos))
+            if (!$pairs = Pair::getBuilder()->all(select: Pair::pairinfos))
                 return JsonResponse::ok("no pair found in list", []);
 
             return JsonResponse::ok("pairs retrieved success", $pairs);
@@ -109,7 +61,7 @@ final class PairController
         }
     }
 
-    private function query(string $id)
+    public function query(Request $request, string $id)
     {
         try {
             $params = sanitize_data($_GET);
@@ -126,16 +78,16 @@ final class PairController
             if ($id == 0)
                 $select = [];
             else if ($id == 1)
-                $select = $this->pair->pairinfos;
+                $select = Pair::pairinfos;
             else
-                $select = $this->pair->symbolinfos;
+                $select = Pair::symbolinfos;
 
             // if (!$pairs = $this->pair->findByArray(array_keys($params), array_values($params), select: $select))
             $searchstring = '';
             $pairs = [];
             if (isset($params['searchstring'])) {
                 $searchstring = $params['searchstring'];
-                if (!$pairs1 = $this->pair->whereLike('name', "$searchstring")
+                if (!$pairs1 = Pair::getBuilder()->whereLike('name', "$searchstring")
                             ->orWhereLike('short_name', "$searchstring")
                             ->orWhereLike('ticker', "$searchstring")
                             ->orWhereLike('description', "$searchstring")
@@ -159,7 +111,7 @@ final class PairController
                     next($pairs1);
                 }
             } else if (isset($name)) {
-                if (!$pairs = $this->pair->where('name', $params['name'])->all())
+                if (!$pairs = Pair::getBuilder()->where('name', $params['name'])->all())
                     return JsonResponse::ok("no piar found in list2", []);
             }
 
@@ -174,25 +126,20 @@ final class PairController
         }
     }
 
-    private function create()
+    public function create(Request $request)
     {
         try {
             // Check if the request has a body
-            if ( $_SERVER['CONTENT_LENGTH'] <= env('CONTENT_LENGTH_MIN')) {
-                //return "body is required" response;
+            if ( !$request->hasBody()) {
                 return JsonResponse::badRequest("bad request", "body is required");
             }
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+            $user = $request->auth_user;
 
-            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+            if (!Guard::roleIs($user, 'admin')) {
                 return JsonResponse::unauthorized("you don't have this permission");
             }
             
-            $inputJSON = file_get_contents('php://input');
-
-            $body = sanitize_data(json_decode($inputJSON, true));
+            $body = sanitize_data($request->input());
             $status = Pair::DISABLED.', '.Pair::ENABLED;
             $markets = Pair::FX.', '.Pair::COMODITY.', '.Pair::CRYPTO.', '.Pair::STOCKS.', '.Pair::INDEX;
 
@@ -218,7 +165,7 @@ final class PairController
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
-            if (!$pair = $this->pair->create($body)) {
+            if (!$pair = Pair::getBuilder()->create($body)) {
                 return JsonResponse::serverError("unable to create pair");
             }
 
@@ -237,25 +184,20 @@ final class PairController
         }
     }
 
-    private function update(string $id)
+    public function update(Request $request, string $id)
     {
         try {
             // Check if the request has a body
-            if ( $_SERVER['CONTENT_LENGTH'] <= env('CONTENT_LENGTH_MIN')) {
-                //return "body is required" response;
+            if ( !$request->hasBody()) {
                 return JsonResponse::badRequest("bad request", "body is required");
             }
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+            $user = $request->auth_user;
 
-            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+            if (!Guard::roleIs($user, 'admin')) {
                 return JsonResponse::unauthorized("you don't have this permission");
             }
             
-            $inputJSON = file_get_contents('php://input');
-
-            $body = sanitize_data(json_decode($inputJSON, true));
+            $body = sanitize_data($request->input());
             $id = sanitize_data($id);
             $status = Pair::DISABLED.', '.Pair::ENABLED;
             $markets = Pair::FX.', '.Pair::COMODITY.', '.Pair::CRYPTO.', '.Pair::STOCKS.', '.Pair::INDEX;
@@ -282,12 +224,11 @@ final class PairController
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
-            // echo "got to pass login";
-            if (!$this->pair->update($body, (int)$id)) {
+            if (!$pair = Pair::getBuilder()->update($body, (int)$id)) {
                 return JsonResponse::notFound("unable to update pair");
             }
 
-            return JsonResponse::ok("pair updated successfully", $this->pair->toArray(select: $this->pair->pairinfos));
+            return JsonResponse::ok("pair updated successfully", $pair->toArray(select: $pair->pairinfos));
         } catch (PDOException $e) {
             if (env("APP_ENV") === "local")
                 $message = $e->getMessage();
@@ -302,19 +243,17 @@ final class PairController
         }
     }
 
-    private function delete(int $id)
+    public function delete(Request $request, int $id)
     {
         try {
-            if (!$this->authenticator->validate()) {
-                return JsonResponse::unauthorized();
-            }
+            $user = $request->auth_user;
 
-            if (!$this->authenticator->verifyRole($this->user, 'admin')) {
+            if (!Guard::roleIs($user, 'admin')) {
                 return JsonResponse::unauthorized("you don't have this permission");
             }
             $id = sanitize_data($id);
 
-            if (!$this->pair->delete((int)$id)) {
+            if (!Pair::getBuilder()->delete((int)$id)) {
                 return JsonResponse::notFound("unable to delete pair or pair not found");
             }
 
