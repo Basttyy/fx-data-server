@@ -25,6 +25,7 @@ use Basttyy\FxDataServer\Controllers\NotFoundController;
 use Basttyy\FxDataServer\libs\Request;
 use Basttyy\FxDataServer\libs\Router;
 use Basttyy\FxDataServer\Middlewares\AuthMiddleware;
+use Basttyy\FxDataServer\Middlewares\ThrottleRequestsMiddleware;
 use Basttyy\FxDataServer\Middlewares\VisitLoggerMiddleware;
 
 Router::middleware(VisitLoggerMiddleware::class, function () {
@@ -47,20 +48,18 @@ Router::middleware(VisitLoggerMiddleware::class, function () {
         /// User Special Routes
         Router::post('/method/$method', [UserExplicitController::class, 'index']);
         Router::middleware(AuthMiddleware::class, function () {
-            Router::get('/$id', [UserController::class, 'show']);
-            Router::name('users.list', function() {
-                Router::get('', [UserController::class, 'list']);
-            });
+            Router::get('/$id', [UserController::class, 'show'])->middleware([ThrottleRequestsMiddleware::class, "3,60"]);
+            Router::get('', [UserController::class, 'list'])->name('users.list')->middleware([[ThrottleRequestsMiddleware::class, "3,60"]]);
             Router::get('/query/$query', [UserController::class, 'list']);
-            Router::put('/$id', [UserController::class, 'update']);
-            Router::delete('/$id', [UserController::class, 'delete']);
-            Router::post('/exchange-points', [UserController::class, 'exchangePoints']);
+            Router::put('/$id', [UserController::class, 'update'])->middleware([ThrottleRequestsMiddleware::class]);
+            Router::delete('/$id', [UserController::class, 'delete'])->middleware(ThrottleRequestsMiddleware::class);
+            Router::post('/affilliate/withdraw/$points', [UserController::class, 'withrawAffilliateEarnings']);
         });
     });
     /// Plan Routes
     Router::group('/plans', function () {
         Router::get('/$id', [PlanController::class, 'show']);
-        Router::get('', [PlanController::class, 'list']);
+        Router::get('', [PlanController::class, 'list'])->middleware([[ThrottleRequestsMiddleware::class]]);
         Router::get('/standard/$standard', [PlanController::class, 'list']);
         Router::get('/query/$query', [PlanController::class, 'list']);
         Router::middleware(AuthMiddleware::class, function () {
@@ -164,9 +163,7 @@ Router::middleware(VisitLoggerMiddleware::class, function () {
                 Router::get('/query/$query', [VisitController::class, 'list']);
             });
             Router::group('/blog', function () {
-                Router::name('admin.blog.posts', function () {
-                    Router::post('/posts', [BlogController::class, 'create']);
-                });
+                Router::post('/posts', [BlogController::class, 'create'])->name('admin.blog.posts');
                 Router::put('/posts/$id', [BlogController::class, 'update']);
                 Router::delete('/posts/$id', [BlogController::class, 'delete']);
             });
@@ -209,7 +206,7 @@ Router::middleware(VisitLoggerMiddleware::class, function () {
         Router::get('/tickers/query', [MiscellaneousController::class, 'searchTicker']);
     });
     /// Others
-    Router::post('/misc/contact-us', [MiscellaneousController::class, 'contact_us']);
+    Router::post('/misc/contact-us', [MiscellaneousController::class, 'contact_us'])->name('contact-us');
     Router::get('/landing/data', [MiscellaneousController::class, 'fetchLanding']);
     Router::get('/referrals/$id', [ReferralController::class, 'show']);
     Router::get('/referrals', [ReferralController::class, 'list']);

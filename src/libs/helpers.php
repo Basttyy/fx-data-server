@@ -1,5 +1,6 @@
 <?php
 
+use Basttyy\FxDataServer\libs\Request;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 
@@ -20,9 +21,9 @@ if (! function_exists('json_response')) {
 }
 
 if (! function_exists('transaction_ref')) {
-    function transaction_ref()
+    function transaction_ref(string $prefix = 'btfxtrans-')
     {
-        return uniqid('btfxtrans-');
+        return uniqid($prefix);
     }
 }
 
@@ -61,6 +62,25 @@ if (! function_exists('sanitize_data')) {
         }
 
         return $data;
+    }
+}
+
+if (! function_exists('getIpAddress')) {
+    /**
+     * Get the IP address of the current request
+     * 
+     * @param Request $request
+     * @return string
+     */
+    function getIpAddress(Request $request)
+    {
+        if ($request->HTTP_CLIENT_IP) {
+            return $request->HTTP_CLIENT_IP;
+        } elseif ($request->HTTP_X_FORWARDED_FOR) {
+            return $request->HTTP_X_FORWARDED_FOR;
+        } else {
+            return $request->REMOTE_ADDR;
+        }
     }
 }
 

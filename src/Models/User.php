@@ -3,9 +3,11 @@
 namespace Basttyy\FxDataServer\Models;
 
 use Basttyy\FxDataServer\Console\Jobs\SendVerifyEmail;
+use Basttyy\FxDataServer\libs\Arr;
 use Basttyy\FxDataServer\libs\DB;
 use Basttyy\FxDataServer\libs\Interfaces\UserModelInterface;
 use Basttyy\FxDataServer\libs\Str;
+use Basttyy\FxDataServer\libs\Traits\Flutterwave;
 use Basttyy\FxDataServer\libs\Traits\HasRelationships;
 use Basttyy\FxDataServer\libs\Traits\UserAwareQueryBuilder;
 use Exception;
@@ -147,7 +149,20 @@ final class User extends Model implements UserModelInterface
             // Logic to transfer cash to user
             // This could involve integrating with a payment gateway
             // For now, we will just log the cash amount
+            $body = [
+                'tx_ref' => transaction_ref('witdr_tx_'),
+                'status' => Transaction::pending,
+                'amount' => $cash,
+                'currency' => 'usd',
+                'type' => Transaction::outflow,
+                'action' => Transaction::WITHDRAWAL,
+                'user_id' => $this->id
+            ];
+            if (!$transaction = Transaction::getBuilder()->create(Arr::except($body, ['plan_id', 'duration']))) {
+                throw new \Exception('Unable to initiate withdrawal transaction');
+            }
             logger()->info("User {$this->id} exchanged {$points} points for \${$cash}");
+            return $cash;
             DB::commit();
         } catch (Exception $e) {
             DB::rollback();

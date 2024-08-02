@@ -81,21 +81,29 @@ class Request
 
     public function file($key = null)
     {
+        if ($key == null)
+            return $this->files;
         return $this->retrieveItem($this->files, $key);
     }
 
     public function cookie($key = null, $default = null)
     {
+        if ($key == null)
+            return $this->cookies;
         return $this->retrieveItem($this->cookies, $key, $default);
     }
 
     public function header($key = null, $default = null)
     {
+        if ($key == null)
+            return $this->headers;
         return $this->retrieveItem($this->headers, $key, $default);
     }
 
     public function server($key = null, $default = null)
     {
+        if ($key == null)
+            return $this->server;
         return $this->retrieveItem($this->server, $key, $default);
     }
 

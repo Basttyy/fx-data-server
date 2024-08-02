@@ -73,9 +73,7 @@ final class UserController
             if (!$users)
                 return JsonResponse::ok("no user found in list", []);
 
-            return JsonResponse::ok("users retrieved success", [
-                'data' => $users->toArray('users.list')
-            ]);
+            return JsonResponse::ok("users retrieved success", $users->toArray('users.list'));
         } catch (PDOException $e) {
             logger()->info($e->getMessage(), $e->getTrace());
             return JsonResponse::serverError("we encountered a problem");
@@ -247,18 +245,18 @@ final class UserController
         }
     }
     
-    public function exchangePoints(Request $request)
+    public function withrawAffilliateEarnings(Request $request, $points)
     {
         $user = $request->auth_user;
         if (!Guard::roleIs($user, 'user')) {
             return JsonResponse::unauthorized("you are not allowed to exchange points");
         }
-        if ( !$request->hasBody()) {
-            //return "body is required" response;
-            return JsonResponse::badRequest("bad request", "body is required");
-        }
 
-        $body = sanitize_data($request->input());
+        $points = sanitize_data($points);
+
+        $body = [
+            'points' => $points
+        ];
 
         if ($validated = Validator::validate($body, [
             'points' => 'required|integer|min:1',
@@ -267,9 +265,12 @@ final class UserController
         }
 
         try {
-            $cash = $user->exchangePointsForCash($body['points']);
+            if (!$cash = $user->exchangePointsForCash($body['points'])) {
+                return JsonResponse::serverError('unable to create transaction');
+            }
             return JsonResponse::ok("Exchanged points for \${$cash}");
         } catch (\Exception $e) {
+
             return JsonResponse::badRequest('unable to exchange point', ['error' => $e->getMessage()]);
         }
     }

@@ -99,8 +99,8 @@ final class TransactionController
             }
             
             $body = sanitize_data($request->input());
-            $status = 'successful, pending, cancelled';
-            $types = Transaction::SUBSCRIPTION . ', ' . Transaction::WITHDRAWAL;
+            $status = Transaction::success .', '. Transaction::pending .', '. Transaction::cancelled;
+            $types = Transaction::inflow . ', ' . Transaction::outflow;
 
             if ($validated = Validator::validate($body, [
                 'transaction_id' => 'required|numeric',
@@ -113,6 +113,11 @@ final class TransactionController
                 'duration' => 'required|int'
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
+            }
+            $builder = Transaction::getBuilder();
+            if (!$plan = Plan::getBuilder()->find($body['plan_id'])) {
+                $builder->rollback();
+                return JsonResponse::notFound("unable to retrieve plan");
             }
 
             if (!$trans = $this->verifyTransaction($body['transaction_id'])) {
@@ -134,16 +139,12 @@ final class TransactionController
 
             $body['third_party_ref'] = $trans->data->flw_ref;
             $body['user_id'] = $user->id;
-            $builder = Transaction::getBuilder();
+            $body['action'] = Transaction::SUBSCRIPTION;
             $builder->beginTransaction();
 
             if (!$transaction = $builder->create(Arr::except($body, ['plan_id', 'duration']))) {
                 $builder->rollback();
                 return JsonResponse::serverError('unable to create transaction');
-            }
-            if (!$plan = Plan::getBuilder()->find($body['plan_id'])) {
-                $builder->rollback();
-                return JsonResponse::notFound("unable to retrieve plan");
             }
             $durationInterval = function() use ($body, $plan) {
                 if ($plan->duration_interval == 'bi-annual')

@@ -755,27 +755,36 @@ class mysqly {
       if ( strpos($e->getMessage(), "doesn't exist") ) {
         static::exec("CREATE TABLE _cache(`key` varchar(40) PRIMARY KEY, `expire` int unsigned, `value` TEXT) ENGINE = INNODB");
       }
+      return false;
     }
     
     if ( !$data || ($data['expire'] < time()) ) {
       if ( $populate ) {
-        $value = $populate();
+        // $value = $populate();
         
         try {
           static::insert_update('_cache', [
             'key' => $key,
             'expire' => time() + $ttl,
-            'value' => json_encode($value)
+            'value' => json_encode($populate)
           ]);
         }
-        catch ( PDOException $e ) {}
+        catch ( PDOException $e ) {
+          return false;
+        }
         
-        return $value;
+        return $populate;
       }
     }
     else {
       return json_decode($data['value'], 1);
     }
+    return false;
+  }
+
+  public static function clear_cache()
+  {
+    return self::remove('_cache', []);
   }
   
   public static function uncache($key) {
@@ -783,8 +792,11 @@ class mysqly {
     
     try {
       static::remove('_cache', ['key' => $key]);
+      return true;
     }
-    catch ( PDOException $e ) {}
+    catch ( PDOException $e ) {
+      return false;
+    }
   }
   
   

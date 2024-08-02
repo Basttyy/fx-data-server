@@ -112,28 +112,24 @@ function createController (string $name, $type = 'api') {
 $controller_template = "<?php
 namespace Basttyy\FxDataServer\Controllers$api;
 
-use Basttyy\FxDataServer\Auth\JwtAuthenticator;
-use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\libs\JsonResponse;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\libs\Request;
 use Basttyy\FxDataServer\Models\\$name;
-use Basttyy\FxDataServer\Models\Role;
-use Basttyy\FxDataServer\Models\User;
 use Exception;
 use LogicException;
 use PDOException;
 
 final class {$name}Controller
 {
-    private function show(Request \$request, string \$id)
+    public function show(Request \$request, string \$id)
     {
         \$id = sanitize_data(\$id);
         try {
-            if (!\$this->{$controller_str}->find((int)\$id))
+            if (!\$$controller_str = $name::getBuilder()->find((int)\$id))
                 return JsonResponse::notFound('unable to retrieve $controller_str_spc');
 
-            return JsonResponse::ok('$controller_str_spc retrieved success', \$this->{$controller_str}->toArray());
+            return JsonResponse::ok('$controller_str_spc retrieved success', \${$controller_str}->toArray());
         } catch (PDOException \$e) {
             return JsonResponse::serverError('we encountered a db problem');
         } catch (LogicException \$e) {
@@ -143,10 +139,10 @@ final class {$name}Controller
         }
     }
 
-    private function list(Request \$request)
+    public function list(Request \$request)
     {
         try {
-            \$$controller_str_plural = \$this->{$controller_str}->all();
+            \$$controller_str_plural = $name::getBuilder()->all();
             if (!\$$controller_str_plural)
                 return JsonResponse::ok('no $controller_str_spc_plural found in list', []);
 
@@ -158,7 +154,7 @@ final class {$name}Controller
         }
     }
 
-    private function create(Request \$request)
+    public function create(Request \$request)
     {
         try {
             if ( !\$request->hasBody()) {
@@ -177,7 +173,7 @@ final class {$name}Controller
                 return JsonResponse::badRequest('errors in request', \$validated);
             }
 
-            if (!\$$controller_str = \$this->{$controller_str}->create(\$body)) {
+            if (!\$$controller_str = $name::getBuilder()->create(\$body)) {
                 return JsonResponse::serverError('unable to create $controller_str_spc');
             }
 
@@ -193,7 +189,7 @@ final class {$name}Controller
         }
     }
 
-    private function update(Request \$request, string \$id)
+    public function update(Request \$request, string \$id)
     {
         try {
             if ( !\$request->hasBody()) {
@@ -215,11 +211,11 @@ final class {$name}Controller
                 return JsonResponse::badRequest('errors in request', \$validated);
             }
 
-            if (!\$this->{$controller_str}->update(\$body, (int)\$id)) {
+            if (!\$$controller_str = $name::getBuilder()->update(\$body, (int)\$id)) {
                 return JsonResponse::notFound('unable to update $controller_str_spc not found');
             }
 
-            return JsonResponse::ok('$controller_str_spc updated successfull', \$this->{$controller_str}->toArray());
+            return JsonResponse::ok('$controller_str_spc updated successfull', \${$controller_str}->toArray());
         } catch (PDOException \$e) {
             if (str_contains(\$e->getMessage(), 'Unknown column'))
                 return JsonResponse::badRequest('column does not exist');
@@ -231,7 +227,7 @@ final class {$name}Controller
         }
     }
 
-    private function delete(Request \$request, int \$id)
+    public function delete(Request \$request, int \$id)
     {
         try {
             \$id = sanitize_data(\$id);
@@ -243,7 +239,7 @@ final class {$name}Controller
             //     return JsonResponse::unauthorized(\"you can't delete a $controller_str_spc\");
             // }
 
-            if (!\$this->{$controller_str}->delete((int)\$id)) {
+            if (!$name::getBuilder()->delete((int)\$id)) {
                 return JsonResponse::notFound('unable to delete $controller_str_spc or $controller_str_spc not found');
             }
 

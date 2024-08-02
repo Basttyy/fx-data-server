@@ -12,17 +12,20 @@ class Router
     protected static $routeName = '';
     protected static $currentRoute = '';
     private static $instantiated = '';
+    private static $lastInsertedRouteKeys = '';
 
     public function __construct()
     {
         if (strtolower($_SERVER["REQUEST_METHOD"]) !== "options") {
-            session_set_save_handler(new MysqlSessionHandler, true);
-            session_start();
+            if (session_status() === PHP_SESSION_NONE) {
+                session_set_save_handler(new MysqlSessionHandler, true);
+                session_start();
+            }
         }
         static::$instantiated = true;
     }
 
-    public static function group(string $prefix, callable $method)
+    public static function group(string $prefix, callable $method): self
     {
         $previousPrefix = self::$groupPrefix;
         self::$groupPrefix = rtrim(self::$groupPrefix, '/') . '/' . ltrim($prefix, '/');
@@ -30,11 +33,25 @@ class Router
         call_user_func($method);
 
         self::$groupPrefix = $previousPrefix;
+        return new static();
     }
 
-    public static function middleware(string | array $middleware, callable $method)
+    public static function middleware(string | array $middleware, callable $method = null): self
     {
         $middleware = is_array($middleware) ? $middleware : [$middleware];
+
+        if ($method === null) {
+            if (self::$lastInsertedRouteKeys !== '') {
+                [$last_key, $last_value] = explode(' ::: ', self::$lastInsertedRouteKeys);
+
+                self::$routes[$last_key][$last_value]['middlewares'] =
+                    count($middleware) > 1 && is_string($middleware[0]) ?
+                        self::$routes[$last_key][$last_value]['middlewares'] = [...self::$routes[$last_key][$last_value]['middlewares'], $middleware] :
+                        array_merge(self::$routes[$last_key][$last_value]['middlewares'], $middleware);
+            }
+
+            return new static();
+        }
 
         $previousMiddlewares = self::$middlewares;
         self::$middlewares = array_merge(self::$middlewares, $middleware);
@@ -42,19 +59,31 @@ class Router
         call_user_func($method);
 
         self::$middlewares = $previousMiddlewares;
+        return new static();
     }
 
-    public static function name(string $name, callable $method)
+    public static function name(string $name, callable $method = null): self
     {
         $previousName = self::$routeName;
         self::$routeName = $name;
 
+        if ($method === null) {
+            if (self::$lastInsertedRouteKeys !== '') {
+                [$last_key, $last_value] = explode(' ::: ', self::$lastInsertedRouteKeys);
+                self::$routes[$last_key][$last_value]['name'] = $name;
+                self::$routeName = $previousName;
+            }
+
+            return new static();
+        }
+
         call_user_func($method);
 
         self::$routeName = $previousName;
+        return new static();
     }
 
-    protected static function addRoute(string $method, string $route, callable|string|array $path_to_include)
+    protected static function addRoute(string $method, string $route, callable|string|array $path_to_include): self
     {
         $route = self::$groupPrefix . '/' . ltrim($route, '/');
         $route = rtrim($route, '/');
@@ -65,38 +94,40 @@ class Router
             'middlewares' => self::$middlewares,
             'name' => $name,
         ];
+        self::$lastInsertedRouteKeys = "$method ::: $route";
 
         self::$routeName = '';
+        return new static();
     }
 
-    public static function get(string $route, callable|string|array $path_to_include)
+    public static function get(string $route, callable|string|array $path_to_include): self
     {
-        self::addRoute('GET', $route, $path_to_include);
+        return self::addRoute('GET', $route, $path_to_include);
     }
 
-    public static function post(string $route, callable|string|array $path_to_include)
+    public static function post(string $route, callable|string|array $path_to_include): self
     {
-        self::addRoute('POST', $route, $path_to_include);
+        return self::addRoute('POST', $route, $path_to_include);
     }
 
-    public static function put(string $route, callable|string|array $path_to_include)
+    public static function put(string $route, callable|string|array $path_to_include): self
     {
-        self::addRoute('PUT', $route, $path_to_include);
+        return self::addRoute('PUT', $route, $path_to_include);
     }
 
-    public static function patch(string $route, callable|string|array $path_to_include)
+    public static function patch(string $route, callable|string|array $path_to_include): self
     {
-        self::addRoute('PATCH', $route, $path_to_include);
+        return self::addRoute('PATCH', $route, $path_to_include);
     }
 
-    public static function delete(string $route, callable|string|array $path_to_include)
+    public static function delete(string $route, callable|string|array $path_to_include): self
     {
-        self::addRoute('DELETE', $route, $path_to_include);
+        return self::addRoute('DELETE', $route, $path_to_include);
     }
 
-    public static function any(string $route, callable|string|array $path_to_include)
+    public static function any(string $route, callable|string|array $path_to_include): self
     {
-        self::addRoute('ANY', $route, $path_to_include);
+        return self::addRoute('ANY', $route, $path_to_include);
     }
 
     public static function dispatch(Request $request)
@@ -132,20 +163,21 @@ class Router
             if ($matched) {
                 self::$currentRoute = $route;
 
-                foreach ($data['middlewares'] as $key => $middleware) {
+                foreach ($data['middlewares'] as $key => $middlewares) {
                     $params = null;
-                    if (Str::contains($middleware, ',')) {
-                        $params = explode(',', $middleware);
-                        $middleware = array_shift($params);
-                    }
-                    $middlewareInstance = new $middleware;
-                    if ($params == null) {
-                        if ($middlewareInstance->handle($request)) {
+                    if (is_array($middlewares) && sizeof($middlewares) > 1) {
+                        $middleware = array_shift($middlewares);
+                        $params = explode(',', array_shift($middlewares));
+                        $middlewareInstance = new $middleware;
+
+                        if ($middlewareInstance->handle($request, ...$params)) {
                             return;
                         }
                         continue;
                     }
-                    if ($middlewareInstance->handle($request, ...$params)) {
+                    $middlewares = is_array($middlewares) ? $middlewares[0] : $middlewares;
+                    $middlewareInstance = new $middlewares;
+                    if ($middlewareInstance->handle($request)) {
                         return;
                     }
                 }
@@ -171,7 +203,8 @@ class Router
 
         if (isset(self::$routes['ANY']['/404'])) {
             $data = self::$routes['ANY']['/404'];
-            foreach ($data['callback'] as $callback) {
+            // foreach ($data['callback'] as $callback) {
+                $callback = $data['callback'];
                 if (is_callable($callback)) {
                     call_user_func($callback, $request);
                 } elseif (is_array($callback) && count($callback) > 1) {
@@ -183,7 +216,7 @@ class Router
                 } else {
                     throw new NotFoundException('route not found');
                 }
-            }
+            // }
         }
     }
 

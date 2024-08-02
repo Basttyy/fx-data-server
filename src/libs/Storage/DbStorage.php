@@ -5,9 +5,11 @@
 *  (c) 2017 Hybridauth authors | https://hybridauth.github.io/license.html
 */
 
-namespace Basttyy\FxDataServer\libs;
+namespace Basttyy\FxDataServer\libs\Storage;
 
 // use Basttyy\FxDataServer\libs\Interfaces\StorageInterface;
+
+use Basttyy\FxDataServer\libs\mysqly;
 use Hybridauth\Exception\RuntimeException;
 use Hybridauth\Storage\StorageInterface;
 

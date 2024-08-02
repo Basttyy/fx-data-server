@@ -294,8 +294,9 @@ trait QueryBuilder
         return $this->all($is_protected, $select);
     }
 
-    public function paginate($currentPage = 1, $recordsPerPage = null)
+    public function paginate($currentPage = null, $recordsPerPage = null)
     {
+        $currentPage = $currentPage ?? 1;
         $recordsPerPage = $recordsPerPage ?? $this->recordsPerPage;
         $totalRecords = $this->count($this->child->primaryKey, false);
         // Calculate total pages

@@ -66,7 +66,7 @@ class PairSeeder extends AbstractSeed
             ]
         ];
 
-        $roles = $this->table('pairs');
-        $roles->insert($data)->saveData();
+        $pairs = $this->table('pairs');
+        $pairs->insert($data)->saveData();
     }
 }

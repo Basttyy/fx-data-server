@@ -3,13 +3,9 @@
 namespace Basttyy\FxDataServer\Middlewares;
 
 use Basttyy\FxDataServer\Auth\Guard;
-use Basttyy\FxDataServer\Auth\JwtAuthenticator;
-use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\libs\Interfaces\MiddlewareInterface;
 use Basttyy\FxDataServer\libs\JsonResponse;
 use Basttyy\FxDataServer\libs\Request;
-use Basttyy\FxDataServer\Models\Role;
-use Basttyy\FxDataServer\Models\User;
 use Exception;
 use PDOException;
 
