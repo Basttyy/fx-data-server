@@ -30,12 +30,12 @@ class mysqly {
     $or_and = $or_and !== '' ? ' ' . $or_and : $or_and;
     if ( is_array($v) ) {
       $in = [];
-      
+
       foreach ( $v as $i => $sub_v ) {
         $in[] = ":{$k}_{$i}";
         $bind[":{$k}_{$i}"] = $sub_v;
       }
-      
+
       $in = implode(', ', $in);
       $where[] = "`{$k}` IN ($in){$or_and}";
       $incr_operator = false;
@@ -285,7 +285,7 @@ class mysqly {
 
           if (is_array($or_ands)) {
             while ($len <= count($or_ands))
-              array_pop($or_ands);
+              array_shift($or_ands);
           }
 
           foreach ( $bind_or_filter as $k => $v ) {
@@ -345,7 +345,9 @@ class mysqly {
    * @return array
    */
   public static function fetch($sql_or_table, $bind_or_filter = [], $select_what = '*', array|string $operators = '=', array|string $or_ands = "AND") {
-    $statement = static::fetch_cursor($sql_or_table, $bind_or_filter, $select_what, $operators, $or_ands);
+    if (!$statement = static::fetch_cursor($sql_or_table, $bind_or_filter, $select_what, $operators, $or_ands)) {
+      return false;
+    }
     $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
 
     $list = [];
@@ -396,7 +398,7 @@ class mysqly {
     $operators = Arr::wrap($operators);
 
     foreach ($operators as $key => $op) {
-      if (str_starts_with($op, 'DISTINCT ')) {
+      if ($op && str_starts_with($op, 'DISTINCT ')) {
         $_select_str = Arr::pull($operators, $key) ?? '*';
         break;
       }
@@ -749,19 +751,19 @@ class mysqly {
     $key = sha1($key);
     
     try {
-      $data = static::fetch('_cache', ['key' => $key])[0];
-    }
-    catch ( PDOException $e ) {
+      $data = static::fetch('_cache', ['key' => $key]);
+      if ($data && count($data) > 0) {
+        $data = $data[0];
+      }
+    } catch ( PDOException $e ) {
       if ( strpos($e->getMessage(), "doesn't exist") ) {
         static::exec("CREATE TABLE _cache(`key` varchar(40) PRIMARY KEY, `expire` int unsigned, `value` TEXT) ENGINE = INNODB");
       }
       return false;
     }
     
-    if ( !$data || ($data['expire'] < time()) ) {
-      if ( $populate ) {
-        // $value = $populate();
-        
+    if ( !$data || ($data['expire'] < time() || json_decode($data['value'], 1) !== $populate) ) {
+      if ( $populate !== null ) {
         try {
           static::insert_update('_cache', [
             'key' => $key,
@@ -775,8 +777,7 @@ class mysqly {
         
         return $populate;
       }
-    }
-    else {
+    } else {
       return json_decode($data['value'], 1);
     }
     return false;

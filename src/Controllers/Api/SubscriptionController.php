@@ -2,16 +2,10 @@
 namespace Basttyy\FxDataServer\Controllers\Api;
 
 use Basttyy\FxDataServer\Auth\Guard;
-use Basttyy\FxDataServer\Auth\JwtAuthenticator;
-use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\libs\JsonResponse;
 use Basttyy\FxDataServer\libs\Request;
-use Basttyy\FxDataServer\libs\Traits\Flutterwave;
-use Basttyy\FxDataServer\libs\Validator;
-use Basttyy\FxDataServer\Models\Plan;
-use Basttyy\FxDataServer\Models\Role;
+use Basttyy\FxDataServer\libs\Traits\PaymentGateway;
 use Basttyy\FxDataServer\Models\Subscription;
-use Basttyy\FxDataServer\Models\User;
 use Carbon\Carbon;
 use Exception;
 use LogicException;
@@ -19,7 +13,7 @@ use PDOException;
 
 final class SubscriptionController
 {
-    use Flutterwave;
+    use PaymentGateway;
 
     public function show(string $id)
     {
@@ -112,7 +106,7 @@ final class SubscriptionController
         }
     }
 
-    public function cancel(Request $request, string $id)
+    public function cancel(Request $request, string $id, string $token = null)
     {
         try {
             $user = $request->auth_user;
@@ -121,18 +115,19 @@ final class SubscriptionController
                 return JsonResponse::unauthorized("you can't cancel this subscription");
             }
             $id = sanitize_data($id);
+            
             $subscription = Subscription::getBuilder()->find($id);
             
             if (!$subscription)
                 return JsonResponse::ok("subscription not found in list", []);
 
             if ($subscription instanceof Subscription) {
-                if ($subscription->user_id === $user->id || Carbon::now()->greaterThanOrEqualTo($subscription->expires_at)) {
+                if ($subscription->user_id === $user->id) { // || Carbon::now()->greaterThanOrEqualTo($subscription->expires_at)
                     return JsonResponse::badRequest('cannot cancel this subscription');
                 }
             }
 
-            if (!$this->cancelPaymentPlan($id)) //this should be changed to the id of the subscription on the third party's end
+            if (!$this->cancelSubscription($subscription->third_party_id, $subscription->third_party_token))
                 return JsonResponse::serverError('unable to cancel subscription');
 
             $subscription->where('id', $id)->update('is_canceled', true);

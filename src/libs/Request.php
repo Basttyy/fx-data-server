@@ -71,7 +71,7 @@ class Request
 
     public function has($key)
     {
-        return $this->input($key) !== null;
+        return $this->input($key) !== null || $this->query($key) !== null;
     }
 
     public function hasBody()
@@ -125,6 +125,18 @@ class Request
     public function isJson()
     {
         return $this->header('Content-Type') === 'application/json';
+    }
+
+    public function wantsJson()
+    {
+        return $this->isJson();
+    }
+
+    public function url()
+    {
+        $requestUri = rtrim(filter_var($this->server('REQUEST_URI'), FILTER_SANITIZE_URL), '/');
+        $requestUri = strtok($requestUri, '?');
+        return $requestUri;
     }
 
     protected function retrieveItem($source, $key = null, $default = null)

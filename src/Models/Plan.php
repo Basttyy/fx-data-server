@@ -24,6 +24,7 @@ final class Plan extends Model
     public $description;
     public $duration_interval;
     public $price;
+    public $currency;
     public $status;
     public $features;
     public $third_party_id;

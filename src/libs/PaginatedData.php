@@ -39,6 +39,7 @@ class PaginatedData
 
     private static function baseUrl(string $route_name, bool $incr = true)
     {
-        return "/api".Router::route($route_name)."?page=". ($incr ? self::$current_page + 1 : self::$current_page - 1);
+        Router::current()
+        return Router::route($route_name)."?page=". ($incr ? self::$current_page + 1 : self::$current_page - 1);
     }
 }

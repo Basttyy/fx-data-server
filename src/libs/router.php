@@ -132,6 +132,7 @@ class Router
 
     public static function dispatch(Request $request)
     {
+        url()->storeCurrent();
         if (! self::$instantiated)
             new static;
 
@@ -171,14 +172,14 @@ class Router
                         $middlewareInstance = new $middleware;
 
                         if ($middlewareInstance->handle($request, ...$params)) {
-                            return;
+                            return true;
                         }
                         continue;
                     }
                     $middlewares = is_array($middlewares) ? $middlewares[0] : $middlewares;
                     $middlewareInstance = new $middlewares;
                     if ($middlewareInstance->handle($request)) {
-                        return;
+                        return true;
                     }
                 }
 
@@ -197,7 +198,7 @@ class Router
                     }
                 // }
 
-                return;
+                return true;
             }
         }
 
@@ -218,6 +219,7 @@ class Router
                 }
             // }
         }
+        return true;
     }
 
     public static function route($name, $parameters = [])
@@ -234,6 +236,11 @@ class Router
         }
 
         return null;
+    }
+
+    public static function current()
+    {
+        return url()->current();
     }
 
     public static function out($text, bool $strip_tags = false)

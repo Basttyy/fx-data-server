@@ -5,7 +5,7 @@ namespace Basttyy\FxDataServer\libs\Storage;
 use Basttyy\FxDataServer\libs\Interfaces\CacheInterface;
 use Basttyy\FxDataServer\libs\mysqly;
 
-class RedisCache implements CacheInterface
+class DbCache implements CacheInterface
 {
     public function __construct()
     {

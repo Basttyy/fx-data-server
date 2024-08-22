@@ -13,6 +13,7 @@ use Basttyy\FxDataServer\Models\Plan;
 use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\User;
 use Basttyy\FxDataServer\libs\Traits\Flutterwave;
+use Basttyy\FxDataServer\libs\Traits\PaymentGateway;
 use Basttyy\FxDataServer\Models\CheapCountry;
 use Exception;
 use GuzzleHttp\Client;
@@ -21,7 +22,7 @@ use PDOException;
 
 final class PlanController
 {
-    use Flutterwave;
+    use PaymentGateway;
 
     public function show(Request $request, string $id)
     {
@@ -59,7 +60,7 @@ final class PlanController
             } else if ($user = JwtAuthenticator::validate()) {
                 if (Guard::roleIs($user, 'admin')) {
                     $plans = $builder->all();
-                } else {
+                } else if ($user->country ?? null) {
                     $ischeapcountry = CheapCountry::getBuilder()->where('name', $user->country)->count();
 
                     $plans = $ischeapcountry ? $builder->where('for_cheap_regions', 1)->get() : $builder->where('for_cheap_regions', 0)->get();
@@ -83,8 +84,10 @@ final class PlanController
 
             return JsonResponse::ok("plans retrieved success", $data);
         } catch (PDOException $e) {
+            logger()->info($e->getMessage(), $e->getTrace());
             return JsonResponse::serverError("we encountered a problem ");
         } catch (Exception $e) {
+            logger()->info($e->getMessage(), $e->getTrace());
             return JsonResponse::serverError("we encountered a problem ");
         }
     }
@@ -106,6 +109,7 @@ final class PlanController
             $body = sanitize_data($request->input());
             $status = Plan::DISABLED.', '.Plan::ENABLED;
             $intervals = implode(', ', Plan::INTERVALS);
+            $currencies = implode(', ', $this->getSupportedCurrencies());
 
             if ($validated = Validator::validate($body, [
                 'name' => 'required|string',
@@ -114,7 +118,7 @@ final class PlanController
                 'status' => "sometimes|string|in:$status",
                 'features' => 'required|string',
                 'for_cheap_regions' => 'required|numeric',
-                'currency' => 'required|string',
+                'currency' => "required|string|in:$currencies",
                 'duration_interval' => "required|string|in:$intervals"
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
@@ -126,30 +130,11 @@ final class PlanController
             $body['price'] = (float)$body['price'];
             $body['for_cheap_regions'] = (int)$body['for_cheap_regions'];
 
-            if (!$plan->create(Arr::except($body, 'currency'))) {
+            if (!$plan->create($body)) {
                 return JsonResponse::serverError("unable to create plan");
             }
 
-            // \Flutterwave\Flutterwave::bootstrap();
-
-            // $paymentPlansService = new \Flutterwave\Service\PaymentPlan();
-
-            $convertInterval = function() use ($body) {
-                if ($body['duration_interval'] === 'day') {
-                    return 'daily';
-                }
-                return $body['duration_interval'].'ly';
-            };
-
-            $response = $this->createPaymentPlan($body['price'], $body['currency'], $body['name'], $convertInterval());
-
-            // $payload = new \Flutterwave\Payload();
-
-            // $payload->set('amount', 5000);
-            // $payload->set('name', '');
-            // $payload->set('interval', $convertInterval());
-
-            // $response = $paymentPlansService->create($payload);
+            $response = $this->createPaymentPlan($body['price'], $body['currency'], $body['name'], $this->convertInterval($body['duration_interval'], $body['description']));
 
             if ($response->status !== 'success') {
                 $plan->rollback();
@@ -157,7 +142,7 @@ final class PlanController
             }
 
             if (!$plan->update([
-                'plan_token' => $response->data->plan_token,
+                'plan_token' => $this->providerIs('paystack') ? $response->data->plan_code : $response->data->plan_token,
                 'third_party_id' => $response->data->id
             ])) {
                 $plan->rollback();
@@ -203,11 +188,13 @@ final class PlanController
 
             $status = Plan::DISABLED.', '.Plan::ENABLED;
             $intervals = implode(', ', Plan::INTERVALS);
+            $currencies = implode(', ', $this->getSupportedCurrencies());
 
             if ($validated = Validator::validate($body, [
                 'name' => 'sometimes|string',
                 'description' => 'sometimes|string',
                 'price' => 'sometimes|numeric',
+                'currency' => "required|string|in:$currencies",
                 'status' => "sometimes|string|in:$status",
                 'for_cheap_regions' => 'sometimes|numeric',
                 'features' => 'sometimes|string',
@@ -222,6 +209,8 @@ final class PlanController
             if (!$plan = Plan::getBuilder()->update($body, (int)$id)) {
                 return JsonResponse::notFound("unable to update plan not found");
             }
+
+            $response = $this->updatePaymentPlan($plan->price, $plan->currency, $plan->name ?? null, $this->convertInterval($plan->duration_interval), $plan->description);
 
             return JsonResponse::ok("plan updated successfull", $plan->toArray());
         } catch (PDOException $e) {
@@ -248,10 +237,16 @@ final class PlanController
                 return JsonResponse::unauthorized("you can't delete a plan");
             }
 
-            // echo "got to pass login";
-            if (!Plan::getBuilder()->delete((int)$id)) {
-                return JsonResponse::notFound("unable to delete plan or plan not found");
+            if (!$plan = Plan::getBuilder()->find($id)) {
+                return JsonResponse::notFound("plan not found");
             }
+
+            // echo "got to pass login";
+            if (!$plan->delete((int)$id)) {
+                return JsonResponse::serverError("unable to delete plan");
+            }
+
+            $this->cancelPaymentPlan($plan->id);
 
             return JsonResponse::ok("plan deleted successfull");
         } catch (PDOException $e) {
@@ -266,5 +261,15 @@ final class PlanController
             $message = env("APP_ENV") === "local" ? $e->getMessage() : "we encountered a problem";
             return JsonResponse::serverError("we got some error here".$message);
         }
+    }
+
+    private function convertInterval (string $interval = null) {
+        if ($interval === null)
+            return null;
+
+        if ($interval === 'day') {
+            return 'daily';
+        }
+        return $interval.'ly';
     }
 }

@@ -7,7 +7,7 @@ use Basttyy\FxDataServer\Auth\JwtEncoder;
 use Basttyy\FxDataServer\libs\Arr;
 use Basttyy\FxDataServer\libs\JsonResponse;
 use Basttyy\FxDataServer\libs\Request;
-use Basttyy\FxDataServer\libs\Traits\Flutterwave;
+use Basttyy\FxDataServer\libs\Traits\PaymentGateway;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\Models\Plan;
 use Basttyy\FxDataServer\Models\Subscription;
@@ -22,7 +22,7 @@ use PDOException;
 
 final class TransactionController
 {
-    use Flutterwave;
+    use PaymentGateway;
 
     public function show(Request $request, string $id)
     {
@@ -72,20 +72,47 @@ final class TransactionController
             if (!Guard::roleIs($user, 'user')) {
                 return JsonResponse::unauthorized("you can't perform this action");
             }
-
-            if (!$temp_trans_ref = TempTransactionRef::getBuilder()->where('user_id', $user->id)->orderBy('created_at', 'DESC')->first()) {
-                $ref = transaction_ref();
-
-                if (!$temp_trans_ref = TempTransactionRef::getBuilder()->create([
-                    'user_id' => $user->id,
-                    'tx_ref' => $ref
+            if ( $request->hasBody()) {
+                $body = sanitize_data($request->input());
+    
+                if ($validated = Validator::validate($body, [
+                    'plan_code' => 'required|string'
                 ])) {
-                    return JsonResponse::serverError('something happened please try again');
+                    return JsonResponse::badRequest('errors in request', $validated);
                 }
-                return JsonResponse::ok('transaction ref generated success', [ 'tx_ref' => $temp_trans_ref['tx_ref'] ]);
             }
 
-            return JsonResponse::ok('transaction ref generated success', [ 'tx_ref' => $temp_trans_ref->tx_ref ]);
+            if (!$temp_trans_ref = TempTransactionRef::getBuilder()->where('user_id', $user->id)->orderBy('created_at', 'DESC')->first()) {
+
+                if ($this->providerIs('paystack') && $trans = $this->initializeTransaction($user->email, 1000, $body['plan_code'])) {
+                    if ($trans->status !== true) {
+                        return JsonResponse::serverError('something happened please try again');
+                    }
+                    if (!$temp_trans_ref = TempTransactionRef::getBuilder()->create([
+                        'user_id' => $user->id,
+                        'tx_ref' => $trans->data->reference,
+                        'access_code' => $trans->data->access_code
+                    ])) {
+                        return JsonResponse::serverError('something happened please try again');
+                    }
+                } else if ($this->providerIs('flutterwave')) {
+                    if (!$temp_trans_ref = TempTransactionRef::getBuilder()->create([
+                        'user_id' => $user->id,
+                        'tx_ref' => transaction_ref()
+                    ])) {
+                        return JsonResponse::serverError('something happened please try again');
+                    }
+                }
+                return JsonResponse::ok('transaction ref generated success', [
+                    'tx_ref' => $temp_trans_ref->tx_ref, 
+                    'access_code' => $temp_trans_ref->access_code
+                ]);
+            }
+
+            return JsonResponse::ok('transaction ref generated success', [
+                'tx_ref' => $temp_trans_ref->tx_ref,
+                'access_code' => $this->providerIs('flutterwave') ? null : $temp_trans_ref->access_code
+            ]);
         } catch (Exception $e) {
             return JsonResponse::serverError('we encountered a problem please try again');
         }
@@ -137,7 +164,7 @@ final class TransactionController
             }
             $user = $request->auth_user;
 
-            $body['third_party_ref'] = $trans->data->flw_ref;
+            $body['third_party_ref'] = $this->providerIs('flutterwave') ? $trans->data->flw_ref : $trans->data->reference;
             $body['user_id'] = $user->id;
             $body['action'] = Transaction::SUBSCRIPTION;
             $builder->beginTransaction();

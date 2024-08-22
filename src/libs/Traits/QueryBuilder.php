@@ -29,7 +29,7 @@ trait QueryBuilder
     protected function resetInstance()
     {
         $this->bind_or_filter = null;
-        $this->or_ands = 'AND';
+        $this->or_ands = '';
         $this->operators = '=';
         $this->order = '';
         $this->transaction_mode = false;
@@ -68,7 +68,7 @@ trait QueryBuilder
             'fillable', 'guarded', 'table', 'primaryKey', 'exists', 'db', 'builder', 'dynamicProperties',
             'connection', 'keyType', 'incrementing', 'perPage', 'wasRecentlyCreated', 'child'
         ]);
-        if (sizeof($select)) {
+        if (count($select)) {
             foreach ($select as $item) {
                 if (Arr::exists($obj_props, $item, true)) {
                     $result[$item] = $this->child->{$item};

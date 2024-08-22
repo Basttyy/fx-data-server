@@ -26,11 +26,10 @@ final class UserController
         $id = sanitize_data($id);
         try {
             $__user = $request->auth_user;
-            $is_admin = Guard::roleIs($__user, 'admin');
 
-            if ($is_admin) {
+            if (Guard::roleIs($__user, 'admin') || $__user->id == $id) {
                 $user = User::getBuilder()->find((int)$id, false);
-            } elseif ($__user->id != $id) {
+            } else {
                 return JsonResponse::unauthorized();
             }
 
@@ -104,7 +103,7 @@ final class UserController
                 return JsonResponse::badRequest('errors in request', $validated);
             }
             
-            $_SESSION['email2fa_token'] = Str::random(6);
+            $_SESSION['email2fa_token'] = Str::random(10);
 
             $body['password'] = password_hash($body['password'], PASSWORD_BCRYPT);
             $body['username'] = $body['username'] ?? $body['email'];

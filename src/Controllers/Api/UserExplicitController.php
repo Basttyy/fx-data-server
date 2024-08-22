@@ -9,6 +9,7 @@ use Basttyy\FxDataServer\Console\Jobs\SendVerifyEmail;
 use Basttyy\FxDataServer\libs\Arr;
 use Basttyy\FxDataServer\libs\JsonResponse;
 use Basttyy\FxDataServer\libs\Request;
+use Basttyy\FxDataServer\libs\Str;
 use Basttyy\FxDataServer\libs\Validator;
 use Basttyy\FxDataServer\Models\Role;
 use Basttyy\FxDataServer\Models\User;
@@ -166,9 +167,14 @@ final class UserExplicitController
 
             if ($validated = Validator::validate($body, [
                 'current_password' => 'required|string',
-                'new_password' => 'required|string'
+                'new_password' => 'required|string',
+                'confirm_new_password' => 'required|string'
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
+            }
+
+            if ($body['new_password'] != $body['confirm_new_password']) {
+                return JsonResponse::badRequest('confirm_new_password and new_password should be the same value');
             }
 
             if (!password_verify($body['current_password'], $user->password)) {
@@ -250,8 +256,8 @@ final class UserExplicitController
                 return JsonResponse::unauthorized();
             }
 
-            $code = implode([rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9)]);
-            if (!$user->update(['email2fa_token' => (string)$code, 'email2fa_expire' => time() + env('EMAIL2FA_MAX_AGE')])) {  //TODO:: this token should be timeed and should expire
+            $code = Str::random(10);
+            if (!$user->update(['email2fa_token' => $code, 'email2fa_expire' => time() + env('EMAIL2FA_MAX_AGE')])) {  //TODO:: this token should be timeed and should expire
                 return JsonResponse::serverError("unable to generate token");
             }
 
@@ -288,7 +294,7 @@ final class UserExplicitController
 
             if ($validated = Validator::validate($body, [
                 'email' => 'required|string',
-                'email2fa_token' => 'required|numeric'
+                'email2fa_token' => 'required|string'
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
@@ -352,7 +358,7 @@ final class UserExplicitController
             }
 
             if ($user instanceof User) {
-                $code = implode([rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9)]);
+                $code = Str::random(10);
                 if (!$user->update(['email2fa_token' => (string)$code, 'email2fa_expire' => time() + env('EMAIL2FA_MAX_AGE')])) {  //TODO:: this token should be timeed and should expire
                     return JsonResponse::serverError("unable to generate token");
                 }
@@ -392,10 +398,6 @@ final class UserExplicitController
                 'new_email' => 'required|string'
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
-            }
-
-            if (!$user->find(is_protected: false)) {
-                return JsonResponse::badRequest("invalid user data, your are not authorized to perform this request");
             }
 
             if (!password_verify($body['password'], $user->password)) {

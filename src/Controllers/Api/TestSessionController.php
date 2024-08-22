@@ -60,8 +60,10 @@ final class TestSessionController
 
             return JsonResponse::ok("test sessions retrieved success", $sessions);
         } catch (PDOException $e) {
+            logger()->info($e->getMessage(), $e->getTrace());
             return JsonResponse::serverError("we encountered a problem");
         } catch (Exception $e) {
+            logger()->info($e->getMessage(), $e->getTrace());
             return JsonResponse::serverError("we encountered a problem");
         }
     }
@@ -82,8 +84,10 @@ final class TestSessionController
 
             return JsonResponse::ok("test sessions retrieved success", $sessions);
         } catch (PDOException $e) {
+            logger()->info($e->getMessage(), $e->getTrace());
             return JsonResponse::serverError("we encountered a problem");
         } catch (Exception $e) {
+            logger()->info($e->getMessage(), $e->getTrace());
             return JsonResponse::serverError("we encountered a problem");
         }
     }

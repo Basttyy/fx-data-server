@@ -17,6 +17,8 @@ final class Subscription extends Model
     public $duration;
     public $user_id;
     public $plan_id;
+    public $third_party_id;
+    public $third_party_token;
     public $created_at;
     public $expires_at;
     public $updated_at;

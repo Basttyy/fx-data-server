@@ -22,6 +22,8 @@ final class Subscriptions extends AbstractMigration
         $table = $this->table($this::TABLE_NAME);
         $table->addColumn('duration', 'integer')
             ->addColumn('total_cost', 'decimal', ['precision' => 9, 'scale' => 2])
+            ->addColumn('third_party_id', 'integer', ['null' => false])
+            ->addColumn('third_party_token', 'integer', ['default' => ''])
             ->addColumn('user_id', 'integer', ['signed' => false])
             ->addColumn('plan_id', 'integer', ['signed' => false])
             ->addColumn('is_canceled', 'boolean')

@@ -24,6 +24,7 @@ final class Plans extends AbstractMigration
         $table->addColumn('name', 'string', ['limit' => 64])
             ->addColumn('description', 'string')
             ->addColumn('price', 'decimal', ['precision' => 9, 'scale' => 2])
+            ->addColumn('currency', 'string', ['null' => false])
             ->addColumn('duration_interval', 'string', ['default' => Plan::INTERVALS[2]])
             ->addColumn('status', 'string', ['default' => Plan::ENABLED])
             ->addColumn('for_cheap_regions', 'boolean', ['default' => 0])

@@ -64,8 +64,7 @@ final class PairController
     public function query(Request $request, string $id)
     {
         try {
-            $params = sanitize_data($_GET);
-            $status = Pair::DISABLED.', '.Pair::ENABLED;
+            $params = $request->query();;
 
             if ($validated = Validator::validate($params, [
                 'name' => 'sometimes|string',
@@ -227,8 +226,9 @@ final class PairController
             if (!$pair = Pair::getBuilder()->update($body, (int)$id)) {
                 return JsonResponse::notFound("unable to update pair");
             }
+            /** @var Pair $pair */
 
-            return JsonResponse::ok("pair updated successfully", $pair->toArray(select: $pair->pairinfos));
+            return JsonResponse::ok("pair updated successfully", $pair->toArray(select: $pair::pairinfos));
         } catch (PDOException $e) {
             if (env("APP_ENV") === "local")
                 $message = $e->getMessage();

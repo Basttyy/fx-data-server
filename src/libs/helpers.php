@@ -1,6 +1,13 @@
 <?php
 
+use Basttyy\FxDataServer\libs\DB;
+use Basttyy\FxDataServer\libs\Encrypter;
+use Basttyy\FxDataServer\libs\Interfaces\CacheInterface;
 use Basttyy\FxDataServer\libs\Request;
+use Basttyy\FxDataServer\libs\Response;
+use Basttyy\FxDataServer\libs\Storage\Storage;
+use Basttyy\FxDataServer\libs\Url;
+use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 
@@ -21,9 +28,89 @@ if (! function_exists('json_response')) {
 }
 
 if (! function_exists('transaction_ref')) {
+    /**
+     * Returns a unique transaction reference
+     */
     function transaction_ref(string $prefix = 'btfxtrans-')
     {
         return uniqid($prefix);
+    }
+}
+
+if (! function_exists('request')) {
+    /**
+     * Returns the current request object
+     */
+    function request() {
+        return Request::capture();
+    }
+}
+
+if (! function_exists('storage')) {
+    /**
+     * Return the current storage object
+     */
+    function storage(string $disk = 'local', CacheInterface $cache = null) {
+        return Storage::init($disk, $cache);
+    }
+}
+
+if (! function_exists('database')) {
+    /**
+     * Return the current database object
+     */
+    function database() {
+        return DB::init();
+    }
+}
+
+if (!function_exists('encrypt')) {
+    function encrypt($value, $serialize = true) {
+        $encrypter = new Encrypter();
+        return $encrypter->encrypt($value, $serialize);
+    }
+}
+
+if (!function_exists('decrypt')) {
+    function decrypt($value, $serialize = true) {
+        $encrypter = new Encrypter();
+        return $encrypter->decrypt($value, $serialize);
+    }
+}
+
+if (!function_exists('url')) {
+    function url() {
+        return new Url;
+    }
+}
+
+if (!function_exists('response')) {
+    function response() {
+        return new Response();
+    }
+}
+
+if (! function_exists('config')) {
+    /**
+     * Get a config data from configuration file
+     */
+    function config(string $config_name, $default = null) {
+        $parts = explode('.', $config_name);
+        $config_name = array_shift($parts);
+
+        $config = [];
+        $data = include_once __DIR__."/../../config/$config_name.php";
+
+        $config = (array)$data;
+
+        foreach ($parts as $key => $part) {
+            if (!array_key_exists($part, $config)) {
+                return $default;
+            }
+            $config = $config[$part];
+        }
+
+        return $config;
     }
 }
 
@@ -39,7 +126,7 @@ if (! function_exists('env')) {
     {
         //$dotenv = Dotenv::createImmutable(__DIR__);
         //$dotenv->load();
-        return \array_search($key, $_ENV) === false ? $default : $_ENV[$key];
+        return $_ENV[$key] ?? $default;
     }
 }
 
@@ -91,9 +178,19 @@ if (!function_exists("consoleLog")) {
 }
 
 if (! function_exists('storage_path')) {
-    function storage_path()
+    function storage_path(string $folder = '')
     {
-        return strtolower(PHP_OS_FAMILY) === "windows" ? __DIR__."\\..\\..\\storage\\" : __DIR__."/../../storage/";
+        $is_windows = strtolower(PHP_OS_FAMILY) === "windows";
+
+        // if ($folder != '')
+        //     $folder = $is_windows ? "$folder\\" : "$folder/";
+        return $is_windows ? __DIR__."\\..\\..\\storage\\$folder" : __DIR__."/../../storage/$folder";
+    }
+}
+
+if (!function_exists('is_windows')) {
+    function is_windows () {
+        return strtolower(PHP_OS_FAMILY) === "windows";
     }
 }
 
@@ -103,7 +200,17 @@ if (! function_exists('logger')) {
         $logger_path = strtolower(PHP_OS_FAMILY) === "windows" ? "logs\\custom.log" : "logs/custom.log";
         $path = is_null($path) ? storage_path().$logger_path : $path;
         $log = new Logger('tradingio');
-        return $log->pushHandler(new StreamHandler($path, $level, $bubble, $filePermission, $useLocking));
+        // Define the date format to match Laravel's
+        $dateFormat = "Y-m-d H:i:s";
+
+        // Define the output format including the date format
+        $output = "[%datetime%] %channel%.%level_name%: %message% %context% %extra%\n";
+
+        // Create a formatter with the specified date format and output format
+        $formatter = new LineFormatter($output, $dateFormat, true, true);
+        $streamHandler = new StreamHandler($path, $level, $bubble, $filePermission, $useLocking);
+        $streamHandler->setFormatter($formatter);
+        return $log->pushHandler($streamHandler);
     }
 }
 

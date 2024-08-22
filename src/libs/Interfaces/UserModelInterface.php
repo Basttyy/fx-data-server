@@ -9,7 +9,7 @@ interface UserModelInterface extends ModelInterface
      * @param string $name 'username to find in user table'
      * @param bool $is_protected 'wether to hide or show protected values'
      * 
-     * @return false|ModelInterface|UserModelInterface
+     * @return false|UserModelInterface
      */
     public function findByUsername($name, $is_protected = true);
 
@@ -18,7 +18,7 @@ interface UserModelInterface extends ModelInterface
      * @param string $email 'email to find in user table'
      * @param bool $is_protected 'wether to hide or show protected values'
      * 
-     * @return false|ModelInterface|UserModelInterface
+     * @return false|UserModelInterface
      */
     public function findByEmail(string $email, $is_protected = true);
 }

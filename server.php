@@ -36,8 +36,12 @@ $dotenv = strtolower(PHP_OS_FAMILY) === 'windows' ? Dotenv::createImmutable(__DI
 $dotenv->load();
 $dotenv->required([
     'APP_KEY', 'APP_ENV', 'DB_USER', 'DB_HOST', 'DB_NAME', 'ADMIN_APP_URI', 'USER_APP_URI',
-    'SERVER_APP_URI', 'FINGERPRINT_MAX_AGE', 'SECRET_TOKEN', 'SHA_TYPE', 'CONTENT_LENGTH_MIN'
+    'SERVER_APP_URI', 'FINGERPRINT_MAX_AGE', 'SECRET_TOKEN', 'SHA_TYPE', 'CONTENT_LENGTH_MIN',
+    'BTFX_DEVOPS_TOKEN', 'DOLLAR_PER_POINTS', 'POINTS_PER_REFERRAL', 'IPLOC_API_KEY', 'FLWV_BASE_URL',
+    'FLWV_PUBLIC_KEY', 'FLWV_SECRET_KEY', 'FLWV_ENCRYPTION_KEY', 'FLWV_ENV'
 ])->notEmpty();
+
+// Config:: loadConfigFiles(__DIR__."/config");
 
 $server = strtolower($_SERVER['SERVER_SOFTWARE']) ?? "";
 

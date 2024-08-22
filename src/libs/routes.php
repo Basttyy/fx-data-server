@@ -22,11 +22,14 @@ use Basttyy\FxDataServer\Controllers\Api\UserController;
 use Basttyy\FxDataServer\Controllers\Api\UserExplicitController;
 use Basttyy\FxDataServer\Controllers\Api\VisitController;
 use Basttyy\FxDataServer\Controllers\NotFoundController;
+use Basttyy\FxDataServer\Controllers\Web\DevopsController;
 use Basttyy\FxDataServer\libs\Request;
 use Basttyy\FxDataServer\libs\Router;
 use Basttyy\FxDataServer\Middlewares\AuthMiddleware;
+use Basttyy\FxDataServer\Middlewares\DevopsGuardMiddleware;
 use Basttyy\FxDataServer\Middlewares\ThrottleRequestsMiddleware;
 use Basttyy\FxDataServer\Middlewares\VisitLoggerMiddleware;
+use Basttyy\FxDataServer\Middlewares\WebAuthMiddleware;
 
 Router::middleware(VisitLoggerMiddleware::class, function () {
     /// Auth routes
@@ -89,7 +92,7 @@ Router::middleware(VisitLoggerMiddleware::class, function () {
         Router::middleware(AuthMiddleware::class, function () {
             Router::get('', [TransactionController::class, 'list']);
             Router::post('/verify', [TransactionController::class, 'create']);
-            Router::get('/generate/ref', [TransactionController::class, 'trans_ref']);
+            Router::post('/generate/ref', [TransactionController::class, 'generateTxRef']);
         });
     });
     /// Strategy Routes
@@ -177,11 +180,19 @@ Router::middleware(VisitLoggerMiddleware::class, function () {
             Router::post('/landing/data', [MiscellaneousController::class, 'updateLanding']);
         });
     });
-    Router::group('/devops', function () {
-        Router::get('/migrate/status', [MigrateController::class, 'status']);
-        Router::get('/migrate/migrate', [MigrateController::class, 'migrate']);
-        Router::get('/migrate/rollback', [MigrateController::class, 'rollback']);
-        Router::get('/migrate/seed', [MigrateController::class, 'seed']);
+    Router::middleware(DevopsGuardMiddleware::class, function () {
+        Router::group('/devops', function () {
+            Router::get('/login', [DevopsController::class, 'viewLogin']);
+            Router::post('/login', [DevopsController::class, 'login']);
+            Router::get('/logout', [DevopsController::class, 'logout']);
+            Router::middleware(WebAuthMiddleware::class, function() {
+                Router::get('/migrate/status', [MigrateController::class, 'status']);
+                Router::get('/migrate/migrate', [MigrateController::class, 'migrate']);
+                Router::get('/migrate/rollback', [MigrateController::class, 'rollback']);
+                Router::get('/migrate/seed', [MigrateController::class, 'seed']);
+                Router::get('/error-logs', [DevopsController::class, 'logViewer']);
+            });
+        });
     });
     Router::group('/blog', function () {
         Router::group('/posts', function () {
@@ -196,7 +207,7 @@ Router::middleware(VisitLoggerMiddleware::class, function () {
                 Router::delete('/$id/comments/$id', [PostCommentController::class, 'delete']);
             });
         });
-        Router::get('/comments', [PostCommentController::class, 'listall']);
+        Router::get('/comments', [PostCommentController::class, 'listall'])->middleware(AuthMiddleware::class);
     });
     /// Historical Data Routes
     Router::group('/fx', function () {

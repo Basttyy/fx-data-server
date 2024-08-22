@@ -37,7 +37,7 @@ final class TestSession extends Model
      * @var array
      */
     protected const fillable = [
-        'id', 'starting_bal', 'current_bal', 'equity', 'strategy_id', 'user_id', 'pairs', 'chart', 'chart_timestamp', 'chart_ui', 'start_date', 'end_date', 'deleted_at', 'created_at', 'updated_at'
+        'id', 'starting_bal', 'current_bal', 'equity', 'strategy_id', 'user_id', 'pairs', 'pair', 'chart', 'chart_timestamp', 'chart_ui', 'start_date', 'end_date', 'deleted_at', 'created_at', 'updated_at'
     ];
     
     /**

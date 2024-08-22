@@ -63,6 +63,38 @@ class PairSeeder extends AbstractSeed
                 'price_precision' => '3',
                 'volume_precision' => '3',
                 'price_currency' => 'usd'
+            ],
+            [
+                'name' => 'GBPJPY',
+                'description' => 'Great Britain Pounds vs Japanese Yen',
+                'status' => Pair::ENABLED,
+                'dollar_per_pip' => 1000,
+                'history_start' => '2016-01-01 00:00:00',
+                'history_end' => '2023-07-31 00:00:00',
+                'exchange' => 'Tradingio',
+                'market' => Pair::FX,
+                'short_name' => 'GBPJPY',
+                'ticker' => 'GBPJPY',
+                'min_move' => '0.001',
+                'price_precision' => '3',
+                'volume_precision' => '3',
+                'price_currency' => 'jpy'
+            ],
+            [
+                'name' => 'USDJPY',
+                'description' => 'United States Dollar vs Japanese Yen',
+                'status' => Pair::ENABLED,
+                'dollar_per_pip' => 1000,
+                'history_start' => '2016-01-01 00:00:00',
+                'history_end' => '2023-07-31 00:00:00',
+                'exchange' => 'Tradingio',
+                'market' => Pair::FX,
+                'short_name' => 'USDJPY',
+                'ticker' => 'USDJPY',
+                'min_move' => '0.001',
+                'price_precision' => '3',
+                'volume_precision' => '3',
+                'price_currency' => 'jpy'
             ]
         ];
 
