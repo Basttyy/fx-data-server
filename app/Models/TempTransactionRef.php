@@ -16,6 +16,7 @@ final class TempTransactionRef extends Model
     public $id;
     public $user_id;
     public $tx_ref;
+    public $access_code;
     public $created_at;
     public $updated_at;
     public $deleted_at;
@@ -27,7 +28,7 @@ final class TempTransactionRef extends Model
      * @var array
      */
     protected const fillable = [
-        'id', 'user_id', 'tx_ref', 'created_at', 'updated_at'
+        'id', 'user_id', 'tx_ref', 'access_code', 'created_at', 'updated_at'
         //add more fillable columns here
     ];
 

@@ -122,14 +122,22 @@ final class User extends Model implements UserModelInterface
         return $this->hasMany(Strategy::class);
     }
 
+    /**
+     * @return Referral[]|null
+     */
     public function referrals ()
     {
         return $this->hasMany(Referral::class);
     }
 
-    public function referredBy(callable|string $with)
+    public function referredBy(): User|null
     {
-        return $this->hasOne(Referral::class, 'referred_user_id', with: $with);
+        return $this->hasOne(Referral::class, 'user_id');
+    }
+
+    public function subscription(): Subscription|null
+    {
+        return $this->hasOne(Subscription::class);
     }
 
     public function exchangePointsForCash($points)

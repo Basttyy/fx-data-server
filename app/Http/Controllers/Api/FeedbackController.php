@@ -37,16 +37,18 @@ final class FeedbackController
     {
         try {
             $user = $request->auth_user;
+            $page = $request->query('page');
+            $per_page = $request->query('perpage');
 
             if (Guard::roleIs($user, 'admin')) {
-                $feedbacks = Feedback::getBuilder()->all();
+                $feedbacks = Feedback::getBuilder()->paginate($page, $per_page);
             } else {
-                $feedbacks = Feedback::getBuilder()->findBy("user_id", $user->id);
+                $feedbacks = Feedback::getBuilder()->where("user_id", $user->id)->paginate($page, $per_page);
             }
             if (!$feedbacks)
                 return JsonResponse::ok("no feedback found in list", []);
 
-            return JsonResponse::ok("feedbacks retrieved success", $feedbacks);
+            return JsonResponse::ok("feedbacks retrieved success", $feedbacks->toArray('feedbacks.list'));
         } catch (PDOException $e) {
             return JsonResponse::serverError("we encountered a problem");
         } catch (Exception $e) {
@@ -62,7 +64,10 @@ final class FeedbackController
             if (!Guard::roleIs($user, 'admin')) {
                 return JsonResponse::unauthorized("you can't view this user's feedbacks");
             }
-            $feedbacks = Feedback::getBuilder()->findBy("user_id", $id);
+
+            $page = $request->query('page');
+            $per_page = $request->query('perpage');
+            $feedbacks = Feedback::getBuilder()->where("user_id", $id)->paginate($page, $per_page);
             
             if (!$feedbacks)
                 return JsonResponse::ok("no feedback found in list", []);

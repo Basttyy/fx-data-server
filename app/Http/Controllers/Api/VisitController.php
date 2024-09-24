@@ -76,11 +76,13 @@ final class VisitController
             if (!Guard::roleIs($user, 'admin')) {
                 return JsonResponse::unauthorized("you don't have this permission");
             }
+            $page = $request->query('page');
+            $per_page = $request->query('perpage');
 
-            if (!$visits = Visit::getBuilder()->all(select: Visit::analytic))
+            if (!$visits = Visit::getBuilder()->paginate($page, $per_page, select: Visit::analytic))
                 return JsonResponse::ok("no visit found in list", []);
 
-            return JsonResponse::ok("visits retrieved success", $visits);
+            return JsonResponse::ok("visits retrieved success", $visits->toArray('admin.visit-logs.list'));
         } catch (PDOException $e) {
             return JsonResponse::serverError("we encountered a problem");
         } catch (Exception $e) {

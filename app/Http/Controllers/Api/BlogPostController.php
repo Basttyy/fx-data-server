@@ -32,12 +32,14 @@ final class BlogPostController
     public function list(Request $request)
     {
         try {
-            $blogs = BlogPost::getBuilder()->all();
+            $page = $request->query('page');
+            $per_page = $request->query('perpage');
+            $blogs = BlogPost::getBuilder()->paginate($page, $per_page);
 
             if (!$blogs)
                 return JsonResponse::ok("no blog found in list", []);
 
-            return JsonResponse::ok("blogs retrieved success", $blogs);
+            return JsonResponse::ok("blogs retrieved success", $blogs->toArray('blog-posts.list'));
         } catch (PDOException $e) {
             return JsonResponse::serverError("we encountered a problem".$e->getMessage());
         } catch (Exception $e) {

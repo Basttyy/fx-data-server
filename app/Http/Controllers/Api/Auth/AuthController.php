@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Auth;
 
 use App\Models\Subscription;
 use App\Models\User;
+use Carbon\Carbon;
 use Exception;
 use Eyika\Atom\Framework\Exceptions\NotFoundException;
 use Eyika\Atom\Framework\Exceptions\QueryException;
@@ -54,14 +55,20 @@ final class AuthController
             if (!$token = JwtAuthenticator::authenticate($user, base64_decode($body['password']))) {
                 return JsonResponse::unauthorized("invalid login details");
             }
-            $subscription = Subscription::getBuilder()->findBy('user_id', $user->id, false);
+            if ($subscription = $user->subscription()) { // Subscription::getBuilder()->findBy('user_id', $user->id, false); //TODO: we need to add a filter that will ensure the subscription is active
+                $plan = $subscription->plan(); // Plan::getBuilder()->findBy('id', Subscription)
+            }
+            $show_subscription = $subscription 
+                                && $subscription->expires_at
+                                && strtotime($subscription->expires_at) >= time();
             $is_admin = Guard::roleIs($user, 'admin');
 
             $hidden = [ ...$user::twofainfos, 'password'];
             $_user = Arr::except($user->toArray(), $hidden);
             $_user['extra'] = [
                 'is_admin' => $is_admin,
-                'subscription' => $subscription ? $subscription : null,
+                'subscription' => $show_subscription ? $subscription : null,
+                'plan' => $show_subscription && $plan ? $plan : null,
                 'twofa' => [
                     'enabled' => strlen($user->twofa_types) > 0,
                     'twofa_types' => $user->twofa_types,

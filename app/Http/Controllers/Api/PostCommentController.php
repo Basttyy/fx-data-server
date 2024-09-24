@@ -35,11 +35,13 @@ final class PostCommentController
             if (!Guard::roleIs($user, 'admin')) {
                 return JsonResponse::unauthorized('you are not allowed to update comment');
             }
+            $page = $request->query('page');
+            $per_page = $request->query('perpage');
             
-            if (!$post_comments = PostComment::getBuilder()->all())
+            if (!$post_comments = PostComment::getBuilder()->paginate($page, $per_page))
                 return JsonResponse::ok('no post comment found in list', []);
 
-            return JsonResponse::ok('post comment retrieved success', $post_comments);
+            return JsonResponse::ok('post comment retrieved success', $post_comments->toArray('admin.blog.comments.list'));
         } catch (PDOException $e) {
             return JsonResponse::serverError('we encountered a problem'.$e->getMessage());
         } catch (Exception $e) {
@@ -52,22 +54,25 @@ final class PostCommentController
         try {
             $user = $request->auth_user;
             $builder = PostComment::getBuilder();
+            $page = $request->query('page');
+            $per_page = $request->query('perpage');
+
             if (Guard::roleIs($user, 'admin')) {
-                    $post_comments = $builder->where('post_id', $post_id)->all();
+                    $post_comments = $builder->where('post_id', $post_id)->paginate($page, $per_page);
             } else {
                 $params = count($_GET) ? sanitize_data($_GET) : [];
                 $post_comments = isset($params['post_comment_id']) ?
                             $builder->where('status', PostComment::APPROVED)
                                 ->where('post_id', $post_id)
-                                ->where('post_comment_id', $params['post_comment_id'])->all() :
+                                ->where('post_comment_id', $params['post_comment_id'])->paginate($page, $per_page) :
                             $builder->where('status', PostComment::APPROVED)
-                                ->where('post_id', $post_id)->all();
+                                ->where('post_id', $post_id)->paginate($page, $per_page);
             }
             
             if (!$post_comments)
                 return JsonResponse::ok('no post comment found in list', []);
 
-            return JsonResponse::ok('post comment retrieved success', $post_comments);
+            return JsonResponse::ok('post comment retrieved success', $post_comments->toArray('blog-posts.comments.list'));
         } catch (PDOException $e) {
             return JsonResponse::serverError('we encountered a problem'.$e->getMessage());
         } catch (Exception $e) {

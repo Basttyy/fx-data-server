@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers\Api;
 
+use App\Models\Plan;
 use Eyika\Atom\Framework\Support\Auth\Guard;
 use Eyika\Atom\Framework\Support\Arr;
 use Eyika\Atom\Framework\Support\Str;
@@ -10,6 +11,7 @@ use Eyika\Atom\Framework\Support\Validator;
 use App\Models\Referral;
 use App\Models\Subscription;
 use App\Models\User;
+use Carbon\Carbon;
 use Exception;
 use Eyika\Atom\Framework\Support\Database\DB;
 use Eyika\Atom\Framework\Support\Facade\Storage;
@@ -23,15 +25,22 @@ final class UserController
         try {
             $__user = $request->auth_user;
 
-            if (!Guard::roleIs($__user, 'admin') || $__user->id !== $user->id) {
+            if ($is_not_admin = Guard::roleIsNot($__user, 'admin') && $__user->id !== $user->id) {
                 return JsonResponse::unauthorized();
             }
 
-            $subscription = Subscription::getBuilder()->findBy('user_id', $user->id, false); //TODO: we need to add a filter that will ensure the subscription is active
+            if ($subscription = $user->subscription()) { // Subscription::getBuilder()->findBy('user_id', $user->id, false); //TODO: we need to add a filter that will ensure the subscription is active
+                $plan = $subscription->plan(); // Plan::getBuilder()->findBy('id', Subscription)
+            }
+            $show_subscription = $subscription 
+                                && $subscription->expires_at
+                                && strtotime($subscription->expires_at) >= time();
 
-            $_user = Arr::except($user->toArray(), $user->twofainfos);
+            $hidden = [ ...$user::twofainfos, 'password'];
+            $_user = Arr::except($user->toArray(), $hidden);
             $_user['extra']['is_admin'] = Guard::roleIs($user, 'admin');
-            $_user['extra']['subscription'] = $subscription ? $subscription : null;
+            $_user['extra']['subscription'] = $show_subscription ? $subscription : null;
+            $_user['extra']['plan'] = $show_subscription && $plan ? $plan : null;
             $_user['extra']['twofa']['enabled'] = strlen($user->twofa_types) > 0;
             $_user['extra']['twofa']['twofa_types'] = $user->twofa_types;
             $_user['extra']['twofa']['twofa_default_type'] = $user->twofa_default_type;
@@ -208,9 +217,7 @@ final class UserController
                 }
             }
 
-            return JsonResponse::ok("user updated successfull", [
-                'data' => $user->toArray()
-            ]);
+            return JsonResponse::ok("user updated successfull", $user->toArray());
         } catch (PDOException $e) {
             if (env("APP_ENV") === "local")
                 $message = $e->getMessage();

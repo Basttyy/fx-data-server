@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Auth\CaptchaController;
 use App\Http\Controllers\Api\Auth\TwoFaController;
 use App\Http\Controllers\Api\BlogPostController;
+use App\Http\Controllers\Api\ChartStoreController;
 use App\Http\Controllers\Api\CheapCountryController;
 use App\Http\Controllers\Api\FeedbackController;
 use App\Http\Controllers\Api\FxDataController;
@@ -84,7 +85,7 @@ Route::middleware(VisitLoggerMiddleware::class, function () {
         Route::get('/$transaction', [TransactionController::class, 'show']);
         Route::post('/webhook/post', [TransactionController::class, 'update']);
         Route::middleware(AuthMiddleware::class, function () {
-            Route::get('', [TransactionController::class, 'list']);
+            Route::get('', [TransactionController::class, 'list'])->name('transactions.list');
             Route::post('/verify', [TransactionController::class, 'create']);
             Route::post('/generate/ref', [TransactionController::class, 'generateTxRef']);
         });
@@ -119,7 +120,7 @@ Route::middleware(VisitLoggerMiddleware::class, function () {
         Route::get('/$pair', [PairController::class, 'show']);
         Route::get('', [PairController::class, 'list']);
         Route::get('/list/onlypair', [PairController::class, 'listonlypair']);
-        Route::get('/list/pairorsym/$pair/query/$query', [PairController::class, 'query']);
+        Route::get('/list/pairorsym/$info_select/query/$query', [PairController::class, 'query']);
         Route::middleware(AuthMiddleware::class, function () {
             Route::post('', [PairController::class, 'create']);
             Route::put('/$pair', [PairController::class, 'update']);
@@ -130,8 +131,8 @@ Route::middleware(VisitLoggerMiddleware::class, function () {
         /// Positions Routes
         Route::middleware(AuthMiddleware::class, function () {
             Route::get('/$position', [PositionController::class, 'show']);
-            Route::get('', [PositionController::class, 'list']);
-            Route::get('/query/$query', [PositionController::class, 'list']);
+            Route::get('', [PositionController::class, 'list'])->name('positions.list');
+            Route::get('/query/$query', [PositionController::class, 'list'])->name('positions.query');
             Route::get('/users/$id', [PositionController::class, 'list_user']);
             Route::post('', [PositionController::class, 'create']);
             Route::put('/$position', [PositionController::class, 'update']);
@@ -143,8 +144,8 @@ Route::middleware(VisitLoggerMiddleware::class, function () {
     Route::group('/feedbacks', function () {
         Route::middleware(AuthMiddleware::class, function () {
             Route::get('/$feedback', [FeedbackController::class, 'show']);
-            Route::get('', [FeedbackController::class, 'list']);
-            Route::get('/query/$query', [FeedbackController::class, 'list']);
+            Route::get('', [FeedbackController::class, 'list'])->name('feedbacks.list');
+            Route::get('/query/$query', [FeedbackController::class, 'list'])->name('feedbacks.query');
             Route::get('/users/$feedback', [FeedbackController::class, 'list_user']);
             Route::post('', [FeedbackController::class, 'create']);
             Route::put('/$feedback', [FeedbackController::class, 'update']);
@@ -157,23 +158,23 @@ Route::middleware(VisitLoggerMiddleware::class, function () {
             Route::group('/visit-logs', function () {
                 Route::get('/$visit', [VisitController::class, 'show']);
                 Route::get('/all/count', [VisitController::class, 'count']);
-                Route::get('/all/count/$query', [VisitController::class, 'count']);
-                Route::get('', [VisitController::class, 'list']);
+                Route::get('/all/count/$query', [VisitController::class, 'count'])->name('admin.visit-logs.countquery');
+                Route::get('', [VisitController::class, 'list'])->name('admin.visit-logs.list');
                 Route::get('/query/$query', [VisitController::class, 'list']);
             });
-            Route::group('/blog', function () {
-                Route::post('/posts', [BlogPostController::class, 'create'])->name('admin.blog.posts');
-                Route::put('/posts/$blog', [BlogPostController::class, 'update']);
-                Route::delete('/posts/$blog', [BlogPostController::class, 'delete']);
-                Route::get('/comments', [PostCommentController::class, 'listall']);
+            Route::group('/blog-posts', function () {
+                Route::post('', [BlogPostController::class, 'create']);
+                Route::put('/$blog', [BlogPostController::class, 'update']);
+                Route::delete('/$blog', [BlogPostController::class, 'delete']);
+                Route::get('/comments', [PostCommentController::class, 'listall'])->name('admin.blog.comments.list');
             });
             Route::group('/subscriptions', function () {
                 Route::get('/all/count', [SubscriptionController::class, 'count']);
                 // Route::get('/all/count/$query', [SubscriptionController::class, 'count']);
-                Route::get('', [SubscriptionController::class, 'list']);
-                Route::get('/query/$query', [SubscriptionController::class, 'list']);
-                Route::get('/user/$id', [SubscriptionController::class, 'listUser']);
-                Route::get('/plans/$id', [SubscriptionController::class, 'listPlan']);
+                Route::get('', [SubscriptionController::class, 'list'])->name('admin.subscriptions.list');
+                Route::get('/query/$query', [SubscriptionController::class, 'list'])->name('admin.subscriptions.query');
+                Route::get('/users/$id', [SubscriptionController::class, 'listUser'])->name('admin.subscriptions.listuser');
+                Route::get('/plans/$id', [SubscriptionController::class, 'listPlan'])->name('admin.subscriptions.listplan');
             });
             Route::group('/cheapcountries', function () {
                 Route::get('/$cheapcountry', [CheapCountryController::class, 'show']);
@@ -200,11 +201,11 @@ Route::middleware(VisitLoggerMiddleware::class, function () {
         });
     });
     Route::group('/blog-posts', function () {
-        Route::get('', [BlogPostController::class, 'list']);
+        Route::get('', [BlogPostController::class, 'list'])->name('blog-posts.list');
         Route::get('/$blog', [BlogPostController::class, 'show']);
         Route::get('/comments/$id', [PostCommentController::class, 'show']);
-        Route::get('/comments/query/$query', [PostCommentController::class, 'list']);
-        Route::get('/$id/comments', [PostCommentController::class, 'list']);
+        Route::get('/comments/query/$query', [PostCommentController::class, 'list'])->name('blog-posts.comments.query');
+        Route::get('/$id/comments', [PostCommentController::class, 'list'])->name('blog-posts.comments.list');
         Route::post('/$id/comments', [PostCommentController::class, 'create']);
         Route::middleware([AuthMiddleware::class], function () {
             Route::put('/comments/$post', [PostCommentController::class, 'update']);
@@ -218,11 +219,42 @@ Route::middleware(VisitLoggerMiddleware::class, function () {
         Route::get('/tickers/query/$query', [MiscellaneousController::class, 'searchTicker']);
         Route::get('/tickers/query', [MiscellaneousController::class, 'searchTicker']);
     });
+    Route::middleware(AuthMiddleware::class, false)->group('/chartstore', function () {
+        Route::group('chart_layouts', function () {
+            Route::get('', [ChartStoreController::class, 'getAllCharts']);
+            Route::get('/$id', [ChartStoreController::class, 'getChartContent']);
+            Route::post('', [ChartStoreController::class, 'saveChart']);
+            Route::put('/$id', [ChartStoreController::class, 'updateChart']);
+            Route::delete('/$id', [ChartStoreController::class, 'removeChart']);
+        });
+        Route::group('chart_templates', function () {
+            Route::get('/name', [ChartStoreController::class, 'getAllChartTemplates']);
+            Route::get('/name/$name', [ChartStoreController::class, 'getChartTemplateContent']);
+            Route::post('', [ChartStoreController::class, 'saveChartTemplate']);
+            Route::delete('/name/$name', [ChartStoreController::class, 'removeChartTemplate']);
+        });
+        Route::group('study_templates', function () {
+            Route::get('/name', [ChartStoreController::class, 'getAllStudyTemplates']);
+            Route::get('/name/$name', [ChartStoreController::class, 'getStudyTemplateContent']);
+            Route::post('', [ChartStoreController::class, 'saveStudyTemplate']);
+            Route::delete('/name/$name', [ChartStoreController::class, 'removeStudyTemplate']);
+        });
+        Route::group('drawing_templates', function () {
+            Route::get('/templateName', [ChartStoreController::class, 'getDrawingTemplates']);
+            Route::get('/toolname/$toolName/templatename/$templateName', [ChartStoreController::class, 'loadDrawingTemplate']);
+            Route::post('', [ChartStoreController::class, 'saveDrawingTemplate']);
+            Route::delete('/toolname/$toolName/templatename/$templateName', [ChartStoreController::class, 'removeDrawingTemplate']);
+        });
+        Route::group('line_and_group_tools', function () {
+            Route::get('/layout_id/$layoutid/chart_id/$chartid', [ChartStoreController::class, 'loadLineToolsAndGroups']);
+            Route::post('', [ChartStoreController::class, 'saveLineToolsAndGroups']); 
+        });
+    });
     /// Others
     Route::post('/misc/contact-us', [MiscellaneousController::class, 'contact_us'])->name('contact-us');
     Route::get('/landing/data', [MiscellaneousController::class, 'fetchLanding']);
     Route::get('/referrals/$referral', [ReferralController::class, 'show']);
-    Route::get('/referrals', [ReferralController::class, 'list'])->middleware(AuthMiddleware::class);
+    Route::get('/referrals', [ReferralController::class, 'list'])->middleware(AuthMiddleware::class)->name('referrals.list');
 
     Route::any('/404', [NotFoundController::class, 'index']);
 });

@@ -54,7 +54,7 @@ final class PairController
         }
     }
 
-    public function query(Request $request, string $id)
+    public function query(Request $request, string $info_select)
     {
         try {
             $params = $request->query();;
@@ -67,9 +67,9 @@ final class PairController
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
-            if ($id == 0)
+            if ($info_select == 0)
                 $select = [];
-            else if ($id == 1)
+            else if ($info_select == 1)
                 $select = Pair::pairinfos;
             else
                 $select = Pair::symbolinfos;
@@ -87,28 +87,35 @@ final class PairController
                             // ->orWhere('history_start', $searchstring)
                             // ->orWhere('history_end', $searchstring)
                             ->all(select: $select))
-                    return JsonResponse::ok("no piar found in list1", []);
-                
-                while ($pair = current($pairs1)) {
-                    $push = true;
-                    if ((isset($params['exchange'])) && $params['exchange'] != '' && $pair['exchange'] != $params['exchange']) {
-                        $push = false;
-                    }
-                    if ((isset($params['market'])) && $params['market'] != '' && $pair['market'] != $params['market']) {
-                        $push = false;
-                    }
-    
-                    if ($push)
-                        array_push($pairs, $pair);
-                    next($pairs1);
-                }
+                    return JsonResponse::ok("no piar found in list", []);
             } else if (isset($name)) {
-                if (!$pairs = Pair::getBuilder()->where('name', $params['name'])->all())
-                    return JsonResponse::ok("no piar found in list2", []);
+                if (!$pairs1 = Pair::getBuilder()->where('name', $params['name'])->all())
+                    return JsonResponse::ok("no piar found in list", []);
+            } else {
+                $pairs1 = Pair::getBuilder()->all(select: $select);
+            }
+            while ($pair = current($pairs1)) {
+                $push = true;
+                if ((isset($params['exchange'])) && $pair['exchange'] != $params['exchange']) {
+                    if ($params['exchange'] == '')
+                        $push = true;
+                    else
+                        $push = false;
+                }
+                if ((isset($params['market'])) && $pair['market'] != $params['market']) {
+                    if ($params['market'] == '')
+                        $push = true;
+                    else
+                        $push = false;
+                }
+
+                if ($push)
+                    array_push($pairs, $pair);
+                next($pairs1);
             }
 
             if (!count($pairs))
-                return JsonResponse::ok("no piar found in list3", []);
+                return JsonResponse::ok("no pair found in list", []);
 
             return JsonResponse::ok("pairs retrieved success", $pairs);
         } catch (PDOException $e) {

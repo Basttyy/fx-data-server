@@ -59,11 +59,14 @@ final class SubscriptionController
     public function list(Request $request)
     {
         try {
-            $subscriptions = Subscription::getBuilder()->all();
+            $page = $request->query('page');
+            $per_page = $request->query('perpage');
+            $subscriptions = Subscription::getBuilder()->paginate($page, $per_page);
+
             if (!$subscriptions)
                 return JsonResponse::ok("no subscription found in list", []);
 
-            return JsonResponse::ok("subscriptions retrieved success", $subscriptions);
+            return JsonResponse::ok("subscriptions retrieved success", $subscriptions->toArray('admin.subscriptions.list'));
         } catch (PDOException $e) {
             return JsonResponse::serverError("we encountered a problem");
         } catch (Exception $e) {
@@ -74,12 +77,14 @@ final class SubscriptionController
     public function listUser(Request $request, string $id)
     {
         try {
-            $subscriptions = Subscription::getBuilder()->findBy("user_id", $id);
+            $page = $request->query('page');
+            $per_page = $request->query('perpage');
+            $subscriptions = Subscription::getBuilder()->where("user_id", $id)->paginate($page, $per_page);
             
             if (!$subscriptions)
                 return JsonResponse::ok("no subscription found in list", []);
 
-            return JsonResponse::ok("subscriptions retrieved success", $subscriptions);
+            return JsonResponse::ok("subscriptions retrieved success", $subscriptions->toArray('admin.subscriptions.listuser'));
         } catch (PDOException $e) {
             return JsonResponse::serverError("we encountered a problem");
         } catch (Exception $e) {
@@ -90,12 +95,14 @@ final class SubscriptionController
     public function listPlan(Request $request, string $id)
     {
         try {
-            $subscriptions = Subscription::getBuilder()->findBy("plan_id", $id);
+            $page = $request->query('page');
+            $per_page = $request->query('perpage');
+            $subscriptions = Subscription::getBuilder()->where("plan_id", $id)->paginate($page, $per_page);
             
             if (!$subscriptions)
                 return JsonResponse::ok("no subscription found in list", []);
 
-            return JsonResponse::ok("subscriptions retrieved success", $subscriptions);
+            return JsonResponse::ok("subscriptions retrieved success", $subscriptions->toArray('admin.subscriptions.listplan'));
         } catch (PDOException $e) {
             return JsonResponse::serverError("we encountered a problem");
         } catch (Exception $e) {

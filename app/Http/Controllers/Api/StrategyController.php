@@ -6,7 +6,9 @@ use Eyika\Atom\Framework\Http\JsonResponse;
 use Eyika\Atom\Framework\Http\Request;
 use Eyika\Atom\Framework\Support\Validator;
 use App\Models\Strategy;
+use App\Models\TestSession;
 use Exception;
+use Eyika\Atom\Framework\Support\Database\DB;
 use Eyika\Atom\Framework\Support\Facade\Storage;
 use LogicException;
 use PDOException;
@@ -96,12 +98,14 @@ final class StrategyController
             }
 
             $body['user_id'] = $user->id;
-            $image = base64_decode($body['logo']);
-            $path = 'uploads/strategies/';
-            
-            $target_file = uniqid(). '.jpg';
-            Storage::put($path . $target_file, $image);
-            $body['logo'] = storage('public')->url($path.$target_file);
+            if (isset($body['logo'])) {
+                $image = base64_decode($body['logo']);
+                $path = 'uploads/strategies/';
+                
+                $target_file = uniqid(). '.jpg';
+                Storage::put($path . $target_file, $image);
+                $body['logo'] = storage('public')->url($path.$target_file);
+            }
 
             if (!$strategy = Strategy::getBuilder()->create($body, false)) {
                 return JsonResponse::serverError("unable to create strategy");
@@ -191,14 +195,20 @@ final class StrategyController
             }
 
             $logo = $strategy->logo;
+            DB::beginTransaction();
+
+            TestSession::getBuilder()->where('strategy_id', $strategy->id)->delete();
 
             if (!$strategy->delete()) {
-                return JsonResponse::notFound("unable to delete strategy or strategy not found");
+                throw new Exception("unable to delete strategy");
             }
-            Storage::delete(str_replace('/storage', '', $logo));
+            if (!empty($logo) && !Storage::delete(str_replace('/storage', '', $logo)))
+                throw new Exception('unable to delete strategy');
 
+            DB::commit();
             return JsonResponse::ok("strategy deleted successfully");
         } catch (PDOException $e) {
+            DB::rollback();
             if (env("APP_ENV") === "local")
                 $message = $e->getMessage();
             else if (str_contains($e->getMessage(), 'Unknown column'))
@@ -207,8 +217,9 @@ final class StrategyController
             
             return JsonResponse::serverError($message);
         } catch (Exception $e) {
-            $message = env("APP_ENV") === "local" ? $e->getMessage() : "we encountered a problem";
-            return JsonResponse::serverError("we got some error here".$message);
+            DB::rollback();
+            $message = env("APP_ENV") === "local" ? $e->getMessage() : "unable to delete strategy";
+            return JsonResponse::serverError("we got some error here, ".$message);
         }
     }
 }

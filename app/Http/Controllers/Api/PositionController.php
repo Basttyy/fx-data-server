@@ -8,6 +8,7 @@ use Eyika\Atom\Framework\Support\Validator;
 use App\Models\Position;
 use DateTime;
 use Exception;
+use Eyika\Atom\Framework\Support\Arr;
 use LogicException;
 use PDOException;
 
@@ -45,24 +46,47 @@ final class PositionController
         try {
             $user = $request->auth_user;
             $is_admin = Guard::roleIs($user, 'admin');
-            $query = $request->query();
+            $query = Arr::except($request->query(), ['page', 'perpage']);
+            $is_query = false;
+
+            $page = $request->query('page');
+            $per_page = $request->query('perpage');
 
             if ($is_admin) {
-                if (count($query))
-                    $positions = Position::getBuilder()->findByArray(array_keys($query), array_values($query), 'OR');
-                else
-                    $positions = Position::getBuilder()->all();
+                if (count($query)) {
+                    $builder = Position::getBuilder();
+                    $first = true;
+                    foreach ($query as $key => $value) {
+                        if ($first) {
+                            $first = false;
+                            $builder->where($key, $value);
+                        } else $builder->orWhere($key, $value);
+                    }
+                    $positions = $builder->paginate($page, $per_page);
+                } else {
+                    $positions = Position::getBuilder()->paginate($page, $per_page);
+                }
+                if (!$positions)
+                    return JsonResponse::ok("no position found in list", []);
+                $positions = $positions->toArray($is_query ? 'positions.query' : 'positions.list');
             } else {
                 if (count($query)) {
-                    $keys = array_merge(array_keys($query), ['user_id']);
-                    $values = array_merge(array_values($query), [$user->id]);
-                    $positions = Position::getBuilder()->findByArray($keys, $values, 'OR');
+                    $query['user_id'] = $user->id;
+                    $builder = Position::getBuilder();
+                    $first = true;
+                    foreach ($query as $key => $value) {
+                        if ($first) {
+                            $first = false;
+                            $builder->where($key, $value);
+                        } else $builder->orWhere($key, $value);
+                    }
+                    $positions = $builder->get();
                 } else {
-                    $positions = Position::getBuilder()->findBy("user_id", $user->id);
+                    $positions = Position::getBuilder()->where("user_id", $user->id)->get();
                 }
+                if (!$positions)
+                    return JsonResponse::ok("no position found in list", []);
             }
-            if (!$positions)
-                return JsonResponse::ok("no position found in list", []);
 
             return JsonResponse::ok("positions retrieved success", $positions);
         } catch (PDOException $e) {
@@ -162,7 +186,7 @@ final class PositionController
                 $body['entrytime'] = $date->format('Y-m-d H:i:s.u');
             }
 
-            if (!$position = Position::getBuilder()->create($body)) {
+            if (!$position = Position::getBuilder()->create( Arr::except($body, ['currentprice']))) {
                 return JsonResponse::serverError("unable to create position");
             }
 
@@ -254,12 +278,13 @@ final class PositionController
                 'pl' => 'sometimes|double',
                 'partials' => 'sometimes|string',
                 'exittype' => "sometimes|string|in:$closetypes",
-                'pair' => 'sometimes|string|exist:pairs,name'
+                'pair' => 'sometimes|string|exist:pairs,name',
+                'currentprice' => 'required|float'
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
-            if (str_contains($body['action'], 'buy')) {
+            if (str_contains($body['action'] ?? '', 'buy')) {
                 if (isset($body['takeprofit']) && $body['takeprofit'] <= $body['entrypoint']) {
                     return JsonResponse::badRequest('invalid entry or takeprofit or stoploss levels');
                 }
@@ -276,7 +301,7 @@ final class PositionController
                     return JsonResponse::badRequest('invalid entry or takeprofit or stoploss levels');
                 }
             }
-            if (str_contains($body['action'], 'sell')) {
+            if (str_contains($body['action'] ?? '', 'sell')) {
                 if (isset($body['takeprofit']) && $body['takeprofit'] >= $body['entrypoint']) {
                     return JsonResponse::badRequest('invalid entry or takeprofit or stoploss levels');
                 }
@@ -294,11 +319,11 @@ final class PositionController
                 }
             }
 
-            if (isset($body['action']) && in_array($body['action'], [Position::BUY, Position::SELL])) {
+            if (in_array($body['action'] ?? '', [Position::BUY, Position::SELL])) {
                 $date = new DateTime();
                 $body['entrytime'] = $date->format('Y-m-d H:i:s.u');
             }
-            if (isset($body['exittype']) && isset($body['exitpoint'])) {
+            if ($body['exittype'] ?? null && $body['exitpoint'] ?? null) {
                 $date = new DateTime();
                 $body['exittime'] = $date->format('Y-m-d H:i:s.u');
             }
@@ -310,7 +335,9 @@ final class PositionController
              * But the commented code can only be uncommented in a live trading server
              */
 
-            if (!$position->update($body)) {
+            if (!$position->update($request->only([ 'action' , 'entrypoint', 'exitpoint', 'stoploss', 'takeprofit',
+                                            'lotsize', 'pips', 'pl', 'partials', 'exittype', 'pair'
+                ]))) {
                 return JsonResponse::notFound("unable to update position");
             }
             // if (isset($body['exittype']) && isset($body['action']) && in_array($body['action'], [Position::BUY, Position::SELL])) {

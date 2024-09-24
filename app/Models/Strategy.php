@@ -50,7 +50,7 @@ final class Strategy extends Model
         parent::__construct($values, $this);
     }
 
-    public function user(): User
+    public function user(): User|null
     {
         return $this->belongsTo(User::class);
     }

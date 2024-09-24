@@ -38,15 +38,17 @@ final class TransactionController
     {
         try {
             $user = $request->auth_user;
-            $is_admin = !Guard::roleIs($user, 'admin');
+            $is_admin = Guard::roleIs($user, 'admin');
+            $page = $request->query('page');
+            $per_page = $request->query('perpage');
 
-            if ($is_admin)
-                $transactions = Transaction::getBuilder()->all(false);
-            else
+            if ($is_admin) {
+                if (!$transactions = Transaction::getBuilder()->paginate($page, $per_page))
+                    return JsonResponse::ok('no transaction found in list', []);
+                $transactions = $transactions->toArray('transactions.list');
+            } else {
                 $transactions = Transaction::getBuilder()->where('user_id', $user->id)->get();
-
-            if (!$transactions)
-                return JsonResponse::ok('no transaction found in list', []);
+            }
 
             return JsonResponse::ok("transaction's retrieved success", $transactions);
         } catch (PDOException $e) {
@@ -77,7 +79,9 @@ final class TransactionController
 
             if (!$temp_trans_ref = TempTransactionRef::getBuilder()->where('user_id', $user->id)->orderBy('created_at', 'DESC')->first()) {
 
+                logger()->info('01 transaction ref is: ');
                 if ($this->providerIs('paystack') && $trans = $this->initializeTransaction($user->email, 1000, $body['plan_code'])) {
+                    logger()->info('02 transaction ref is: ');
                     if ($trans->status !== true) {
                         return JsonResponse::serverError('something happened please try again');
                     }
@@ -89,15 +93,17 @@ final class TransactionController
                         return JsonResponse::serverError('something happened please try again');
                     }
                 } else if ($this->providerIs('flutterwave')) {
+                    logger()->info('03 transaction ref is: ');
                     if (!$temp_trans_ref = TempTransactionRef::getBuilder()->create([
                         'user_id' => $user->id,
                         'tx_ref' => transaction_ref()
                     ])) {
                         return JsonResponse::serverError('something happened please try again');
                     }
+                    logger()->info('transaction ref is: ', $temp_trans_ref->toArray(false));
                 }
                 return JsonResponse::ok('transaction ref generated success', [
-                    'tx_ref' => $temp_trans_ref->tx_ref, 
+                    'tx_ref' => $temp_trans_ref->tx_ref,
                     'access_code' => $temp_trans_ref->access_code
                 ]);
             }
@@ -107,6 +113,7 @@ final class TransactionController
                 'access_code' => $this->providerIs('flutterwave') ? null : $temp_trans_ref->access_code
             ]);
         } catch (Exception $e) {
+            logger()->info($e->getMessage(). ' '. $e->getCode());
             return JsonResponse::serverError('we encountered a problem please try again');
         }
     }
@@ -185,7 +192,7 @@ final class TransactionController
             ///TODO: send success notification to the user about the new subscription he made
 
             if ($subscription)
-                $transaction->update(['subscription_id' => $subscription['id']]);
+                $transaction->update(['subscription_id' => $subscription->id]);
 
             TempTransactionRef::getBuilder()->where('user_id', $user->id)->delete();
 

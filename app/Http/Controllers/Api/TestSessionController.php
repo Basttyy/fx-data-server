@@ -99,7 +99,7 @@ final class TestSessionController
             if ($validated = Validator::validate($body, [
                 'starting_bal' => 'required|float',
                 'current_bal' => 'required|float',
-                'strategy_id' => 'required|int|exist:strategies,id',
+                'strategy_id' => 'sometimes|int|exist:strategies,id',
                 'pairs' => 'required|string',
                 'pair' => 'required|string',
                 'start_date' => 'required|string',

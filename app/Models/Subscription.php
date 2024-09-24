@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use App\Models\Model;
+use Eyika\Atom\Framework\Support\Database\Concerns\HasRelationships;
 
 final class Subscription extends Model
 {
+    use HasRelationships;
+
     protected $softdeletes = true;
 
     protected $table = 'subscriptions';
@@ -49,5 +52,10 @@ final class Subscription extends Model
     public function __construct($values = [])
     {
         parent::__construct($values, $this);
+    }
+
+    public function plan(): Plan|null
+    {
+        return $this->belongsTo(Plan::class);
     }
 }

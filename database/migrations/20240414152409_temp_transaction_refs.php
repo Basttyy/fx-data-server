@@ -22,6 +22,7 @@ final class TempTransactionRefs extends AbstractMigration
         $table = $this->table($this::TABLE_NAME);
         $table->addColumn('user_id', 'integer', ['signed' => false])
             ->addColumn('tx_ref', 'string')
+            ->addColumn('access_code', 'string', ['null' => true])
             ->addForeignKey('user_id', 'users', 'id', ['delete' => 'CASCADE', 'update' => 'NO_ACTION'])
             ->addTimestamps()
             ->create();

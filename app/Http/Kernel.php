@@ -8,6 +8,7 @@ use Eyika\Atom\Framework\Http\Middlewares\ConvertEmptyStringsToNull;
 use Eyika\Atom\Framework\Http\Middlewares\EncryptCookies;
 use Eyika\Atom\Framework\Http\Middlewares\HandleCors;
 use Eyika\Atom\Framework\Http\Middlewares\PreventRequestsDuringMaintenance;
+use Eyika\Atom\Framework\Http\Middlewares\ServePublicAssets;
 use Eyika\Atom\Framework\Http\Middlewares\ShareErrorsFromSession;
 use Eyika\Atom\Framework\Http\Middlewares\StartSession;
 use Eyika\Atom\Framework\Http\Middlewares\SubstituteBindings;
@@ -41,6 +42,7 @@ class Kernel extends FoundationKernel
      */
     protected $middlewareGroups = [
         'web' => [
+            ServePublicAssets::class,
             StartSession::class,
             ShareErrorsFromSession::class,
             EncryptCookies::class,
@@ -52,9 +54,10 @@ class Kernel extends FoundationKernel
 
         'api' => [
             HandleCors::class,
+            ServePublicAssets::class,
             // EnsureFrontendRequestsAreStateful::class,  NOT Yet implemented
             // ThrottleRequestsMiddleware::class,
-            SubstituteBindings::class.":id,tporsl",
+            SubstituteBindings::class.":id,tporsl,standard,query,method,period,year,month,week",
         ],
     ];
 

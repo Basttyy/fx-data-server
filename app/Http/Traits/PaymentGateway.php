@@ -299,7 +299,7 @@ trait PaymentGateway
         return json_decode($resp->getBody(), false);
     }
 
-    private static function prepareUrl(string $action, int|string $id = null, array $params = null)
+    private static function prepareUrl(string $action, int|string $id = null, array $params = null): string
     {
         $url = self::providerIs('paystack') ? static::paystack[$action] : static::flutterwave[$action];
         if ($id)
@@ -312,14 +312,14 @@ trait PaymentGateway
         return $url;
     }
 
-    private static function providerIs(string $provider)
+    private static function providerIs(string $provider): bool
     {
-        env('PAYMENT_PROVIDER') == $provider;
+        return env('PAYMENT_PROVIDER') == $provider;
     }
 
     private static function getSupportedCurrencies()
     {
-        switch (env('PAYMENT_PROVIDER') ?? '') {
+        switch (env('PAYMENT_PROVIDER', '')) {
             case 'paystack':
                 $currencies = self::paystackCurrencies;
                 break;

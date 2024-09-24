@@ -17,7 +17,7 @@ class AuthMiddleware implements MiddlewareInterface
             if (!$user = Guard::tryToAuthenticate()) {
                 return JsonResponse::unauthorized();
             }
-            $user = $user->find($user->id, false);
+            $user = $user->find(is_protected: false);
             $request->auth_user = $user;
         } catch (PDOException $e) {
             // consoleLog(0, $e->getMessage(). '   '.$e->getTraceAsString());

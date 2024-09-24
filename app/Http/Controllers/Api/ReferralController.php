@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers\Api;
 
+use App\Models\Model;
 use Eyika\Atom\Framework\Support\Auth\Guard;
 use Eyika\Atom\Framework\Support\Auth\Jwt\JwtAuthenticator;
 use Eyika\Atom\Framework\Support\Arr;
@@ -9,6 +10,9 @@ use Eyika\Atom\Framework\Http\Request;
 use App\Models\Referral;
 use App\Models\User;
 use Exception;
+use Eyika\Atom\Framework\Support\Database\Contracts\ModelInterface;
+use Eyika\Atom\Framework\Support\Database\Contracts\UserModelInterface;
+use Eyika\Atom\Framework\Support\Database\PaginatedData;
 use LogicException;
 use PDOException;
 
@@ -47,15 +51,20 @@ final class ReferralController
         try {
             /** @var User $user */
             $user = $request->auth_user;
+            $page = $request->query('page');
+            $per_page = $request->query('perpage');
 
             if ($is_admin = Guard::roleIs($user, 'admin')) {
-                $referrals = Referral::getBuilder()->all();
+                $data = Referral::getBuilder()->paginate($page, $per_page);
             } else {
-                $referrals = $user->referrals();
+                $data = paginate($user->referrals(), Referral::getBuilder(), $page, $per_page);
             }
             
-            if (!$referrals)
+            if (!$data)
                 return JsonResponse::ok('no referrals found in list', []);
+
+            $data = $data->toArray('referrals.list');
+            $referrals = $data['data'];
 
             $ids = Arr::map($referrals, function ($referral) {
                 return is_array($referral) ? $referral['referred_user_id'] : $referral->referred_user_id;
@@ -72,10 +81,11 @@ final class ReferralController
                 $referrals[$key]['refferedUser'] = array_shift($users);
             }
 
-            return JsonResponse::ok("referrals retrieved success", [
-                'referrals' => $referrals,
-                'points' => $is_admin ? null : $user->points
-            ]);
+            $data['referrals'] = $referrals;
+            unset($data['data']);
+            $data['points'] = $is_admin ? null : $user->points;
+
+            return JsonResponse::ok("referrals retrieved success", $data);
         } catch (PDOException $e) {
             logger()->info('pdo exception '.$e->getMessage(), $e->getTrace());
             return JsonResponse::serverError('we encountered a problem');
