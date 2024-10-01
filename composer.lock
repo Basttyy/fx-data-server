@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "942178a24ca0b1b9b80c4cf45fee20f1",
+    "content-hash": "f109bf08327361ba0b392164ee24c41b",
     "packages": [
         {
             "name": "brick/math",
@@ -771,16 +771,10 @@
         {
             "name": "eyika/atom-framework",
             "version": "dev-dev",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/eyika/atomframework.git",
-                "reference": "63164fc982646739def33bb158750f767b506fc0"
-            },
             "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/eyika/atomframework/zipball/63164fc982646739def33bb158750f767b506fc0",
-                "reference": "63164fc982646739def33bb158750f767b506fc0",
-                "shasum": ""
+                "type": "path",
+                "url": "../atomframework",
+                "reference": "11947a3e8dee6db0a066f6bb5fb8fca09c9d83f3"
             },
             "require": {
                 "php": "^7.4 || ^8.0"
@@ -805,13 +799,19 @@
                 "vlucas/phpdotenv": "^5.6",
                 "voku/portable-ascii": "^2.0"
             },
+            "bin": [
+                "src/bin/atom_phpunit"
+            ],
             "type": "library",
             "autoload": {
                 "psr-4": {
                     "Eyika\\Atom\\Framework\\": "src/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "scripts": {
+                "post-install-cmd": [],
+                "post-update-cmd": []
+            },
             "license": [
                 "MIT"
             ],
@@ -822,11 +822,10 @@
                 }
             ],
             "description": "Core Libraries of Atom, An MVC microframework for PHP. Quite heavily inspired by Laravel",
-            "support": {
-                "issues": "https://github.com/eyika/atomframework/issues",
-                "source": "https://github.com/eyika/atomframework/tree/dev"
-            },
-            "time": "2024-09-24T19:21:29+00:00"
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "ezyang/htmlpurifier",
@@ -1603,16 +1602,16 @@
         },
         {
             "name": "league/flysystem",
-            "version": "3.28.0",
+            "version": "3.29.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thephpleague/flysystem.git",
-                "reference": "e611adab2b1ae2e3072fa72d62c62f52c2bf1f0c"
+                "reference": "0adc0d9a51852e170e0028a60bd271726626d3f0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thephpleague/flysystem/zipball/e611adab2b1ae2e3072fa72d62c62f52c2bf1f0c",
-                "reference": "e611adab2b1ae2e3072fa72d62c62f52c2bf1f0c",
+                "url": "https://api.github.com/repos/thephpleague/flysystem/zipball/0adc0d9a51852e170e0028a60bd271726626d3f0",
+                "reference": "0adc0d9a51852e170e0028a60bd271726626d3f0",
                 "shasum": ""
             },
             "require": {
@@ -1680,22 +1679,22 @@
             ],
             "support": {
                 "issues": "https://github.com/thephpleague/flysystem/issues",
-                "source": "https://github.com/thephpleague/flysystem/tree/3.28.0"
+                "source": "https://github.com/thephpleague/flysystem/tree/3.29.0"
             },
-            "time": "2024-05-22T10:09:12+00:00"
+            "time": "2024-09-29T11:59:11+00:00"
         },
         {
             "name": "league/flysystem-local",
-            "version": "3.28.0",
+            "version": "3.29.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thephpleague/flysystem-local.git",
-                "reference": "13f22ea8be526ea58c2ddff9e158ef7c296e4f40"
+                "reference": "e0e8d52ce4b2ed154148453d321e97c8e931bd27"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thephpleague/flysystem-local/zipball/13f22ea8be526ea58c2ddff9e158ef7c296e4f40",
-                "reference": "13f22ea8be526ea58c2ddff9e158ef7c296e4f40",
+                "url": "https://api.github.com/repos/thephpleague/flysystem-local/zipball/e0e8d52ce4b2ed154148453d321e97c8e931bd27",
+                "reference": "e0e8d52ce4b2ed154148453d321e97c8e931bd27",
                 "shasum": ""
             },
             "require": {
@@ -1729,9 +1728,9 @@
                 "local"
             ],
             "support": {
-                "source": "https://github.com/thephpleague/flysystem-local/tree/3.28.0"
+                "source": "https://github.com/thephpleague/flysystem-local/tree/3.29.0"
             },
-            "time": "2024-05-06T20:05:52+00:00"
+            "time": "2024-08-09T21:24:39+00:00"
         },
         {
             "name": "league/mime-type-detection",
@@ -3483,16 +3482,16 @@
         },
         {
             "name": "robmorgan/phinx",
-            "version": "0.16.3",
+            "version": "0.16.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/cakephp/phinx.git",
-                "reference": "b5dab9908aa4edfe866b3f564abcba53d14c8989"
+                "reference": "0ef61fc10395dc25ab37c45125a5be5d6231299c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/cakephp/phinx/zipball/b5dab9908aa4edfe866b3f564abcba53d14c8989",
-                "reference": "b5dab9908aa4edfe866b3f564abcba53d14c8989",
+                "url": "https://api.github.com/repos/cakephp/phinx/zipball/0ef61fc10395dc25ab37c45125a5be5d6231299c",
+                "reference": "0ef61fc10395dc25ab37c45125a5be5d6231299c",
                 "shasum": ""
             },
             "require": {
@@ -3564,9 +3563,9 @@
             ],
             "support": {
                 "issues": "https://github.com/cakephp/phinx/issues",
-                "source": "https://github.com/cakephp/phinx/tree/0.16.3"
+                "source": "https://github.com/cakephp/phinx/tree/0.16.4"
             },
-            "time": "2024-09-07T07:48:48+00:00"
+            "time": "2024-09-25T16:10:29+00:00"
         },
         {
             "name": "symfony/clock",
@@ -5326,16 +5325,16 @@
         },
         {
             "name": "nikic/php-parser",
-            "version": "v5.2.0",
+            "version": "v5.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/PHP-Parser.git",
-                "reference": "23c79fbbfb725fb92af9bcf41065c8e9a0d49ddb"
+                "reference": "3abf7425cd284141dc5d8d14a9ee444de3345d1a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/23c79fbbfb725fb92af9bcf41065c8e9a0d49ddb",
-                "reference": "23c79fbbfb725fb92af9bcf41065c8e9a0d49ddb",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/3abf7425cd284141dc5d8d14a9ee444de3345d1a",
+                "reference": "3abf7425cd284141dc5d8d14a9ee444de3345d1a",
                 "shasum": ""
             },
             "require": {
@@ -5378,9 +5377,9 @@
             ],
             "support": {
                 "issues": "https://github.com/nikic/PHP-Parser/issues",
-                "source": "https://github.com/nikic/PHP-Parser/tree/v5.2.0"
+                "source": "https://github.com/nikic/PHP-Parser/tree/v5.3.0"
             },
-            "time": "2024-09-15T16:40:33+00:00"
+            "time": "2024-09-29T13:56:26+00:00"
         },
         {
             "name": "phar-io/manifest",

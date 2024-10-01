@@ -2,13 +2,16 @@
 namespace Test\Integration;
 
 use Dotenv\Dotenv;
+use Eyika\Atom\Framework\Support\Arr;
+use Eyika\Atom\Framework\Support\TestCase as BaseTestCase;
 use Faker\Factory as Faker;
 use GuzzleHttp\Exception\BadResponseException;
+use GuzzleHttp\Exception\GuzzleException;
 // use PHPUnit\Framework\TestCase as BaseTestCase;
 use GuzzleHttp\Exception\RequestException;
 use Psr\Http\Message\ResponseInterface;
 
-abstract class TestCase extends \PHPUnit\Framework\TestCase
+abstract class TestCase extends BaseTestCase
 {
     private \GuzzleHttp\Client $client;
     private $base_username;
@@ -35,15 +38,17 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
      * @param array $body
      * @param array $header
      * 
+     * @throws GuzzleException
      * @return ResponseInterface
      */
     protected function makeRequest($method, $endpoint, $body = null, $header = null)
     {
+        // echo $method.'<>'.$endpoint.'<>'.serialize($body).'<>'.serialize($header).PHP_EOL;
+        $header = Arr::wrap($header);
+        Arr::push($header, [ 'Content-Type' => 'application/json' ]);
+        echo "base path is....: ". $GLOBALS['base_path'];
+        logger()->info("this is a log", $header);
 
-        //echo $method.'<>'.$endpoint.'<>'.serialize($body).'<>'.serialize($header).PHP_EOL;
-        $header = !is_null($header) ? $header : [
-            'Content-Type' => 'application/json'
-        ];
         $data = $this->client->request($method, "$this->base_url/$endpoint", [
             'headers' => $header,
             'body'=> json_encode($body)
@@ -76,7 +81,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
                     'status_code' => $response->getStatusCode()
                 ];
             } else {
-                return $e;
+                return throw $e;
             }
         }
     }

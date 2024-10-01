@@ -10,4 +10,5 @@ public
 .htaccess
 minute_data.zip
 composer.lock
+composer.test.json
 minute_data.zip
