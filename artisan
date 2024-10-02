@@ -23,10 +23,10 @@ ini_set('error_log', $log_path);
 */
 
 require __DIR__.'/vendor/autoload.php';
+require_once __DIR__."/vendor/eyika/atom-framework/src/helpers.php";
 
 $app = require_once __DIR__.'/bootstrap/app.php';
 /** @var Eyika\Atom\Framework\Foundation\Application $app */
-require_once __DIR__."/vendor/eyika/atom-framework/src/helpers.php";
 
 Facade::setFacadeApplication($app);
 

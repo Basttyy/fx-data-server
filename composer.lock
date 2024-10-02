@@ -774,12 +774,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/eyika/atomframework.git",
-                "reference": "11947a3e8dee6db0a066f6bb5fb8fca09c9d83f3"
+                "reference": "a5c35c3ab1022abbec6e96c062bf8fd83eefbac2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/eyika/atomframework/zipball/11947a3e8dee6db0a066f6bb5fb8fca09c9d83f3",
-                "reference": "11947a3e8dee6db0a066f6bb5fb8fca09c9d83f3",
+                "url": "https://api.github.com/repos/eyika/atomframework/zipball/a5c35c3ab1022abbec6e96c062bf8fd83eefbac2",
+                "reference": "a5c35c3ab1022abbec6e96c062bf8fd83eefbac2",
                 "shasum": ""
             },
             "require": {
@@ -806,7 +806,8 @@
                 "voku/portable-ascii": "^2.0"
             },
             "bin": [
-                "src/bin/atom_phpunit"
+                "src/bin/atom_phpunit",
+                "src/bin/atom_phinx"
             ],
             "type": "library",
             "autoload": {
@@ -829,7 +830,7 @@
                 "issues": "https://github.com/eyika/atomframework/issues",
                 "source": "https://github.com/eyika/atomframework/tree/dev"
             },
-            "time": "2024-10-01T09:55:37+00:00"
+            "time": "2024-10-02T14:27:56+00:00"
         },
         {
             "name": "ezyang/htmlpurifier",
