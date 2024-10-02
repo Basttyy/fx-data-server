@@ -1,5 +1,5 @@
 <?php
-require __DIR__. "/../../src/libs/helpers.php";
+// require __DIR__. "/../../src/libs/helpers.php";
 
 use Dotenv\Dotenv;
 use Phinx\Seed\AbstractSeed;
@@ -16,10 +16,10 @@ class UserSeeder extends AbstractSeed
      */
     public function run(): void
     {
-        $dotenv = strtolower(PHP_OS_FAMILY) === 'windows' ? Dotenv::createImmutable(__DIR__."\\..\\..\\") : Dotenv::createImmutable(__DIR__.'/../../');
-        $dotenv->safeLoad();
+        // $dotenv = strtolower(PHP_OS_FAMILY) === 'windows' ? Dotenv::createImmutable(__DIR__."\\..\\..\\") : Dotenv::createImmutable(__DIR__.'/../../');
+        // $dotenv->safeLoad();
 
-        $dotenv->required(['TEST_USER_NAME', 'TEST_USER', 'TEST_PASS'])->notEmpty();
+        // $dotenv->required(['TEST_USER_NAME', 'TEST_USER', 'TEST_PASS'])->notEmpty();
         $ids = $this->fetchRow("SELECT id FROM roles WHERE name = 'admin'");
         $id = !$ids ? 1 : $ids[0];
         $data = [
