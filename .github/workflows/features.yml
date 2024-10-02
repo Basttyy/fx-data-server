@@ -40,7 +40,8 @@ jobs:
       run: |
         cp .env.example .env
         mysql -u root -h localhost -e 'CREATE DATABASE IF NOT EXISTS `testdb`'
-        php artisan migrate -e testing & php artisan db:seed -e testing
+        php artisan migrate -e testing
+        php artisan db:seed -e testing
 
     - name: Start Test Server and Run test suite
       run: |
