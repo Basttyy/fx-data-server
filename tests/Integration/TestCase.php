@@ -5,9 +5,7 @@ use Dotenv\Dotenv;
 use Eyika\Atom\Framework\Support\Arr;
 use Eyika\Atom\Framework\Support\TestCase as BaseTestCase;
 use Faker\Factory as Faker;
-use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\GuzzleException;
-// use PHPUnit\Framework\TestCase as BaseTestCase;
 use GuzzleHttp\Exception\RequestException;
 use Psr\Http\Message\ResponseInterface;
 
@@ -21,9 +19,7 @@ abstract class TestCase extends BaseTestCase
     public function initialize($infostr = '')
     {
         echo PHP_EOL.$infostr.' ';
-        $dotenv = strtolower(PHP_OS_FAMILY) === 'windows' ? Dotenv::createImmutable(__DIR__ . "\\..\\..\\") : Dotenv::createImmutable(__DIR__ . '/../../');
-        $dotenv->load();
-        $dotenv->required(['TEST_USER', 'TEST_PASS', 'SERVER_APP_URI'])->notEmpty();
+
         $this->base_username = env('TEST_USER');
         $this->base_password = env('TEST_PASS');
         $this->base_url = env('SERVER_APP_URI');
@@ -46,8 +42,8 @@ abstract class TestCase extends BaseTestCase
         // echo $method.'<>'.$endpoint.'<>'.serialize($body).'<>'.serialize($header).PHP_EOL;
         $header = Arr::wrap($header);
         Arr::push($header, [ 'Content-Type' => 'application/json' ]);
-        echo "base path is....: ". $GLOBALS['base_path'];
-        logger()->info("this is a log", $header);
+
+        // echo "************** **** $this->base_url/$endpoint";
 
         $data = $this->client->request($method, "$this->base_url/$endpoint", [
             'headers' => $header,

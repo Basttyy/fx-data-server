@@ -2,7 +2,6 @@
 namespace Test\Integration\Auth;
 
 use Exception;
-use GuzzleHttp\Exception\RequestException;
 use Test\Integration\TestCase;
 
 final class NotFoundTest extends TestCase
