@@ -11,7 +11,7 @@ final class NotFoundTest extends TestCase
         $this->initialize("testing wrong route returns 404");
 
         try {
-            $response = $this->makeRequest("GET", "/some/wrong/endpoint");
+            $response = $this->makeRequest("GET", "some/wrong/endpoint");
         } catch (Exception $e) {
             $this->assertSame(404, $e->getCode());
             // $response = $e->getResponse();

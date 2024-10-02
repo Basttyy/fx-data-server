@@ -19,9 +19,9 @@ abstract class TestCase extends BaseTestCase
     public function initialize($infostr = '')
     {
         echo PHP_EOL.$infostr.' ';
-        $dotenv = strtolower(PHP_OS_FAMILY) === 'windows' ? Dotenv::createImmutable(__DIR__ . "\\..\\..\\") : Dotenv::createImmutable(__DIR__ . '/../../');
-        $dotenv->load();
-        $dotenv->required(['TEST_USER', 'TEST_PASS', 'SERVER_APP_URI'])->notEmpty();
+        // $dotenv = strtolower(PHP_OS_FAMILY) === 'windows' ? Dotenv::createImmutable(__DIR__ . "\\..\\..\\") : Dotenv::createImmutable(__DIR__ . '/../../');
+        // $dotenv->load();
+        // $dotenv->required(['TEST_USER', 'TEST_PASS', 'SERVER_APP_URI'])->notEmpty();
         $this->base_username = env('TEST_USER');
         $this->base_password = env('TEST_PASS');
         $this->base_url = env('SERVER_APP_URI');
@@ -45,8 +45,6 @@ abstract class TestCase extends BaseTestCase
         $header = Arr::wrap($header);
         Arr::push($header, [ 'Content-Type' => 'application/json' ]);
 
-        echo "************** **** $this->base_url/$endpoint";
-
         $data = $this->client->request($method, "$this->base_url/$endpoint", [
             'headers' => $header,
             'body'=> json_encode($body)
@@ -58,7 +56,9 @@ abstract class TestCase extends BaseTestCase
     {
         try {
             $response = $this->makeRequest($method, $endpoint, $body, $header);
+            // echo ('body is : '.$response->getBody()).PHP_EOL;
             if ($only_token && $response->getStatusCode() < 300) {
+                // print_r(json_decode($response->getBody(), true));
                 return json_decode($response->getBody(), true)['data']['auth_token'];
             }
             // echo ('body is : '.$response->getBody()).PHP_EOL;
@@ -86,9 +86,11 @@ abstract class TestCase extends BaseTestCase
 
     protected function authenticate(bool $only_token = false, string $username = '', string $password = ''): array|string
     {
-        return $this->makeRequestAndParse('post', 'auth/login', [
+        $data = $this->makeRequestAndParse('post', 'auth/login', [
             'email' => $username !== '' ? $username : $this->base_username,
             'password' => base64_encode($password !== '' ? $password : $this->base_password)
         ], null, $only_token);
+        // echo "data is:::: $data";
+        return $data;
     }
 }
