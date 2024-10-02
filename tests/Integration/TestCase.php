@@ -43,7 +43,7 @@ abstract class TestCase extends BaseTestCase
         $header = Arr::wrap($header);
         Arr::push($header, [ 'Content-Type' => 'application/json' ]);
 
-        // echo "************** **** $this->base_url/$endpoint";
+        echo "************** **** $this->base_url/$endpoint";
 
         $data = $this->client->request($method, "$this->base_url/$endpoint", [
             'headers' => $header,
