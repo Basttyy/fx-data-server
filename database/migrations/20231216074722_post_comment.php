@@ -26,7 +26,7 @@ final class PostComment extends AbstractMigration
             ->addColumn('text', 'string', ['null' => false, 'limit' => 1024])
             ->addColumn('status', 'string', ['null' => false])
             ->addColumn('deleted_at', 'timestamp', ['null' => true])
-            ->addForeignKey('post_id', 'blogs', 'id', ['delete' => 'CASCADE', 'update' => 'NO_ACTION'])
+            ->addForeignKey('post_id', 'blog_posts', 'id', ['delete' => 'CASCADE', 'update' => 'NO_ACTION'])
             ->addForeignKey('post_comment_id', 'post_comments', 'id', ['delete' => 'CASCADE', 'update' => 'NO_ACTION'])
             ->addTimestamps()
             ->create();

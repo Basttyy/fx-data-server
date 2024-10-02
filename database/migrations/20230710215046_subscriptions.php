@@ -23,7 +23,7 @@ final class Subscriptions extends AbstractMigration
         $table->addColumn('duration', 'integer')
             ->addColumn('total_cost', 'decimal', ['precision' => 9, 'scale' => 2])
             ->addColumn('third_party_id', 'integer', ['null' => false])
-            ->addColumn('third_party_token', 'integer', ['default' => ''])
+            ->addColumn('third_party_token', 'string', ['default' => ''])
             ->addColumn('user_id', 'integer', ['signed' => false])
             ->addColumn('plan_id', 'integer', ['signed' => false])
             ->addColumn('is_canceled', 'boolean')

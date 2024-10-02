@@ -21,14 +21,14 @@ final class BlogPosts extends AbstractMigration
     public function change(): void
     {
         $table = $this->table($this::TABLE_NAME);
-        $table->addColumn('title', 'string', [ 'limit' => '512'])
+        $table->addColumn('title', 'string', [ 'limit' => 512])
             ->addColumn('user_id', 'integer', ['signed' => false])
             ->addColumn('last_updated_by', 'integer', ['null' => true, 'signed' => false])
-            ->addColumn('slug', 'string', ['limit' => '512', 'null' => false])
-            ->addColumn('text', 'string', ['limit' => '256', 'null' => true])
-            ->addColumn('draft_text', 'string', ['limit' => '256', 'null' => true])
-            ->addColumn('description', 'string', ['limit' => '1024', 'default' => ''])
-            ->addColumn('banner', 'string', ['limit' => '256', 'null' => true])
+            ->addColumn('slug', 'string', ['limit' => 512, 'null' => false])
+            ->addColumn('text', 'string', ['limit' => 256, 'null' => true])
+            ->addColumn('draft_text', 'string', ['limit' => 256, 'null' => true])
+            ->addColumn('description', 'string', ['limit' => 1024, 'default' => ''])
+            ->addColumn('banner', 'string', ['limit' => 256, 'null' => true])
             ->addColumn('section', 'string')
             ->addColumn('status', 'enum', ['values' => BlogPost::DRAFT.','.BlogPost::PUBLISHED.','.BlogPost::PUBLISHED_DRAFT, 'default' => BlogPost::DRAFT])
             ->addColumn('published_at', 'string', ['default' => ''])
