@@ -19,12 +19,12 @@ abstract class TestCase extends BaseTestCase
     public function initialize($infostr = '')
     {
         echo PHP_EOL.$infostr.' ';
-        $dotenv = strtolower(PHP_OS_FAMILY) === 'windows' ? Dotenv::createImmutable(__DIR__ . "\\..\\..\\") : Dotenv::createImmutable(__DIR__ . '/../../');
-        $dotenv->load();
-        $dotenv->required(['TEST_USER', 'TEST_PASS', 'SERVER_APP_URI'])->notEmpty();
-        $this->base_username = env('TEST_USER');
-        $this->base_password = env('TEST_PASS');
-        $this->base_url = env('SERVER_APP_URI');
+        // $dotenv = strtolower(PHP_OS_FAMILY) === 'windows' ? Dotenv::createImmutable(__DIR__ . "\\..\\..\\") : Dotenv::createImmutable(__DIR__ . '/../../');
+        // $dotenv->load();
+        // $dotenv->required(['TEST_USER', 'TEST_PASS', 'SERVER_APP_URI'])->notEmpty();
+        $this->base_username = getenv('TEST_USER');
+        $this->base_password = getenv('TEST_PASS');
+        $this->base_url = getenv('SERVER_APP_URI');
         $this->faker = Faker::create('en_US');
         $this->client = new \GuzzleHttp\Client();
     }
