@@ -34,8 +34,6 @@ jobs:
       uses: shogo82148/actions-setup-mysql@v1
       with:
         mysql-version: 'mariadb-10.9'
-        user: 'root'
-        password: '123456789'
         auto-start: true
 
     - name: Copy env and Migrate
