@@ -40,7 +40,7 @@ final class RefreshTokenTest extends TestCase
     {
         try {
             $response = $this->makeRequest("get","auth/refresh-token", header:["Authorization"=> "Bearer ".$this->token]);
-            // echo $response->getBody()->getContents();
+            echo $response->getBody()->getContents();
         } catch (Exception $err) {
             // echo $err->getMessage();
             if ($err instanceof RequestException) {
