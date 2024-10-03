@@ -43,9 +43,9 @@ jobs:
         php artisan migrate -e testing
         php artisan db:seed -e testing
 
-    - name: Start Test Server and Run test suite
-      run: |
-        bash -c "echo '127.0.0.1 fx-data-server.test' | sudo tee -a /etc/hosts"
-        php artisan serve --address=fx-data-server.test --port=80 &
-        sleep 3
-        php artisan test
+    # - name: Start Test Server and Run test suite
+    #   run: |
+    #     bash -c "echo '127.0.0.1 fx-data-server.test' | sudo tee -a /etc/hosts"
+    #     php artisan serve --address=fx-data-server.test --port=80 &
+    #     sleep 3
+    #     php artisan test

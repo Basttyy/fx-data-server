@@ -14,7 +14,7 @@
 use Eyika\Atom\Framework\Foundation\Application;
 
 $app = new Application(
-    $dirr
+    $_ENV['APP_BASE_PATH'] ?? dirname(__DIR__)
 );
 
 /*
