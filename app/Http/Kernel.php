@@ -54,6 +54,7 @@ class Kernel extends FoundationKernel
 
         'api' => [
             HandleCors::class,
+            StartSession::class,
             ServePublicAssets::class,
             // EnsureFrontendRequestsAreStateful::class,  NOT Yet implemented
             // ThrottleRequestsMiddleware::class,

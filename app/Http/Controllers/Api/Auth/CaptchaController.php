@@ -10,15 +10,14 @@ use Gregwar\Captcha\PhraseBuilder;
 
 final class CaptchaController
 {
-    public function generate ()
+    public function generate (Request $request)
     {
         try {
             $captcha = new CaptchaBuilder;
-            $_SESSION['captcha-phrase'] = $captcha->getPhrase();
+            $request->getSession()->set('captcha-phrase', $captcha->getPhrase());
             $captcha->build(128, 32);
-            header('Content-Type: image/jpeg');
             $captcha->output();
-
+ 
             return true;
         } catch (Exception $e) {
             return JsonResponse::serverError("something happened try again " . env('APP_ENV') === "local" ? $e->getTraceAsString() : "");
@@ -34,8 +33,8 @@ final class CaptchaController
         ])) {
             return JsonResponse::badRequest('errors in request', $validated);
         }
-        logger()->info('phrases are: ', [$_SESSION['captcha-phrase'], $body['captcha-phrase']]);
-        if (isset($_SESSION['captcha-phrase']) && PhraseBuilder::comparePhrases($_SESSION['captcha-phrase'], $body['captcha-phrase'])) {
+        // logger()->info('phrases are: ', [$_SESSION['captcha-phrase'], $body['captcha-phrase']]);
+        if (PhraseBuilder::comparePhrases($request->getSession()->get('captcha-phrase', ''), $body['captcha-phrase'])) {
             return JsonResponse::ok("captcha is valid", ['status' => 'validated']);
         } else {
             return JsonResponse::badRequest("captcha is not valid", ['status' => 'failed']);
