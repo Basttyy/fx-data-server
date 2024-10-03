@@ -9,7 +9,7 @@ final class UserTest extends TestCase
     {
         $this->initialize("running test list users");
         $token = $this->authenticate(only_token: true);
-        $response= $this->makeRequestAndParse("get","users",header:[
+        $response= $this->makeRequestAndParse("GET","users", header:[
             "Authorization"=>"Bearer ".$token
         ]);
         $this->assertEquals(200, $response['status_code']);
