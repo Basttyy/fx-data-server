@@ -19,9 +19,6 @@ abstract class TestCase extends BaseTestCase
     public function initialize($infostr = '')
     {
         echo PHP_EOL.$infostr.' ';
-        // $dotenv = strtolower(PHP_OS_FAMILY) === 'windows' ? Dotenv::createImmutable(__DIR__ . "\\..\\..\\") : Dotenv::createImmutable(__DIR__ . '/../../');
-        // $dotenv->load();
-        // $dotenv->required(['TEST_USER', 'TEST_PASS', 'SERVER_APP_URI'])->notEmpty();
         $this->base_username = getenv('TEST_USER');
         $this->base_password = getenv('TEST_PASS');
         $this->base_url = getenv('SERVER_APP_URI');
@@ -86,11 +83,9 @@ abstract class TestCase extends BaseTestCase
 
     protected function authenticate(bool $only_token = false, string $username = '', string $password = ''): array|string
     {
-        $data = $this->makeRequestAndParse('post', 'auth/login', [
+        return $this->makeRequestAndParse('post', 'auth/login', [
             'email' => $username !== '' ? $username : $this->base_username,
             'password' => base64_encode($password !== '' ? $password : $this->base_password)
         ], null, $only_token);
-        // echo "data is:::: $data";
-        return $data;
     }
 }

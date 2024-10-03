@@ -1,5 +1,4 @@
 /vendor/*
 !/vendor/livewire/
 /uploads
-!/uploads/opd_timelines
 storage
