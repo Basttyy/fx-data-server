@@ -53,7 +53,7 @@ abstract class TestCase extends BaseTestCase
     {
         try {
             $response = $this->makeRequest($method, $endpoint, $body, $header);
-            // echo ('body is : '.$response->getBody()).PHP_EOL;
+            echo ('body is : '.$response->getBody()).PHP_EOL;
             if ($only_token && $response->getStatusCode() < 300) {
                 // print_r(json_decode($response->getBody(), true));
                 return json_decode($response->getBody(), true)['data']['auth_token'];
