@@ -3,9 +3,12 @@
 /vendor/
 /node_modules/
 /minute_data/
-/storage
+/storage/
 public
 
 .env
 .htaccess
+minute_data.zip
+composer.lock
+composer.test.json
 minute_data.zip
