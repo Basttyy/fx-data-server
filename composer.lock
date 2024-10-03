@@ -774,12 +774,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/eyika/atomframework.git",
-                "reference": "83c46bec5c6c92799ea33bb414f6bd79e3cd6c2c"
+                "reference": "977f8926c0080f604aeef7c7ecc2d47d9cc521c4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/eyika/atomframework/zipball/83c46bec5c6c92799ea33bb414f6bd79e3cd6c2c",
-                "reference": "83c46bec5c6c92799ea33bb414f6bd79e3cd6c2c",
+                "url": "https://api.github.com/repos/eyika/atomframework/zipball/977f8926c0080f604aeef7c7ecc2d47d9cc521c4",
+                "reference": "977f8926c0080f604aeef7c7ecc2d47d9cc521c4",
                 "shasum": ""
             },
             "require": {
@@ -830,7 +830,7 @@
                 "issues": "https://github.com/eyika/atomframework/issues",
                 "source": "https://github.com/eyika/atomframework/tree/dev"
             },
-            "time": "2024-10-03T07:48:47+00:00"
+            "time": "2024-10-03T17:57:55+00:00"
         },
         {
             "name": "ezyang/htmlpurifier",
@@ -3487,16 +3487,16 @@
         },
         {
             "name": "robmorgan/phinx",
-            "version": "0.16.4",
+            "version": "0.16.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/cakephp/phinx.git",
-                "reference": "0ef61fc10395dc25ab37c45125a5be5d6231299c"
+                "reference": "31d837c17d6dc294d44f0b17331066548ac8c032"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/cakephp/phinx/zipball/0ef61fc10395dc25ab37c45125a5be5d6231299c",
-                "reference": "0ef61fc10395dc25ab37c45125a5be5d6231299c",
+                "url": "https://api.github.com/repos/cakephp/phinx/zipball/31d837c17d6dc294d44f0b17331066548ac8c032",
+                "reference": "31d837c17d6dc294d44f0b17331066548ac8c032",
                 "shasum": ""
             },
             "require": {
@@ -3568,9 +3568,9 @@
             ],
             "support": {
                 "issues": "https://github.com/cakephp/phinx/issues",
-                "source": "https://github.com/cakephp/phinx/tree/0.16.4"
+                "source": "https://github.com/cakephp/phinx/tree/0.16.5"
             },
-            "time": "2024-09-25T16:10:29+00:00"
+            "time": "2024-10-03T15:41:04+00:00"
         },
         {
             "name": "symfony/clock",
