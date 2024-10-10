@@ -31,7 +31,7 @@ class SendContactUs implements QueueInterface
             return $this->delete();
         }
         try {
-            logger(storage_path()."logs/email.log")->info("sending contact us email from {$this->data['email']}");
+            logger(storage_path("logs/email.log"))->info("sending contact us email from {$this->data['email']}");
 
             if ($this->job['tries'] >= $this->max_attempts)
                 return $this->fail();
@@ -41,7 +41,7 @@ class SendContactUs implements QueueInterface
 
             $this->delete();
         } catch (Exception $e) {
-            logger(storage_path()."logs/email.log")->error('Caught a ' . get_class($e) . ': ' . $e->getMessage(), $e->getTrace());
+            logger(storage_path("logs/email.log"))->error('Caught a ' . get_class($e) . ': ' . $e->getMessage(), $e->getTrace());
         }
     }
 }

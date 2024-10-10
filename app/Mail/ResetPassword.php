@@ -43,10 +43,10 @@ class ResetPassword
 
             self::$mail->send();
             if (env('APP_ENV') === "local") echo "email sent successfully".PHP_EOL;
-            logger(storage_path()."logs/email.log")->info("email sent successfully");
+            logger(storage_path("logs/email.log"))->info("email sent successfully");
             return true;
         } catch (Exception $e) {
-            logger(storage_path()."logs/email.log")->error($e->getMessage(), $e->getTrace());
+            logger(storage_path("logs/email.log"))->error($e->getMessage(), $e->getTrace());
             if (env('APP_ENV') === "local") echo 'Caught a ' . get_class($e) . ': ' . $e->getMessage().PHP_EOL;
             if (env('APP_ENV') === "local") echo $e->getTraceAsString();
             return false;

@@ -32,7 +32,7 @@ class SendChangeEmail implements QueueInterface
             return $this->delete();
         }
         try {
-            logger(storage_path()."logs/email.log")->info("sending change code email to {$this->user['email']}");
+            logger(storage_path("logs/email.log"))->info("sending change code email to {$this->user['email']}");
 
             if ($this->job['tries'] >= $this->max_attempts)
                 return $this->fail();
@@ -42,7 +42,7 @@ class SendChangeEmail implements QueueInterface
 
             $this->delete();
         } catch (Exception $e) {
-            logger(storage_path()."logs/email.log")->error('Caught a ' . get_class($e) . ': ' . $e->getMessage(), $e->getTrace());
+            logger(storage_path("logs/email.log"))->error('Caught a ' . get_class($e) . ': ' . $e->getMessage(), $e->getTrace());
         }
     }
 }

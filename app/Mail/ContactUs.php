@@ -40,10 +40,10 @@ class ContactUs
 
             self::$mail->send();
             // echo "email sent successfully".PHP_EOL;
-            logger(storage_path()."logs/email.log")->info("email sent successfully");
+            logger(storage_path("logs/email.log"))->info("email sent successfully");
             return true;
         } catch (Exception $e) {
-            logger(storage_path()."logs/email.log")->error($e->getMessage(), $e->getTrace());
+            logger(storage_path("logs/email.log"))->error($e->getMessage(), $e->getTrace());
             // echo 'Caught a ' . get_class($e) . ': ' . $e->getMessage().PHP_EOL;
             // echo $e->getTraceAsString();
             return false;
