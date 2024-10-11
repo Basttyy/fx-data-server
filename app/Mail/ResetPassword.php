@@ -9,22 +9,17 @@ class ResetPassword
 {
     private static $mail;
 
-    public function __construct(string $address, string $name, string $subject, string $html)
+    public function __construct(string $address, string $name)
     {
-        self::$mail = new Mailer(true, env('NOREPLY_EMAIL_USER'), env('NOREPLY_EMAIL_PASSWORD'), $html);
-
-        self::$mail->addAddress($address, $name);
-        self::$mail->setFrom(env('NOREPLY_EMAIL_USER'), env('NOREPLY_EMAIL_NAME'));
-
-        self::$mail->Subject = $subject; // 'Verify Your Email';
-        // $mail->addAttachment(__FILE__, 'images/logo.png');
-        // self::$mail->send();
-        // echo "email sent successfully".PHP_EOL;
+        self::$mail = Mailer::to($address, $name)
+            ->from(env('NOREPLY_EMAIL_USER'), env('NOREPLY_EMAIL_PASSWORD'));
     }
 
-    public static function send(string $address, string $name, string $subject, string $code)
+    public static function send(string $email, string $name, string $subject, string $code)
     {
         try {
+            new self($email, $name);
+
             $html = Twig::make('verify.html', '/Mail/html/', [
                 'title' => "Password Reset",
                 'header' => "Reset Your Password",
@@ -39,11 +34,9 @@ class ResetPassword
                 ]
             ], true);
 
-            new self($address, $name, $subject, $html);
-
-            self::$mail->send();
+            self::$mail->send($subject);
             if (env('APP_ENV') === "local") echo "email sent successfully".PHP_EOL;
-            logger(storage_path("logs/email.log"))->info("email sent successfully");
+                logger(storage_path("logs/email.log"))->info("email sent successfully");
             return true;
         } catch (Exception $e) {
             logger(storage_path("logs/email.log"))->error($e->getMessage(), $e->getTrace());
