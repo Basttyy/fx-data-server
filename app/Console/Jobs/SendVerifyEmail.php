@@ -29,18 +29,18 @@ class SendVerifyEmail implements QueueInterface
     public function handle()
     {
         if (env('APP_ENV') == 'local' && env('SEND_EMAIL_ON_LOCAL') != 'true') {
-            // return $this->delete();
+            return $this->delete();
         }
         try {
             logger(storage_path("logs/email.log"))->info("sending verification email to {$this->user['email']}");
 
-            // if ($this->job['tries'] > $this->max_attempts)
-                // return $this->fail();
+            if ($this->job['tries'] > $this->max_attempts)
+                return $this->fail();
 
             if (!VerifyEmail::send($this->user['email'], $this->user['firstname'].' '.$this->user['lastname'], $this->subject, $this->user['email2fa_token']))
-                return $this->bury(1);
+                return $this->bury(10);
 
-            // $this->delete();
+            $this->delete();
         } catch (Exception $e) {
             logger(storage_path("logs/email.log"))->error('Caught a ' . get_class($e) . ': ' . $e->getMessage(), $e->getTrace());
         }

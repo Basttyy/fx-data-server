@@ -28,7 +28,7 @@ class SendChangeEmail implements QueueInterface
      */
     public function handle()
     {
-        if (env('APP_ENV') == 'local' || env('SEND_EMAIL_ON_LOCAL') != 'true') {
+        if (env('APP_ENV') == 'local' && env('SEND_EMAIL_ON_LOCAL') != 'true') {
             return $this->delete();
         }
         try {

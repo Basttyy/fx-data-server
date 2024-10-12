@@ -569,16 +569,16 @@
         },
         {
             "name": "eftec/bladeone",
-            "version": "4.15.1",
+            "version": "4.16",
             "source": {
                 "type": "git",
                 "url": "https://github.com/EFTEC/BladeOne.git",
-                "reference": "44524632737ab083b5e44fd7081e5fd9e02ce254"
+                "reference": "94570df4cd5e81a1efd0bb25d451bd715d529279"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/EFTEC/BladeOne/zipball/44524632737ab083b5e44fd7081e5fd9e02ce254",
-                "reference": "44524632737ab083b5e44fd7081e5fd9e02ce254",
+                "url": "https://api.github.com/repos/EFTEC/BladeOne/zipball/94570df4cd5e81a1efd0bb25d451bd715d529279",
+                "reference": "94570df4cd5e81a1efd0bb25d451bd715d529279",
                 "shasum": ""
             },
             "require": {
@@ -622,9 +622,9 @@
             ],
             "support": {
                 "issues": "https://github.com/EFTEC/BladeOne/issues",
-                "source": "https://github.com/EFTEC/BladeOne/tree/4.15.1"
+                "source": "https://github.com/EFTEC/BladeOne/tree/4.16"
             },
-            "time": "2024-10-08T14:50:46+00:00"
+            "time": "2024-10-11T17:41:08+00:00"
         },
         {
             "name": "eftec/bladeonehtml",
@@ -778,12 +778,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/eyika/atomframework.git",
-                "reference": "256b5d749e07be676735c1d5c1412b08dcd40dd6"
+                "reference": "ca5fc44983d681aaf93107c04b40047c58828cb9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/eyika/atomframework/zipball/256b5d749e07be676735c1d5c1412b08dcd40dd6",
-                "reference": "256b5d749e07be676735c1d5c1412b08dcd40dd6",
+                "url": "https://api.github.com/repos/eyika/atomframework/zipball/ca5fc44983d681aaf93107c04b40047c58828cb9",
+                "reference": "ca5fc44983d681aaf93107c04b40047c58828cb9",
                 "shasum": ""
             },
             "require": {
@@ -837,7 +837,7 @@
                 "issues": "https://github.com/eyika/atomframework/issues",
                 "source": "https://github.com/eyika/atomframework/tree/dev"
             },
-            "time": "2024-10-10T05:26:04+00:00"
+            "time": "2024-10-11T20:41:35+00:00"
         },
         {
             "name": "ezyang/htmlpurifier",
