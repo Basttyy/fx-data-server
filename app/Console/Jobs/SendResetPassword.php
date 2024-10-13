@@ -1,9 +1,9 @@
 <?php
 namespace App\Console\Jobs;
 
+use App\Mail\ResetPassword;
 use Eyika\Atom\Framework\Foundation\Console\Concerns\ShouldQueue;
 use Eyika\Atom\Framework\Foundation\Console\Contracts\QueueInterface;
-use Basttyy\FxDataServer\libs\Mail\ResetPassword;
 use Exception;
 
 class SendResetPassword implements QueueInterface

@@ -1,9 +1,9 @@
 <?php
 namespace App\Console\Jobs;
 
+use App\Mail\ChangeEmail;
 use Eyika\Atom\Framework\Foundation\Console\Concerns\ShouldQueue;
 use Eyika\Atom\Framework\Foundation\Console\Contracts\QueueInterface;
-use Basttyy\FxDataServer\libs\Mail\ChangeEmail;
 use Exception;
 
 class SendChangeEmail implements QueueInterface
