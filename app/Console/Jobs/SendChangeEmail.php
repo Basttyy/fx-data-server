@@ -28,11 +28,11 @@ class SendChangeEmail implements QueueInterface
      */
     public function handle()
     {
-        if (env('APP_ENV') == 'local' || env('SEND_EMAIL_ON_LOCAL') != 'true') {
+        if (env('APP_ENV') == 'local' && env('SEND_EMAIL_ON_LOCAL') != 'true') {
             return $this->delete();
         }
         try {
-            logger(storage_path()."logs/email.log")->info("sending change code email to {$this->user['email']}");
+            logger(storage_path("logs/email.log"))->info("sending change code email to {$this->user['email']}");
 
             if ($this->job['tries'] >= $this->max_attempts)
                 return $this->fail();
@@ -42,7 +42,7 @@ class SendChangeEmail implements QueueInterface
 
             $this->delete();
         } catch (Exception $e) {
-            logger(storage_path()."logs/email.log")->error('Caught a ' . get_class($e) . ': ' . $e->getMessage(), $e->getTrace());
+            logger(storage_path("logs/email.log"))->error('Caught a ' . get_class($e) . ': ' . $e->getMessage(), $e->getTrace());
         }
     }
 }
