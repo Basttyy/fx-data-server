@@ -18,10 +18,9 @@ class ContactUs
     public static function send($data = [])
     {
         try {
-            new self($data['email'], $data['fullname']);
+            new static($data['email'], $data['fullname']);
 
-            $content = ["Hello Support"];
-            $content = array_push($content, explode("\n", $data["message"]));
+            $content = ["Hello Support,", ...explode("\n", $data["message"])];
             static::$mail->buildHtml('verify.html', [
                 'title' => "User Enquiry",
                 'header' => $data['fullname'] . ' ('. $data['subject'].')',

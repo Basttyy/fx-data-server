@@ -36,7 +36,7 @@ class SendResetPassword implements QueueInterface
             return $this->fail();
 
             if (!ResetPassword::send($this->user['email'], $this->user['firstname'].' '.$this->user['lastname'], $this->subject, $this->user['email2fa_token']))
-                return $this->bury(10);
+                return $this->bury(5);
 
             $this->delete();
         } catch (Exception $e) {
