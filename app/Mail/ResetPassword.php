@@ -18,7 +18,7 @@ class ResetPassword
     public static function send(string $email, string $name, string $subject, string $code)
     {
         try {
-            new self($email, $name);
+            new static($email, $name);
 
             static::$mail->buildHtml('verify.html', [
                 'title' => "Password Reset",
