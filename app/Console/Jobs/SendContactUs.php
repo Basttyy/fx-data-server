@@ -37,7 +37,7 @@ class SendContactUs implements QueueInterface
                 return $this->fail();
 
             if (!ContactUs::send($this->data))
-                return $this->bury(10);
+                return $this->bury(5);
 
             $this->delete();
         } catch (Exception $e) {
