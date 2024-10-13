@@ -1,5 +1,5 @@
 <?php
-namespace Basttyy\FxDataServer\libs\Mail;
+namespace App\Mail;
 
 use App\Mail\Mailer;
 use Eyika\Atom\Framework\Support\View\Twig;
@@ -20,7 +20,7 @@ class ResetPassword
         try {
             new self($email, $name);
 
-            $html = Twig::make('verify.html', '/Mail/html/', [
+            static::$mail->buildHtml('verify.html', [
                 'title' => "Password Reset",
                 'header' => "Reset Your Password",
                 'sender_email' => env('NOREPLY_EMAIL_USER'),  //$sender->email,
@@ -32,7 +32,7 @@ class ResetPassword
                 'links' => [
                     'Change Password' => "https://backtestfx.com/account/change_pass?code=$code"
                 ]
-            ], true);
+            ]);
 
             self::$mail->send($subject);
             if (env('APP_ENV') === "local") echo "email sent successfully".PHP_EOL;
