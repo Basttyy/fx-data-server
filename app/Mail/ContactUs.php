@@ -1,8 +1,7 @@
 <?php
-namespace Basttyy\FxDataServer\libs\Mail;
+namespace App\Mail;
 
 use App\Mail\Mailer;
-use Eyika\Atom\Framework\Support\View\Twig;
 use PHPMailer\PHPMailer\Exception;
 
 class ContactUs
