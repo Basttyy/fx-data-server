@@ -38,6 +38,7 @@ final class UserController
 
             $hidden = [ ...$user::twofainfos, 'password'];
             $_user = Arr::except($user->toArray(), $hidden);
+            $_user['dollar_per_point'] = $_user['dollar_per_point'] ?? env('DOLLAR_PER_POINT', 0.1);
             $_user['extra']['is_admin'] = Guard::roleIs($user, 'admin');
             $_user['extra']['subscription'] = $show_subscription ? $subscription : null;
             $_user['extra']['plan'] = $show_subscription && $plan ? $plan : null;
@@ -189,20 +190,15 @@ final class UserController
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
-            // echo "got to pass login";
-            if (!$user->update($body, $user->id)) {
-                return JsonResponse::serverError("unable to update user");
-            }
-
             if (isset($body['avatar'])) {
                 if (empty($user->avatar)) {
                     $body['user_id'] = $user->id;
-                    $image = base64_decode($body['logo']);
+                    $image = base64_decode($body['avatar']);
                     $path = 'uploads/avatars/';
                     
                     $target_file = uniqid(). '.jpg';
                     Storage::put($path . $target_file, $image);
-                    $body['logo'] = storage('public')->url($path.$target_file);
+                    $body['avatar'] = storage('public')->url($path.$target_file);
                 } else {
                     $prev_avatar = $user->avatar;
                     $avatar = base64_decode($body['avatar']);
@@ -215,6 +211,11 @@ final class UserController
                     Storage::delete(str_replace('/storage', '', $prev_avatar));
                     $body['avatar'] = storage('public')->url($path.$target_file);
                 }
+            }
+
+            // echo "got to pass login";
+            if (!$user->update($body, $user->id)) {
+                return JsonResponse::serverError("unable to update user");
             }
 
             return JsonResponse::ok("user updated successfull", $user->toArray());

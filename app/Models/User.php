@@ -30,7 +30,7 @@ final class User extends Model implements UserModelInterface
     protected $primaryKey = 'id';
 
     //object properties
-    // public $id;
+    public $id;
     public string | null $uuid;
     public string $firstname;
     public string $lastname;
@@ -105,7 +105,7 @@ final class User extends Model implements UserModelInterface
         parent::boot($user, $event);
         static::creating($user, $event, function ($user) {
             $user->referral_code = Str::random(10);
-            $dollar_per_point = env("DOLLAR_PER_POINTS") ?? 0.1;
+            $dollar_per_point = env("DOLLAR_PER_POINT") ?? 0.1;
             $user->dollar_per_point = $user->dollar_per_point ?? $dollar_per_point;
         });
         static::created($user, $event, function (self $user) {
@@ -147,7 +147,7 @@ final class User extends Model implements UserModelInterface
             if ($this->points < $points) {
                 throw new \Exception('Not enough points');
             }
-            $dollar_per_point = env("DOLLAR_PER_POINTS") ?? 0.1;
+            $dollar_per_point = env("DOLLAR_PER_POINT") ?? 0.1;
             $dollar_per_point = $this->dollar_per_point ?? $dollar_per_point;
             $cash = $points * $dollar_per_point; // Assume 1 point = $0.1
             $this->points -= $points;
