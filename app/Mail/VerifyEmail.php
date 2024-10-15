@@ -29,10 +29,11 @@ class VerifyEmail
                 ],
                 'links' => [
                     'Verify Email' => "https://backtestfx.com/auth/verify?email=$address&code=$code"
-                ]
+                ],
+                'show_remarks' => true
             ]);
 
-            static::$mail->send($subject);
+            static::$mail->send($subject)->success;
             return true;
         } catch (Exception $e) {
             logger(storage_path("logs/email.log"))->error('Caught a ' . get_class($e) . ': ' . $e->getMessage(), $e->getTrace());

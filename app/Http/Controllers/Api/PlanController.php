@@ -11,6 +11,7 @@ use App\Models\Plan;
 use App\Http\Traits\PaymentGateway;
 use App\Models\CheapCountry;
 use Exception;
+use Eyika\Atom\Framework\Support\Arr;
 use Eyika\Atom\Framework\Support\Database\DB;
 use LogicException;
 use PDOException;
@@ -122,6 +123,7 @@ final class PlanController
             $body['for_cheap_regions'] = (int)$body['for_cheap_regions'];
 
             if (!$plan->create($body)) {
+                DB::rollback();
                 return JsonResponse::serverError("unable to create plan");
             }
 
@@ -185,12 +187,12 @@ final class PlanController
             if ($validated = Validator::validate($body, [
                 'name' => 'sometimes|string',
                 'description' => 'sometimes|string',
-                'price' => 'sometimes|numeric',
-                'currency' => "sometimes|string|in:$currencies",
+                // 'price' => 'sometimes|numeric',
+                // 'currency' => "sometimes|string|in:$currencies",
                 'status' => "sometimes|string|in:$status",
                 'for_cheap_regions' => 'sometimes|numeric',
                 'features' => 'sometimes|string',
-                'duration_interval' => "sometimes|string|in:$intervals"
+                // 'duration_interval' => "sometimes|string|in:$intervals"
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
@@ -201,22 +203,27 @@ final class PlanController
             if (isset($body['for_cheap_regions']))
                 $body['for_cheap_regions'] = (int)$body['for_cheap_regions'];
 
-            if (!$plan = $plan->update($body)) {
+            DB::beginTransaction();
+            if (!$plan = $plan->update(Arr::only($body, ['name', 'status', 'for_cheap_regions', 'features', 'description']))) {
+                DB::rollback();
                 return JsonResponse::notFound("unable to update plan not found");
             }
 
-            $response = $this->updatePaymentPlan($plan->third_party_id, $plan->name ?? null, $plan->price, $plan->currency, $this->convertInterval($plan->duration_interval), $plan->description);
+            $response = $this->updatePaymentPlan($plan->third_party_id, $plan->name ?? null, $plan->price, $plan->currency, $this->convertInterval($plan->duration_interval), $plan->description, $plan->status == 'enabled' ? 'active' : 'inactive');
 
+            DB::commit();
             return JsonResponse::ok("plan updated successfull", $plan->toArray());
         } catch (PDOException $e) {
+            DB::rollback();
             if (env("APP_ENV") === "local")
                 $message = $e->getMessage();
             else if (str_contains($e->getMessage(), 'Unknown column'))
                 return JsonResponse::badRequest('column does not exist');
             else $message = "we encountered a problem";
-            
+
             return JsonResponse::serverError($message);
         } catch (Exception $e) {
+            DB::rollback();
             $message = env("APP_ENV") === "local" ? $e->getMessage() : "we encountered a problem";
             return JsonResponse::serverError("we got some error here".$message);
         }
@@ -231,23 +238,28 @@ final class PlanController
                 return JsonResponse::unauthorized("you can't delete a plan");
             }
 
+            DB::beginTransaction();
             // echo "got to pass login";
             if (!$plan->delete()) {
+                DB::rollback();
                 return JsonResponse::serverError("unable to delete plan");
             }
 
             $this->cancelPaymentPlan($plan->third_party_id);
 
+            DB::commit();
             return JsonResponse::ok("plan deleted successfull");
         } catch (PDOException $e) {
+            DB::rollback();
             if (env("APP_ENV") === "local")
                 $message = $e->getMessage();
             else if (str_contains($e->getMessage(), 'Unknown column'))
                 return JsonResponse::badRequest('column does not exist');
             else $message = "we encountered a problem";
-            
+
             return JsonResponse::serverError($message);
         } catch (Exception $e) {
+            DB::rollback();
             $message = env("APP_ENV") === "local" ? $e->getMessage() : "we encountered a problem";
             return JsonResponse::serverError("we got some error here".$message);
         }

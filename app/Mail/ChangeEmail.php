@@ -29,7 +29,8 @@ class ChangeEmail
                 ],
                 'links' => [
                     'Change Email' => "https://backtestfx.com/account/change_email?code=$code"
-                ]
+                ],
+                'show_remarks' => true
             ]);
 
             self::$mail->send($subject);
