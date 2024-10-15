@@ -70,9 +70,9 @@ $landingarray = [
         'description' => 'Meet the brilliant team that are working effortlessly to put together this masterpiece',
         'members' => [
             [
-                'img' => '/assets/team-1-800x800-fdfd85ef.jpg',
+                'img' => '/assets/basttyy.jpg',
                 'name' => 'Abdulbasit Mamman',
-                'role' => 'Senior Software Engineer',
+                'role' => 'Founder',
                 'socials' => [
                     [
                         'icon' => 'fab fa-twitter',
@@ -170,7 +170,7 @@ $landingarray = [
 
 $json_data = json_encode($landingarray);
 
-$file = fopen("storage/files/landing.json", "w") or die("Unable to open file!");
+$file = fopen("public/landing.json", "w") or die("Unable to open file!");
 fwrite($file, $json_data);
 
 fclose($file);
