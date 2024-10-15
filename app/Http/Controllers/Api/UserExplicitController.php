@@ -12,6 +12,7 @@ use Eyika\Atom\Framework\Http\Request;
 use Eyika\Atom\Framework\Support\Validator;
 use App\Models\User;
 use Exception;
+use Eyika\Atom\Framework\Support\Database\DB;
 use PDOException;
 
 final class UserExplicitController
@@ -76,20 +77,26 @@ final class UserExplicitController
                 return JsonResponse::ok("if we have this email 111, password reset code should be sent to your email");
             }
 
+            DB::beginTransaction();
             $code = implode([rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9)]);
             if (!$user->update(['email2fa_token' => $code, 'email2fa_expire' => time() + env('EMAIL2FA_MAX_AGE')])) {  //TODO:: this token should be timeed and should expire
                 return JsonResponse::serverError("we encountered an error, please try again");
             }
             $job = new SendResetPassword(array_merge($user->toArray(false), ['email2fa_token' => $code]));
             $job->init()->delay(5)->run();
+            DB::commit();
             return JsonResponse::ok("if we have this email, password reset code should be sent to your email");
         } catch (PDOException $e) {
+            DB::rollback();
+            logger()->info($e->getMessage(). '   '.$e->getTraceAsString());
             if (env("APP_ENV") === "local")
                 $message = $e->getMessage();
             else $message = "we encountered a problem";
             
             return JsonResponse::serverError($message);
         } catch (Exception $e) {
+            DB::rollback();
+            logger()->info($e->getMessage(). '   '.$e->getTraceAsString());
             $message = env("APP_ENV") === "local" ? $e->getMessage() : "we encountered a problem";
             return JsonResponse::serverError("we got some error here".$message);
         }

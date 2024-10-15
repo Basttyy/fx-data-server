@@ -31,7 +31,8 @@ class ResetPassword
                 ],
                 'links' => [
                     'Change Password' => "https://backtestfx.com/account/change_pass?code=$code"
-                ]
+                ],
+                'show_remarks' => true
             ]);
 
             self::$mail->send($subject);

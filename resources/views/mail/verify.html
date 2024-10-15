@@ -30,11 +30,13 @@
         </tr>
     {% endforeach; %}
 
-    <tr>
-        <td style="padding: 0px 30px">
-            <p>Thanks <br>Tradingio Team.</p>
-        </td>
-    </tr>
+    {% if($show_remarks ?? false): %}
+        <tr>
+            <td style="padding: 0px 30px">
+                <p>Thanks <br>Tradingio Team.</p>
+            </td>
+        </tr>
+    {% endif; %}
 {% endblock %}
 
 {% include footer.html %}

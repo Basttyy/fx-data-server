@@ -40,10 +40,11 @@ trait PaymentGateway
      * @param string $name
      * @param string $interval
      * @param string $desc
+     * @param string $status
      * 
      * @return false|\stdClass
      */
-    protected static function createPaymentPlan($amount, $currency, $name, $interval, $desc = '')
+    protected static function createPaymentPlan($amount, $currency, $name, $interval, $desc = '', $status = 'active')
     {
         $client = new Client([ 'base_uri' => env('PAYMENT_PROVIDER_BASE_URL')]);
 
@@ -54,6 +55,7 @@ trait PaymentGateway
             ],
             'body' => json_encode([
                 'amount' => $amount,
+                'status' => $status,
                 'currency' => $currency,
                 'name' => $name,
                 'interval' => $interval,
@@ -132,20 +134,22 @@ trait PaymentGateway
      * @param string $currency
      * @param string $interval
      * @param string $desc
+     * @param string $status
      * 
      * @return false|\stdClass
      */
-    protected static function updatePaymentPlan($id, $name, $amount, $currency, $interval, $desc)
+    protected static function updatePaymentPlan($id, $name, $amount, $currency, $interval, $desc, $status)
     {
         $client = new Client([ 'base_uri' => env('PAYMENT_PROVIDER_BASE_URL')]);
 
-        $resp = $client->request('PUT', self::prepareUrl('payment_plan', $id), [
+        $resp = $client->request('PUT', self::prepareUrl('payment_plan_update', $id), [
             'headers' => [
                 'Content-Type' => 'application/json',
                 'Authorization' => 'Bearer ' . env('PAYMENT_PROVIDER_SECRET_KEY')
             ],
             'body' => json_encode([
                 'name' => $name,
+                'status' => $status,
                 'interval' => $interval,
                 'amount' => $amount,
                 'description' => $desc,

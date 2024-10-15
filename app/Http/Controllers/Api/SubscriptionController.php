@@ -21,11 +21,13 @@ final class SubscriptionController
             return JsonResponse::ok("subscription retrieved success", $subscription);
 
         } catch (PDOException $e) {
-            consoleLog(0, $e->getMessage(). '   '.$e->getTraceAsString());
+            logger()->info($e->getMessage(). '   '.$e->getTraceAsString());
             return JsonResponse::serverError("we encountered a db problem");
         } catch (LogicException $e) {
+            logger()->info($e->getMessage(). '   '.$e->getTraceAsString());
             return JsonResponse::serverError("we encountered a runtime problem");
         } catch (Exception $e) {
+            logger()->info($e->getMessage(). '   '.$e->getTraceAsString());
             return JsonResponse::serverError("we encountered a problem");
         }
     }
