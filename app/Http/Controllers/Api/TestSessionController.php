@@ -26,10 +26,13 @@ final class TestSessionController
 
             return JsonResponse::ok("session retrieved success", $session);
         } catch (PDOException $e) {
+            logger()->info($e->getMessage(). '   '.$e->getTraceAsString());
             return JsonResponse::serverError("we encountered a problem");
         } catch (LogicException $e) {
+            logger()->info($e->getMessage(). '   '.$e->getTraceAsString());
             return JsonResponse::serverError("we encountered a runtime problem");
         } catch (Exception $e) {
+            logger()->info($e->getMessage(). '   '.$e->getTraceAsString());
             return JsonResponse::serverError("we encountered a problem");
         }
     }
@@ -128,6 +131,7 @@ final class TestSessionController
             return JsonResponse::serverError($message);
         } catch (Exception $e) {
             $message = env("APP_ENV") === "local" ? $e->getMessage() : "we encountered a problem";
+            logger()->info($e->getMessage(). '   '.$e->getTraceAsString());
             return JsonResponse::serverError("we got some error here".$message);
         }
     }
@@ -170,6 +174,7 @@ final class TestSessionController
 
             return JsonResponse::ok("test session updated successfully", $session);
         } catch (PDOException $e) {
+            logger()->info($e->getMessage(). '   '.$e->getTraceAsString());
             if (env("APP_ENV") === "local")
                 $message = $e->getMessage();
             else if (str_contains($e->getMessage(), 'Unknown column'))
@@ -178,6 +183,7 @@ final class TestSessionController
             
             return JsonResponse::serverError($message);
         } catch (Exception $e) {
+            logger()->info($e->getMessage(). '   '.$e->getTraceAsString());
             $message = env("APP_ENV") === "local" ? $e->getMessage() : "we encountered a problem";
             return JsonResponse::serverError("we got some error here".$message);
         }
