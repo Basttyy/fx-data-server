@@ -6,7 +6,7 @@ use Eyika\Atom\Framework\Support\Auth\Jwt\JwtAuthenticator;
 use Eyika\Atom\Framework\Http\JsonResponse;
 use Eyika\Atom\Framework\Http\Request;
 use Eyika\Atom\Framework\Support\Validator;
-use App\Http\Services\Geolocation\IP2Location\WebService;
+use App\Http\Services\Geolocation\IP2Location\IpLocService;
 use App\Models\Plan;
 use App\Http\Traits\PaymentGateway;
 use App\Models\CheapCountry;
@@ -45,23 +45,22 @@ final class PlanController
                 return JsonResponse::ok("plans retrieved success", $plans);
             }
 
+            $user = JwtAuthenticator::validate();
             if ($standard == 'low') {
                 $plans = $builder->where('for_cheap_regions', 1)->get();
             } else if ($standard == 'high') {
                 $plans = $builder->where('for_cheap_regions', 0)->get();
-            } else if ($user = JwtAuthenticator::validate()) {
-                if (Guard::roleIs($user, 'admin')) {
-                    $plans = $builder->all();
-                } else if ($user->country ?? null) {
-                    $ischeapcountry = CheapCountry::getBuilder()->where('name', $user->country)->count();
+            } else if ($user && Guard::roleIs($user, 'admin')) {
+                $plans = $builder->all();
+            } else if ($user && $user->country ?? null) {
+                $ischeapcountry = CheapCountry::getBuilder()->where('name', $user->country)->count();
 
-                    $plans = $ischeapcountry ? $builder->where('for_cheap_regions', 1)->get() : $builder->where('for_cheap_regions', 0)->get();
-                }
+                $plans = $ischeapcountry ? $builder->where('for_cheap_regions', 1)->get() : $builder->where('for_cheap_regions', 0)->get();
             } else {
                 $ipaddress = getenv('HTTP_X_FORWARDED_FOR') ? getenv('HTTP_X_FORWARDED_FOR') : getenv('REMOTE_ADDR');
 
-                // $ws = new \IP2Location\WebService(env('IP2LOC_API_KEY'), 'WS25', false);
-                $ws = new WebService(env('IPLOC_API_KEY'));           // Not using SSL for faster response time
+                // $ws = new \IP2Location\IpLocService(env('IP2LOC_API_KEY'), 'WS25', false);
+                $ws = new IpLocService(env('IPLOC_API_KEY'));           // Not using SSL for faster response time
                 $records = $ws->lookup($ipaddress, language: 'en');
 
                 $ischeapcountry = $records != false ? CheapCountry::getBuilder()->where('name', $records['country_name'])->count() : false;

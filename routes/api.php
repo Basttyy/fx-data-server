@@ -65,6 +65,7 @@ Route::middleware(VisitLoggerMiddleware::class, function () {
         Route::get('/$plan', [PlanController::class, 'show']);
         Route::get('', [PlanController::class, 'list'])->middleware([[ThrottleRequestsMiddleware::class]]);
         Route::get('/standard/$standard', [PlanController::class, 'list']);
+        Route::get('/standard', [PlanController::class, 'list']);
         Route::get('/query/$query', [PlanController::class, 'list']);
         Route::middleware(AuthMiddleware::class, function () {
             Route::post('', [PlanController::class, 'create']);
