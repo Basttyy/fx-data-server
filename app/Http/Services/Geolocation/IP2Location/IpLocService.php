@@ -7,7 +7,7 @@ use GuzzleHttp\Client;
 /**
  * IP2Location web service class.
  */
-class WebService
+class IpLocService
 {
 	/**
 	 * No cURL extension found.

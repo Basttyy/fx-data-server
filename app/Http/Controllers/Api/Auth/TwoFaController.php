@@ -3,6 +3,8 @@ namespace App\Http\Controllers\Api\Auth;
 
 use App\Console\Jobs\SendVerifyEmail;
 use App\Models\User;
+use chillerlan\QRCode\QRCode;
+use chillerlan\QRCode\QROptions;
 use Exception;
 use Eyika\Atom\Framework\Http\JsonResponse;
 use Eyika\Atom\Framework\Http\Request;
@@ -27,7 +29,7 @@ final class TwoFaController
             $user = $request->auth_user;
 
             if ($mode == User::EMAIL) {
-                $code = Str::random(6); implode([rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9)]);
+                $code = random_int(100000, 999999);
                 if (!$user->update(['email2fa_token' => (string)$code, 'email2fa_expire' => time() + env('EMAIL2FA_MAX_AGE')])) {  //TODO:: this token should be timeed and should expire
                     return JsonResponse::serverError("unable to generate token");
                 }
@@ -39,7 +41,7 @@ final class TwoFaController
             } else {
                 $google2fa = new Google2FA();
                 $secret = $google2fa->generateSecretKey(32);
-    
+
                 //store secret in user data
                 if (!$user->update(['twofa_secret' => $secret], is_protected: false)) {
                     return JsonResponse::serverError('unable to generate token');
@@ -49,9 +51,9 @@ final class TwoFaController
                     $user->email,
                     $user->twofa_secret
                 );
+                $qr = new QRCode();
     
-                $image_url = 'https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl='.$text;
-                return JsonResponse::ok("qr url generated", ['image_url' => $image_url]);
+                return JsonResponse::ok("qr url generated", ['image_url' => $qr->render($text)]);
             }
         } catch (Exception $e) {
             return JsonResponse::serverError("something happened try again " . env('APP_ENV') === "local" ? $e->getTraceAsString() : "");

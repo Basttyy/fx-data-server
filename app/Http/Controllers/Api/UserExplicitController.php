@@ -261,7 +261,7 @@ final class UserExplicitController
                 return JsonResponse::unauthorized();
             }
 
-            $code = Str::random(10);
+            $code = random_int(100000, 999999); //  Str::random(10);
             if (!$user->update(['email2fa_token' => $code, 'email2fa_expire' => time() + env('EMAIL2FA_MAX_AGE')])) {  //TODO:: this token should be timeed and should expire
                 return JsonResponse::serverError("unable to generate token");
             }
@@ -363,7 +363,7 @@ final class UserExplicitController
             }
 
             if ($user instanceof User) {
-                $code = Str::random(10);
+                $code = random_int(100000, 999999); //  Str::random(10);
                 if (!$user->update(['email2fa_token' => (string)$code, 'email2fa_expire' => time() + env('EMAIL2FA_MAX_AGE')])) {  //TODO:: this token should be timeed and should expire
                     return JsonResponse::serverError("unable to generate token");
                 }
