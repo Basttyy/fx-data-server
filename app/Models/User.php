@@ -44,6 +44,7 @@ final class User extends Model implements UserModelInterface
     public string | null $postal_code;
     public string | null $address;
     public int $role_id;
+    public bool $require_subscription;
     public string | null $referral_code;
     public string | null $access_token;
     public string | null $twofa_secret;
@@ -76,7 +77,7 @@ final class User extends Model implements UserModelInterface
     const fillable = [
         'id', 'uuid', 'firstname', 'lastname', 'username', 'email', 'password',
         'phone', 'level', 'country', 'city', 'postal_code', 'address',
-        'role_id', 'access_token', 'twofa_secret', 'email2fa_token', 'status',
+        'role_id', 'require_subscription', 'access_token', 'twofa_secret', 'email2fa_token', 'status',
         'avatar', 'created_at', 'updated_at', 'deleted_at', 'email2fa_expire',
         'twofa_types', 'twofa_default_type', 'referral_code', 'points', 'dollar_per_point'
     ];

@@ -26,6 +26,7 @@ final class AuthController
     public function login (Request $request)
     {
         try {
+            logger()->info('got here');
             if (!$request->hasBody()) {
                 return JsonResponse::badRequest("bad request", "body is required");
             }
@@ -43,6 +44,7 @@ final class AuthController
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
+            logger()->info('(((((((((((((((');
 
             if (!$user = User::getBuilder()->where('email', $body['email'])->orWhere('username', $body['email'])->first(false)) {
                 throw new NotFoundException("invalid login details");
