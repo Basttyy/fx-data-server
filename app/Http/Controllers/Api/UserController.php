@@ -101,12 +101,12 @@ final class UserController
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
             }
-            
-            $_SESSION['email2fa_token'] = Str::random(10);
+
+            $_SESSION['email2fa_token'] =  // Str::random(10);
 
             $body['password'] = password_hash($body['password'], PASSWORD_BCRYPT);
             $body['username'] = $body['username'] ?? $body['email'];
-            $body['email2fa_token'] = $_SESSION['email2fa_token']; //implode([rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9),rand(0,9)]);
+            $body['email2fa_token'] = $_SESSION['email2fa_token'];
             $body['email2fa_expire'] = time() + env('EMAIL2FA_MAX_AGE');
 
             DB::beginTransaction();
@@ -185,9 +185,15 @@ final class UserController
                 'address' => 'sometimes|string',
                 'postal_code' => 'sometimes|string',
                 'avatar' => 'sometimes|string',
-                'dollar_per_point' => 'sometimes|float'
+                'dollar_per_point' => 'sometimes|float',
+                'require_subscription' => 'sometimes|boolean'
             ])) {
                 return JsonResponse::badRequest('errors in request', $validated);
+            }
+
+            if (isset($body['require_subscription']) && !$is_admin) {
+                unset($body['require_subscription']);
+                logger()->info('only admin can update require_subscription status of a user');
             }
 
             if (isset($body['avatar'])) {
