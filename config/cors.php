@@ -31,4 +31,6 @@ return [
 
     'supports_credentials' => true,
 
+    'apply_cors' => env('APP_ENV', 'local') === 'local'
+
 ];
