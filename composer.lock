@@ -938,12 +938,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/eyika/atomframework.git",
-                "reference": "a823375cc2be5f25ce9c99e3bc32c3938a73cbaf"
+                "reference": "dd8aa48c541d4bcfacd67e828a1790674e0d47f0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/eyika/atomframework/zipball/a823375cc2be5f25ce9c99e3bc32c3938a73cbaf",
-                "reference": "a823375cc2be5f25ce9c99e3bc32c3938a73cbaf",
+                "url": "https://api.github.com/repos/eyika/atomframework/zipball/dd8aa48c541d4bcfacd67e828a1790674e0d47f0",
+                "reference": "dd8aa48c541d4bcfacd67e828a1790674e0d47f0",
                 "shasum": ""
             },
             "require": {
@@ -997,7 +997,7 @@
                 "issues": "https://github.com/eyika/atomframework/issues",
                 "source": "https://github.com/eyika/atomframework/tree/dev"
             },
-            "time": "2024-10-24T08:43:03+00:00"
+            "time": "2024-10-24T19:29:45+00:00"
         },
         {
             "name": "ezyang/htmlpurifier",
