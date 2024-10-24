@@ -217,7 +217,7 @@ final class TransactionController
     public function update(Request $request)
     {
         try {
-            if (env('PAYMENT_PROVIDER_ENV') !== $_SERVER['HTTP_VERIF_HASH']) {
+            if (env('PAYMENT_PROVIDER_ENV') !== $request->server('VERIF_HASH')) {
                 return JsonResponse::unauthorized();
             }
 

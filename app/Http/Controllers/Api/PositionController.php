@@ -284,37 +284,39 @@ final class PositionController
                 return JsonResponse::badRequest('errors in request', $validated);
             }
 
+            $entrypoint = $body['entrypoint'] ?? $position->entrypoint;
+
             if (str_contains($body['action'] ?? '', 'buy')) {
-                if (isset($body['takeprofit']) && $body['takeprofit'] <= $body['entrypoint']) {
+                if (isset($body['takeprofit']) && $body['takeprofit'] <= $entrypoint) {
                     return JsonResponse::badRequest('invalid entry or takeprofit or stoploss levels');
                 }
-                if (isset($body['stoploss']) && $body['stoploss'] >= $body['entrypoint']) {
+                if (isset($body['stoploss']) && $body['stoploss'] >= $entrypoint) {
                     return JsonResponse::badRequest('invalid entry or takeprofit or stoploss levels');
                 }
                 if (isset($body['takeprofit']) && isset($body['stoploss']) && $body['stoploss'] > $body['takeprofit']) {
                     return JsonResponse::badRequest('invalid entry or takeprofit or stoploss levels');
                 }
-                if ($body['action'] === 'buylimit' && $body['entrypoint'] >= $body['currentprice']) {
+                if ($body['action'] === 'buylimit' && $entrypoint >= $body['currentprice']) {
                     return JsonResponse::badRequest('invalid entry or takeprofit or stoploss levels');
                 }
-                else if ($body['action'] === 'buystop' && $body['entrypoint'] <= $body['currentprice']) {
+                else if ($body['action'] === 'buystop' && $entrypoint <= $body['currentprice']) {
                     return JsonResponse::badRequest('invalid entry or takeprofit or stoploss levels');
                 }
             }
             if (str_contains($body['action'] ?? '', 'sell')) {
-                if (isset($body['takeprofit']) && $body['takeprofit'] >= $body['entrypoint']) {
+                if (isset($body['takeprofit']) && $body['takeprofit'] >= $entrypoint) {
                     return JsonResponse::badRequest('invalid entry or takeprofit or stoploss levels');
                 }
-                if (isset($body['stoploss']) && $body['stoploss'] <= $body['entrypoint']) {
+                if (isset($body['stoploss']) && $body['stoploss'] <= $entrypoint) {
                     return JsonResponse::badRequest('invalid entry or takeprofit or stoploss levels');
                 }
                 if (isset($body['takeprofit']) && isset($body['stoploss']) && $body['stoploss'] < $body['takeprofit']) {
                     return JsonResponse::badRequest('invalid entry or takeprofit or stoploss levels');
                 }
-                if ($body['action'] === 'selllimit' && $body['entrypoint'] <= $body['currentprice']) {
+                if ($body['action'] === 'selllimit' && $entrypoint <= $body['currentprice']) {
                     return JsonResponse::badRequest('invalid entry or takeprofit or stoploss levels');
                 }
-                else if ($body['action'] === 'sellstop' && $body['entrypoint'] >= $body['currentprice']) {
+                else if ($body['action'] === 'sellstop' && $entrypoint >= $body['currentprice']) {
                     return JsonResponse::badRequest('invalid entry or takeprofit or stoploss levels');
                 }
             }

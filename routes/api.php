@@ -33,10 +33,8 @@ use App\Http\Middlewares\WebAuthMiddleware;
 use Eyika\Atom\Framework\Http\Route;
 
 Route::middleware(VisitLoggerMiddleware::class, function () {
-    logger()->info('***************');
     /// Auth routes
     Route::group('/auth', function () {
-        logger()->info('&&&&&&&&&&&&&&&&&&');
         Route::post('/login', [AuthController::class, 'login']);
         Route::get('/login', [AuthController::class, 'loginOauth']);
         Route::get('/captcha', [CaptchaController::class, 'generate']);

@@ -15,7 +15,6 @@ class ThrottleRequestsMiddleware implements MiddlewareInterface
     public function handle(Request $request, ...$params): bool
     {
         try {
-            logger()->info('this is from throttleRequest middleware', $params);
             $ipAddress = getIpAddress($request);
             $currentTime = time();
             $user = $request->auth_user ?? null;
@@ -25,20 +24,19 @@ class ThrottleRequestsMiddleware implements MiddlewareInterface
             if ($user) {
                 if (!$this->isAllowed($this->requestsPerUser, $user->id, $limit, $currentTime, $timeFrame)) {
                     http_response_code(429); // Too Many Requests
-                    logger()->info("Too many requests for user ID: $user->id. Please try again later.");
+                    // logger()->info("Too many requests for user ID: $user->id. Please try again later.");
                     exit;
                 }
             } else {
                 // Throttle by IP Address
                 if (!$this->isAllowed($this->requestsPerIp, $ipAddress, $limit, $currentTime, $timeFrame)) {
                     http_response_code(429); // Too Many Requests
-                    logger()->info("Too many requests from IP: $ipAddress. Please try again later.");
+                    // logger()->info("Too many requests from IP: $ipAddress. Please try again later.");
                     exit;
                 }
             }
     
             // Process the request (placeholder for actual request handling logic)
-            logger()->info("Request processed successfully.");
         } catch (PDOException $e) {
             // consoleLog(0, $e->getMessage(). '   '.$e->getTraceAsString());
         } catch (Exception $e) {
@@ -49,7 +47,6 @@ class ThrottleRequestsMiddleware implements MiddlewareInterface
 
     private function isAllowed(&$storage, $identifier, $limit, $currentTime, $timeFrame)
     {
-        logger()->info('the storage content is: ', $storage);
         if (!isset($storage[$identifier])) {
             $storage[$identifier] = ['count' => 0, 'start' => $currentTime];
         }
