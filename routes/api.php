@@ -54,7 +54,7 @@ Route::middleware(VisitLoggerMiddleware::class, function () {
         Route::middleware(AuthMiddleware::class, function () {
             Route::get('/$user', [UserController::class, 'show'])->middleware([ThrottleRequestsMiddleware::class, "3,60"]);
             Route::get('', [UserController::class, 'list'])->name('users.list')->middleware([[ThrottleRequestsMiddleware::class, "3,60"]]);
-            Route::get('/query/$query', [UserController::class, 'list']);
+            Route::get('/query', [UserController::class, 'list']);
             Route::put('/$user', [UserController::class, 'update'])->middleware([ThrottleRequestsMiddleware::class]);
             Route::delete('/$user', [UserController::class, 'delete'])->middleware(ThrottleRequestsMiddleware::class);
             Route::post('/affilliate/withdraw/$points', [UserController::class, 'withrawAffilliateEarnings']);
@@ -66,7 +66,7 @@ Route::middleware(VisitLoggerMiddleware::class, function () {
         Route::get('', [PlanController::class, 'list'])->middleware([[ThrottleRequestsMiddleware::class]]);
         Route::get('/standard/$standard', [PlanController::class, 'list']);
         Route::get('/standard', [PlanController::class, 'list']);
-        Route::get('/query/$query', [PlanController::class, 'list']);
+        Route::get('/query', [PlanController::class, 'list']);
         Route::middleware(AuthMiddleware::class, function () {
             Route::post('', [PlanController::class, 'create']);
             Route::put('/$plan', [PlanController::class, 'update']);
@@ -96,7 +96,7 @@ Route::middleware(VisitLoggerMiddleware::class, function () {
         Route::middleware(AuthMiddleware::class, function () {
             Route::get('/$strategy', [StrategyController::class, 'show']);
             Route::get('', [StrategyController::class, 'list']);
-            Route::get('/query/$query', [StrategyController::class, 'list']);
+            Route::get('/query', [StrategyController::class, 'list']);
             Route::get('/users/$id', [StrategyController::class, 'listUser']);
             Route::post('', [StrategyController::class, 'create'])->middleware([RoleMiddleware::class, 'user']);
             Route::put('/$strategy', [StrategyController::class, 'update'])->middleware([RoleMiddleware::class, 'user']);
@@ -108,7 +108,7 @@ Route::middleware(VisitLoggerMiddleware::class, function () {
         Route::middleware(AuthMiddleware::class, function () {
             Route::get('/$testsession', [TestSessionController::class, 'show']);
             Route::get('', [TestSessionController::class, 'list']);
-            Route::get('/query/$query', [TestSessionController::class, 'list']);
+            Route::get('/query', [TestSessionController::class, 'list']);
             Route::middleware([RoleMiddleware::class, "user"], function () {
                 Route::post('', [TestSessionController::class, 'create']);
                 Route::put('/$testsession', [TestSessionController::class, 'update']);
@@ -121,7 +121,7 @@ Route::middleware(VisitLoggerMiddleware::class, function () {
         Route::get('/$pair', [PairController::class, 'show']);
         Route::get('', [PairController::class, 'list']);
         Route::get('/list/onlypair', [PairController::class, 'listonlypair']);
-        Route::get('/list/pairorsym/$info_select/query/$query', [PairController::class, 'query']);
+        Route::get('/list/pairorsym/$info_select/query', [PairController::class, 'query']);
         Route::middleware(AuthMiddleware::class, function () {
             Route::post('', [PairController::class, 'create']);
             Route::put('/$pair', [PairController::class, 'update']);
@@ -133,7 +133,7 @@ Route::middleware(VisitLoggerMiddleware::class, function () {
         Route::middleware(AuthMiddleware::class, function () {
             Route::get('/$position', [PositionController::class, 'show']);
             Route::get('', [PositionController::class, 'list'])->name('positions.list');
-            Route::get('/query/$query', [PositionController::class, 'list'])->name('positions.query');
+            Route::get('/query', [PositionController::class, 'list'])->name('positions.query');
             Route::get('/users/$id', [PositionController::class, 'list_user']);
             Route::post('', [PositionController::class, 'create']);
             Route::put('/$position', [PositionController::class, 'update']);
@@ -146,7 +146,7 @@ Route::middleware(VisitLoggerMiddleware::class, function () {
         Route::middleware(AuthMiddleware::class, function () {
             Route::get('/$feedback', [FeedbackController::class, 'show']);
             Route::get('', [FeedbackController::class, 'list'])->name('feedbacks.list');
-            Route::get('/query/$query', [FeedbackController::class, 'list'])->name('feedbacks.query');
+            Route::get('/query', [FeedbackController::class, 'list'])->name('feedbacks.query');
             Route::get('/users/$feedback', [FeedbackController::class, 'list_user']);
             Route::post('', [FeedbackController::class, 'create']);
             Route::put('/$feedback', [FeedbackController::class, 'update']);
@@ -159,9 +159,9 @@ Route::middleware(VisitLoggerMiddleware::class, function () {
             Route::group('/visit-logs', function () {
                 Route::get('/$visit', [VisitController::class, 'show']);
                 Route::get('/all/count', [VisitController::class, 'count']);
-                Route::get('/all/count/$query', [VisitController::class, 'count'])->name('admin.visit-logs.countquery');
+                Route::get('/all/count', [VisitController::class, 'count'])->name('admin.visit-logs.countquery');
                 Route::get('', [VisitController::class, 'list'])->name('admin.visit-logs.list');
-                Route::get('/query/$query', [VisitController::class, 'list']);
+                Route::get('/query', [VisitController::class, 'list']);
             });
             Route::group('/blog-posts', function () {
                 Route::post('', [BlogPostController::class, 'create']);
@@ -171,9 +171,9 @@ Route::middleware(VisitLoggerMiddleware::class, function () {
             });
             Route::group('/subscriptions', function () {
                 Route::get('/all/count', [SubscriptionController::class, 'count']);
-                // Route::get('/all/count/$query', [SubscriptionController::class, 'count']);
+                // Route::get('/all/count', [SubscriptionController::class, 'count']);
                 Route::get('', [SubscriptionController::class, 'list'])->name('admin.subscriptions.list');
-                Route::get('/query/$query', [SubscriptionController::class, 'list'])->name('admin.subscriptions.query');
+                Route::get('/query', [SubscriptionController::class, 'list'])->name('admin.subscriptions.query');
                 Route::get('/users/$id', [SubscriptionController::class, 'listUser'])->name('admin.subscriptions.listuser');
                 Route::get('/plans/$id', [SubscriptionController::class, 'listPlan'])->name('admin.subscriptions.listplan');
             });
@@ -205,7 +205,7 @@ Route::middleware(VisitLoggerMiddleware::class, function () {
         Route::get('', [BlogPostController::class, 'list'])->name('blog-posts.list');
         Route::get('/$blog', [BlogPostController::class, 'show']);
         Route::get('/comments/$id', [PostCommentController::class, 'show']);
-        Route::get('/comments/query/$query', [PostCommentController::class, 'list'])->name('blog-posts.comments.query');
+        Route::get('/comments/query', [PostCommentController::class, 'list'])->name('blog-posts.comments.query');
         Route::get('/$id/comments', [PostCommentController::class, 'list'])->name('blog-posts.comments.list');
         Route::post('/$id/comments', [PostCommentController::class, 'create']);
         Route::middleware([AuthMiddleware::class], function () {
@@ -217,7 +217,7 @@ Route::middleware(VisitLoggerMiddleware::class, function () {
     Route::group('/fx', function () {
         Route::get('/download/min/ticker/$ticker/offerside/$offerside/period/$period/yr/$year/mn/$month/wk/$week', [FxDataController::class, 'downloadMinutesData']);
         Route::get('/currency/conversiondata/ticker/$ticker/year/$year', [FxDataController::class, 'currencyConversionData']);
-        Route::get('/tickers/query/$query', [MiscellaneousController::class, 'searchTicker']);
+        Route::get('/tickers/query', [MiscellaneousController::class, 'searchTicker']);
         Route::get('/tickers/query', [MiscellaneousController::class, 'searchTicker']);
     });
     Route::middleware(AuthMiddleware::class, false)->group('/chartstore', function () {
