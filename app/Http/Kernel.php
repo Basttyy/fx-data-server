@@ -2,11 +2,11 @@
 
 namespace App\Http;
 
+use App\Http\Middlewares\HandleCors;
 use Eyika\Atom\Framework\Foundation\Kernel as FoundationKernel;
 use Eyika\Atom\Framework\Http\Middlewares\AuthenticateSession;
 use Eyika\Atom\Framework\Http\Middlewares\ConvertEmptyStringsToNull;
 use Eyika\Atom\Framework\Http\Middlewares\EncryptCookies;
-use Eyika\Atom\Framework\Http\Middlewares\HandleCors;
 use Eyika\Atom\Framework\Http\Middlewares\PreventRequestsDuringMaintenance;
 use Eyika\Atom\Framework\Http\Middlewares\ServePublicAssets;
 use Eyika\Atom\Framework\Http\Middlewares\ShareErrorsFromSession;
