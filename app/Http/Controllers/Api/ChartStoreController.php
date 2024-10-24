@@ -32,7 +32,7 @@ final class ChartStoreController
 
             return Response::json('charts retrieved success', $charts);
         } catch (Exception $e) {
-            return Response::json('unable to retrieve charts', 400);
+            return Response::json('unable to retrieve charts', 404);
         }
     }
 
@@ -49,7 +49,7 @@ final class ChartStoreController
     
             return Response::json('chart retrieved success', $chart);
         } catch (Exception $e) {
-            return Response::json('unable to retrieve chart content', 400);
+            return Response::json('unable to retrieve chart content', 404);
         }
     }
 
@@ -71,7 +71,7 @@ final class ChartStoreController
             ]);
         } catch (Exception $e) {
             logger()->info($e->getMessage(). '\n' . $e->getTraceAsString());
-            return Response::json('unable to save chart', 400);
+            return Response::json('unable to save chart', 404);
         }
     }
 
@@ -92,7 +92,7 @@ final class ChartStoreController
             ], 201);
         } catch (Exception $e) {
             logger()->info($e->getMessage(). '\n' . $e->getTraceAsString());
-            return Response::json('unable to update chart', 400);
+            return Response::json('unable to update chart', 404);
         }
     }
 
@@ -109,7 +109,7 @@ final class ChartStoreController
     
             return Response::json('chart removed success');
         } catch (Exception $e) {
-            return Response::json('unable to remove chart', 400);
+            return Response::json('unable to remove chart', 404);
         }
     }
 
@@ -124,7 +124,7 @@ final class ChartStoreController
     
             return Response::json('chart template retrieved success', $template);
         } catch (Exception $e) {
-            return Response::json('unable to retrieve chart template content', 400);
+            return Response::json('unable to retrieve chart template content', 404);
         }
     }
     
@@ -142,7 +142,7 @@ final class ChartStoreController
     
             return Response::json('chart templates retrieved success', $charts);
         } catch (Exception $e) {
-            return Response::json('unable to retrieve chart templates', 400);
+            return Response::json('unable to retrieve chart templates', 404);
         }
     }
 
@@ -163,7 +163,7 @@ final class ChartStoreController
                 'name' => $name
             ]);
         } catch (Exception $e) {
-            return Response::json('unable to save chart template', 400);
+            return Response::json('unable to save chart template', 404);
         }
     }
 
@@ -180,7 +180,7 @@ final class ChartStoreController
     
             return Response::json('chart template removed success');
         } catch (Exception $e) {
-            return Response::json('unable to remove chart template', 400);
+            return Response::json('unable to remove chart template', 404);
         }
     }
 
@@ -200,7 +200,7 @@ final class ChartStoreController
     
             return Response::json('study templates retrieved success', $templates);
         } catch (Exception $e) {
-            return Response::json('unable to retrieve study template', 400);
+            return Response::json('unable to retrieve study template', 404);
         }
     }
 
@@ -217,7 +217,7 @@ final class ChartStoreController
     
             return Response::json('study template removed success');
         } catch (Exception $e) {
-            return Response::json('unable to remove study template', 400);
+            return Response::json('unable to remove study template', 404);
         }
     }
 
@@ -238,7 +238,7 @@ final class ChartStoreController
                 'name' => $name
             ]);
         } catch (Exception $e) {
-            return Response::json('unable to save study template', 400);
+            return Response::json('unable to save study template', 404);
         }
     }
 
@@ -254,7 +254,7 @@ final class ChartStoreController
     
             return Response::json('study template retrieved success', $template);
         } catch (Exception $e) {
-            return Response::json('unable to retrieve study template', 400);
+            return Response::json('unable to retrieve study template', 404);
         }
     }
 
@@ -274,7 +274,7 @@ final class ChartStoreController
     
             return Response::json('drawing templates retrieved success', $templates);
         } catch (Exception $e) {
-            return Response::json('unable to retrieve drawing templates', 400);
+            return Response::json('unable to retrieve drawing templates', 404);
         }
     }
 
@@ -291,7 +291,7 @@ final class ChartStoreController
     
             return Response::json('study template removed success');
         } catch (Exception $e) {
-            return Response::json('unable to remove drawing template', 400);
+            return Response::json('unable to remove drawing template', 404);
         }
     }
 
@@ -307,7 +307,7 @@ final class ChartStoreController
     
             return Response::json('drawing template retrieved success', $template);
         } catch (Exception $e) {
-            return Response::json('unable to retrieve drawing template', 400);
+            return Response::json('unable to retrieve drawing template', 404);
         }
     }
 
@@ -332,7 +332,7 @@ final class ChartStoreController
                 'name' => $templatename
             ]);
         } catch (Exception $e) {
-            return Response::json('unable to save drawing template', 400);
+            return Response::json('unable to save drawing template', 404);
         }
     }
 
@@ -357,7 +357,7 @@ final class ChartStoreController
                 'id' => $chartid
             ]);
         } catch (Exception $e) {
-            return Response::json('unable to retrieve chart content', 400);
+            return Response::json('unable to retrieve chart content', 404);
         }
     }
 
@@ -373,7 +373,7 @@ final class ChartStoreController
     
             return Response::json('line tools retrieved success', $line_tools);
         } catch (Exception $e) {
-            return Response::json('unable to retrieve line tools', 400);
+            return Response::json('unable to retrieve line tools', 404);
         }
     }
 
